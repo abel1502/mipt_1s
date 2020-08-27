@@ -35,7 +35,7 @@
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<DoxyBlocks>
-				<comment_style block="1" line="0" />
+				<comment_style block="0" line="0" />
 				<doxyfile_project />
 				<doxyfile_build />
 				<doxyfile_warnings />

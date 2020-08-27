@@ -14,8 +14,8 @@
 
 
 /**
- Possible solution types
-*/
+ * Possible solution types
+ */
 typedef enum se_type {
     SE_NO_ROOTS,  /**< No real roots */
     SE_ONE_ROOT,  /**< 1 real root */
@@ -25,8 +25,8 @@ typedef enum se_type {
 
 
 /**
- Solution information
-*/
+ * Solution information
+ */
 typedef struct se_solution {
     double x1;      /**< The first solution (if present) */
     double x2;      /**< The second solution (if present) */
@@ -35,8 +35,8 @@ typedef struct se_solution {
 
 
 /**
- Shows a constant banner at the beginning of the execution
-*/
+ * Shows a constant banner at the beginning of the execution
+ */
 void showBanner(void) {
     printf("########################\n"
            "#                      #\n"
@@ -52,12 +52,12 @@ void showBanner(void) {
 
 
 /**
- Pretty-prints a solution into the console
-
- @param solution The solution to print
-
- @return Error code (0 means success, non-0 - an exception)
-*/
+ * Pretty-prints a solution into the console
+ *
+ * @param solution The solution to print
+ *
+ * @return Error code (0 means success, non-0 - an exception)
+ */
 int logSolution(se_solution_t * solution) {
     if (solution == NULL) {
         ERR("logSolution", "nullptr solution");
@@ -85,15 +85,15 @@ int logSolution(se_solution_t * solution) {
 
 
 /**
- Solves a square equation (a*x^2+b*x+c==0)
-
- @param [in]  a        `a` coefficient
- @param [in]  b        `b` coefficient
- @param [in]  c        `c` coefficient
- @param [out] solution Pointer to the solution struct
-
- @return Error value. (0 means success, non-0 indicates an exception)
-*/
+ * Solves a square equation (a*x^2+b*x+c==0)
+ *
+ * @param [in]  a        `a` coefficient
+ * @param [in]  b        `b` coefficient
+ * @param [in]  c        `c` coefficient
+ * @param [out] solution Pointer to the solution struct
+ *
+ * @return Error value. (0 means success, non-0 indicates an exception)
+ */
 int solveSE(double a, double b, double c, se_solution_t * solution) {
     if (!std::isfinite(a) || !std::isfinite(b) || !std::isfinite(c)) {
         ERR("solveSE", "some coefficient isn\'t a finite number");
