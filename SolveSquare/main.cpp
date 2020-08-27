@@ -3,12 +3,14 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#if !NDEBUG  // I'm creating this extra flag on purpose because I may change my ming about when to log errors or when not to
+#if !NDEBUG  // I'm creating this extra flag on purpose because I may change \
+                my ming about when to log errors or when not to
 #define SHOWERRORS
 #endif
 
 #ifdef SHOWERRORS
-#define ERR(msg, ...) do {fprintf(stderr, "ERROR in %s(): " msg, __func__, ##__VA_ARGS__);} while (0)
+#define ERR(msg, ...) do {fprintf(stderr, "ERROR in %s(): " msg, __func__, \
+                                  ##__VA_ARGS__);} while (0)
 #else
 #define ERR(msg, ...)
 #endif
@@ -145,7 +147,9 @@ int main()
     printf("Enter the coefficients: ");
     if (scanf("%lg %lg %lg", &a, &b, &c) != 3) {
         ERR("Error while trying to read input");
-        return EXIT_FAILURE;  // Since I'm only allowed to use exits in main, there's no more consistency requirement between all functions and I can just use return
+        return EXIT_FAILURE;  // Since I'm only allowed to use exits in main, \
+          there's no more consistency requirement between all functions and I \
+          can just use return
     }
 
     se_solution_t solution;
