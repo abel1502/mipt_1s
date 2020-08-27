@@ -50,6 +50,15 @@ void logSolution(se_solution_t * solution) {
 
 int solveSE(double a, double b, double c, se_solution_t * solution) {
     // TODO: Validity checks
+    if (!std::isfinite(a) || !std::isfinite(b) || !std::isfinite(c)) {
+        printf("ERR: some coefficient isn\'t a finite number");
+        return 1;
+    }
+    if (solution == NULL) {
+        printf("ERR: nullptr solution");
+        return 2;
+    }
+
     if (a == 0) {
         if (b == 0) {
             if (c == 0) {
