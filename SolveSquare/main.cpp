@@ -1,15 +1,16 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #if !NDEBUG  // I'm creating this extra flag on purpose because I may change my ming about when to log errors or when not to
 #define SHOWERRORS
 #endif
 
 #ifdef SHOWERRORS
-#define ERR(source, msg, ...) printf("ERROR in " source "(): " msg, ##__VA_ARGS__);
+#define ERR(msg, ...) do {fprintf(stderr, "ERROR in %s(): " msg, __func__, ##__VA_ARGS__);} while (0)
 #else
-#define ERR(source, msg, ...)
+#define ERR(msg, ...)
 #endif
 
 
@@ -59,10 +60,11 @@ void showBanner(void) {
  * @return Error code (0 means success, non-0 - an exception)
  */
 int logSolution(se_solution_t * solution) {
-    if (solution == NULL) {
-        ERR("logSolution", "nullptr solution");
-        return 1;
-    }
+//    if (solution == NULL) {
+//        ERR("nullptr solution");
+//        return 1;
+//    }
+    assert(solution != NULL);
     switch (solution->type) {
     case SE_NO_ROOTS:
         printf("No solutions\n");
@@ -77,7 +79,7 @@ int logSolution(se_solution_t * solution) {
         printf("x = Anything\n");
         break;
     default:
-        ERR("logSolution", "Unexpected value for solution type: %d\n", solution->type);
+        ERR("Unexpected value for solution type: %d\n", solution->type);
         return 2;
     }
     return 0;
@@ -95,14 +97,15 @@ int logSolution(se_solution_t * solution) {
  * @return Error value. (0 means success, non-0 indicates an exception)
  */
 int solveSE(double a, double b, double c, se_solution_t * solution) {
-    if (!std::isfinite(a) || !std::isfinite(b) || !std::isfinite(c)) {
-        ERR("solveSE", "some coefficient isn\'t a finite number");
+    if (!isfinite(a) || !isfinite(b) || !isfinite(c)) {
+        ERR("some coefficient isn\'t a finite number");
         return 1;
     }
-    if (solution == NULL) {
-        ERR("solveSE", "nullptr solution");
-        return 2;
-    }
+//    if (solution == NULL) {
+//        ERR("nullptr solution");
+//        return 2;
+//    }
+    assert(solution != NULL);
 
     if (a == 0) {
         if (b == 0) {
@@ -141,20 +144,20 @@ int main()
     double a = 0, b = 0, c = 0;
     printf("Enter the coefficients: ");
     if (scanf("%lg %lg %lg", &a, &b, &c) != 3) {
-        ERR("main", "Error while trying to read input");
-        return 1;  // Since I'm only allowed to use exits in main, there's no more consistency requirement between all functions and I can just use return
+        ERR("Error while trying to read input");
+        return EXIT_FAILURE;  // Since I'm only allowed to use exits in main, there's no more consistency requirement between all functions and I can just use return
     }
 
     se_solution_t solution;
     if (solveSE(a, b, c, &solution) != 0) {
-        ERR("main", "Error while solving the equation");
-        return 1;
+        ERR("Error while solving the equation");
+        return EXIT_FAILURE;
     }
 
     if (logSolution(&solution) != 0) {
-        ERR("main", "Error while printing the solution");
-        return 1;
+        ERR("Error while printing the solution");
+        return EXIT_FAILURE;
     }
-    return 0;
+    return EXIT_SUCCESS;
 }
 

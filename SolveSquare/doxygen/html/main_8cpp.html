@@ -94,6 +94,7 @@ $(document).ready(function(){initNavTree('main_8cpp.html',''); initResizable(); 
 <div class="textblock"><code>#include &lt;stdio.h&gt;</code><br />
 <code>#include &lt;math.h&gt;</code><br />
 <code>#include &lt;stdlib.h&gt;</code><br />
+<code>#include &lt;assert.h&gt;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -104,8 +105,8 @@ Classes</h2></td></tr>
 Macros</h2></td></tr>
 <tr class="memitem:a972909759f523017c7b3a33131074479"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a972909759f523017c7b3a33131074479">SHOWERRORS</a></td></tr>
 <tr class="separator:a972909759f523017c7b3a33131074479"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a123b6ff487c8679a1661066c0b0b2aa0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a123b6ff487c8679a1661066c0b0b2aa0">ERR</a>(source,  msg, ...)&#160;&#160;&#160;printf(&quot;ERROR in &quot; source &quot;(): &quot; msg, ##__VA_ARGS__);</td></tr>
-<tr class="separator:a123b6ff487c8679a1661066c0b0b2aa0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53920b362caf5d82db53de41a7740232"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a53920b362caf5d82db53de41a7740232">ERR</a>(msg, ...)&#160;&#160;&#160;do {fprintf(stderr, &quot;ERROR in %s(): &quot; msg, __func__, ##__VA_ARGS__);} while (0)</td></tr>
+<tr class="separator:a53920b362caf5d82db53de41a7740232"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -135,8 +136,8 @@ Functions</h2></td></tr>
 <tr class="separator:ae66f6b31b5ad750f1fe042a706a4e3d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
-<a id="a123b6ff487c8679a1661066c0b0b2aa0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a123b6ff487c8679a1661066c0b0b2aa0">&#9670;&nbsp;</a></span>ERR</h2>
+<a id="a53920b362caf5d82db53de41a7740232"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a53920b362caf5d82db53de41a7740232">&#9670;&nbsp;</a></span>ERR</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -144,12 +145,6 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">#define ERR</td>
           <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">source, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">msg, </td>
         </tr>
@@ -162,7 +157,7 @@ Functions</h2></td></tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td>&#160;&#160;&#160;printf(&quot;ERROR in &quot; source &quot;(): &quot; msg, ##__VA_ARGS__);</td>
+          <td></td><td>&#160;&#160;&#160;do {fprintf(stderr, &quot;ERROR in %s(): &quot; msg, __func__, ##__VA_ARGS__);} while (0)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -357,26 +352,26 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="amain_8cpp_html_aa40d21b026860decb46d9b35bd0b6ca9"><div class="ttname"><a href="main_8cpp.html#aa40d21b026860decb46d9b35bd0b6ca9">se_solution_t</a></div><div class="ttdeci">struct se_solution se_solution_t</div></div>
-<div class="ttc" id="amain_8cpp_html_a1eb53b541490c9b52d9604765cf90bdb"><div class="ttname"><a href="main_8cpp.html#a1eb53b541490c9b52d9604765cf90bdb">logSolution</a></div><div class="ttdeci">int logSolution(se_solution_t *solution)</div><div class="ttdef"><b>Definition:</b> main.cpp:61</div></div>
-<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17daa4832daea0b768ca70db09739a5e278d"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17daa4832daea0b768ca70db09739a5e278d">SE_ANY_ROOT</a></div><div class="ttdeci">@ SE_ANY_ROOT</div><div class="ttdef"><b>Definition:</b> main.cpp:23</div></div>
-<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17da36ec5a12432f96903803cef10b00fef0"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17da36ec5a12432f96903803cef10b00fef0">SE_NO_ROOTS</a></div><div class="ttdeci">@ SE_NO_ROOTS</div><div class="ttdef"><b>Definition:</b> main.cpp:20</div></div>
-<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17da904a530f4daee69c8ba79f74ebd8fc09"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17da904a530f4daee69c8ba79f74ebd8fc09">SE_ONE_ROOT</a></div><div class="ttdeci">@ SE_ONE_ROOT</div><div class="ttdef"><b>Definition:</b> main.cpp:21</div></div>
-<div class="ttc" id="amain_8cpp_html_a4f9ec8580edfb72aaa6f47c15ef0462c"><div class="ttname"><a href="main_8cpp.html#a4f9ec8580edfb72aaa6f47c15ef0462c">solveSE</a></div><div class="ttdeci">int solveSE(double a, double b, double c, se_solution_t *solution)</div><div class="ttdef"><b>Definition:</b> main.cpp:97</div></div>
-<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17daf5cfa6a7687cb804f0841ac39b0125e0"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17daf5cfa6a7687cb804f0841ac39b0125e0">SE_TWO_ROOTS</a></div><div class="ttdeci">@ SE_TWO_ROOTS</div><div class="ttdef"><b>Definition:</b> main.cpp:22</div></div>
-<div class="ttc" id="astructse__solution_html_aee2cced63d37d927dab04f8de09c93c6"><div class="ttname"><a href="structse__solution.html#aee2cced63d37d927dab04f8de09c93c6">se_solution::x2</a></div><div class="ttdeci">double x2</div><div class="ttdef"><b>Definition:</b> main.cpp:32</div></div>
-<div class="ttc" id="amain_8cpp_html_ae66f6b31b5ad750f1fe042a706a4e3d4"><div class="ttname"><a href="main_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4">main</a></div><div class="ttdeci">int main()</div><div class="ttdef"><b>Definition:</b> main.cpp:137</div></div>
-<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17d"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17d">se_type</a></div><div class="ttdeci">se_type</div><div class="ttdef"><b>Definition:</b> main.cpp:19</div></div>
-<div class="ttc" id="astructse__solution_html_a92b0a5fd41b95bfa69bb283ea3280e82"><div class="ttname"><a href="structse__solution.html#a92b0a5fd41b95bfa69bb283ea3280e82">se_solution::x1</a></div><div class="ttdeci">double x1</div><div class="ttdef"><b>Definition:</b> main.cpp:31</div></div>
-<div class="ttc" id="astructse__solution_html"><div class="ttname"><a href="structse__solution.html">se_solution</a></div><div class="ttdef"><b>Definition:</b> main.cpp:30</div></div>
-<div class="ttc" id="amain_8cpp_html_a6c85cf12ae582725fcf2b4531803c6ab"><div class="ttname"><a href="main_8cpp.html#a6c85cf12ae582725fcf2b4531803c6ab">showBanner</a></div><div class="ttdeci">void showBanner(void)</div><div class="ttdef"><b>Definition:</b> main.cpp:40</div></div>
-<div class="ttc" id="amain_8cpp_html_a123b6ff487c8679a1661066c0b0b2aa0"><div class="ttname"><a href="main_8cpp.html#a123b6ff487c8679a1661066c0b0b2aa0">ERR</a></div><div class="ttdeci">#define ERR(source, msg,...)</div><div class="ttdef"><b>Definition:</b> main.cpp:10</div></div>
-<div class="ttc" id="astructse__solution_html_a887a1352436779b81684af8f1fe19973"><div class="ttname"><a href="structse__solution.html#a887a1352436779b81684af8f1fe19973">se_solution::type</a></div><div class="ttdeci">se_type_t type</div><div class="ttdef"><b>Definition:</b> main.cpp:33</div></div>
+<div class="ttc" id="amain_8cpp_html_a1eb53b541490c9b52d9604765cf90bdb"><div class="ttname"><a href="main_8cpp.html#a1eb53b541490c9b52d9604765cf90bdb">logSolution</a></div><div class="ttdeci">int logSolution(se_solution_t *solution)</div><div class="ttdef"><b>Definition:</b> main.cpp:62</div></div>
+<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17daa4832daea0b768ca70db09739a5e278d"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17daa4832daea0b768ca70db09739a5e278d">SE_ANY_ROOT</a></div><div class="ttdeci">@ SE_ANY_ROOT</div><div class="ttdef"><b>Definition:</b> main.cpp:24</div></div>
+<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17da36ec5a12432f96903803cef10b00fef0"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17da36ec5a12432f96903803cef10b00fef0">SE_NO_ROOTS</a></div><div class="ttdeci">@ SE_NO_ROOTS</div><div class="ttdef"><b>Definition:</b> main.cpp:21</div></div>
+<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17da904a530f4daee69c8ba79f74ebd8fc09"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17da904a530f4daee69c8ba79f74ebd8fc09">SE_ONE_ROOT</a></div><div class="ttdeci">@ SE_ONE_ROOT</div><div class="ttdef"><b>Definition:</b> main.cpp:22</div></div>
+<div class="ttc" id="amain_8cpp_html_a4f9ec8580edfb72aaa6f47c15ef0462c"><div class="ttname"><a href="main_8cpp.html#a4f9ec8580edfb72aaa6f47c15ef0462c">solveSE</a></div><div class="ttdeci">int solveSE(double a, double b, double c, se_solution_t *solution)</div><div class="ttdef"><b>Definition:</b> main.cpp:99</div></div>
+<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17daf5cfa6a7687cb804f0841ac39b0125e0"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17daf5cfa6a7687cb804f0841ac39b0125e0">SE_TWO_ROOTS</a></div><div class="ttdeci">@ SE_TWO_ROOTS</div><div class="ttdef"><b>Definition:</b> main.cpp:23</div></div>
+<div class="ttc" id="astructse__solution_html_aee2cced63d37d927dab04f8de09c93c6"><div class="ttname"><a href="structse__solution.html#aee2cced63d37d927dab04f8de09c93c6">se_solution::x2</a></div><div class="ttdeci">double x2</div><div class="ttdef"><b>Definition:</b> main.cpp:33</div></div>
+<div class="ttc" id="amain_8cpp_html_ae66f6b31b5ad750f1fe042a706a4e3d4"><div class="ttname"><a href="main_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4">main</a></div><div class="ttdeci">int main()</div><div class="ttdef"><b>Definition:</b> main.cpp:140</div></div>
+<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17d"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17d">se_type</a></div><div class="ttdeci">se_type</div><div class="ttdef"><b>Definition:</b> main.cpp:20</div></div>
+<div class="ttc" id="astructse__solution_html_a92b0a5fd41b95bfa69bb283ea3280e82"><div class="ttname"><a href="structse__solution.html#a92b0a5fd41b95bfa69bb283ea3280e82">se_solution::x1</a></div><div class="ttdeci">double x1</div><div class="ttdef"><b>Definition:</b> main.cpp:32</div></div>
+<div class="ttc" id="astructse__solution_html"><div class="ttname"><a href="structse__solution.html">se_solution</a></div><div class="ttdef"><b>Definition:</b> main.cpp:31</div></div>
+<div class="ttc" id="amain_8cpp_html_a6c85cf12ae582725fcf2b4531803c6ab"><div class="ttname"><a href="main_8cpp.html#a6c85cf12ae582725fcf2b4531803c6ab">showBanner</a></div><div class="ttdeci">void showBanner(void)</div><div class="ttdef"><b>Definition:</b> main.cpp:41</div></div>
+<div class="ttc" id="astructse__solution_html_a887a1352436779b81684af8f1fe19973"><div class="ttname"><a href="structse__solution.html#a887a1352436779b81684af8f1fe19973">se_solution::type</a></div><div class="ttdeci">se_type_t type</div><div class="ttdef"><b>Definition:</b> main.cpp:34</div></div>
+<div class="ttc" id="amain_8cpp_html_a53920b362caf5d82db53de41a7740232"><div class="ttname"><a href="main_8cpp.html#a53920b362caf5d82db53de41a7740232">ERR</a></div><div class="ttdeci">#define ERR(msg,...)</div><div class="ttdef"><b>Definition:</b> main.cpp:11</div></div>
 <div class="ttc" id="amain_8cpp_html_a8a98ad5060ee284f67a1d35b397bb5a8"><div class="ttname"><a href="main_8cpp.html#a8a98ad5060ee284f67a1d35b397bb5a8">se_type_t</a></div><div class="ttdeci">enum se_type se_type_t</div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="main_8cpp.html">main.cpp</a></li>
-    <li class="footer">Generated on Thu Aug 27 2020 16:39:09 for SolveSquare by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.8.20 </li>
+    <li class="footer">Generated on Thu Aug 27 2020 17:50:05 for SolveSquare by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.8.20 </li>
   </ul>
 </div>
 </body>
