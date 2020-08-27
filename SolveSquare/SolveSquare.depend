@@ -1,6 +1,8 @@
 # depslib dependency file v1.0
-1598535404 source:d:\workspace\.mipt\s1\solvesquare\main.cpp
+1598549414 source:d:\workspace\.mipt\s1\solvesquare\main.cpp
 	<stdio.h>
 	<math.h>
 	<stdlib.h>
+	<assert.h>
+	<unistd.h>
 

@@ -2,18 +2,13 @@
 #include <math.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <unistd.h>
 
-#if !NDEBUG  // I'm creating this extra flag on purpose because I may change \
-                my ming about when to log errors or when not to
-#define SHOWERRORS
-#endif
 
-#ifdef SHOWERRORS
-#define ERR(msg, ...) do {fprintf(stderr, "ERROR in %s(): " msg, __func__, \
-                                  ##__VA_ARGS__);} while (0)
-#else
-#define ERR(msg, ...)
-#endif
+#define ERR(msg, ...) do {if (verbose) fprintf(stderr, "[ERROR in %s()] " msg "\n", __func__, ##__VA_ARGS__);} while (0)
+
+
+bool verbose = false;
 
 
 /**
@@ -54,10 +49,47 @@ void showBanner(void) {
 }
 
 
+
+/**
+ * Shows a usage help message
+ *
+ * @param [in] binname The current binary's name (argv[0])
+ */
+void showHelp(char * binname) {
+    printf("\nUsage: %s a b c [-v]\n\n"
+           "a, b and c are the coefficients for the equation.\n"
+           "-v option enables verbose error output\n\n", binname);
+}
+
+
+/**
+ * Tries to parse the equation coefficients from the program's arguments
+ *
+ * @param [in]  argc  Argument count
+ * @param [in]  argv  Argument values
+ * @param [out] a     `a` coefficient
+ * @param [out] b     `b` coefficient
+ * @param [out] c     `c` coefficient
+ *
+ * @return Error code (0 means success, non-0 - an exception)
+ */
+int parseArgCoeffs(int argc, char ** argv, double * a, double * b, double * c) {
+    if (argc < 4) {
+        ERR("Too few arguments: %d", argc);
+        return 1;
+    }
+    if ((sscanf(argv[1], "%lg", a) < 1) || (sscanf(argv[2], "%lg", b) < 1) || (sscanf(argv[3], "%lg", c) < 1)) {
+        ERR("Bad argument format");
+        return 2;
+    }
+    return 0;
+}
+
+
 /**
  * Pretty-prints a solution into the console
  *
- * @param solution The solution to print
+ * @param [in] solution The solution to print
  *
  * @return Error code (0 means success, non-0 - an exception)
  */
@@ -81,7 +113,7 @@ int logSolution(se_solution_t * solution) {
         printf("x = Anything\n");
         break;
     default:
-        ERR("Unexpected value for solution type: %d\n", solution->type);
+        ERR("Unexpected value for solution type: %d", solution->type);
         return 2;
     }
     return 0;
@@ -96,7 +128,7 @@ int logSolution(se_solution_t * solution) {
  * @param [in]  c        `c` coefficient
  * @param [out] solution Pointer to the solution struct
  *
- * @return Error value. (0 means success, non-0 indicates an exception)
+ * @return Error code (0 means success, non-0 - an exception)
  */
 int solveSE(double a, double b, double c, se_solution_t * solution) {
     if (!isfinite(a) || !isfinite(b) || !isfinite(c)) {
@@ -139,18 +171,35 @@ int solveSE(double a, double b, double c, se_solution_t * solution) {
 }
 
 
-int main()
+int main(int argc, char ** argv)
 {
     showBanner();
 
-    double a = 0, b = 0, c = 0;
-    printf("Enter the coefficients: ");
-    if (scanf("%lg %lg %lg", &a, &b, &c) != 3) {
-        ERR("Error while trying to read input");
-        return EXIT_FAILURE;  // Since I'm only allowed to use exits in main, \
-          there's no more consistency requirement between all functions and I \
-          can just use return
+    int opt;
+    while ((opt = getopt(argc, argv, "v")) != -1) {
+        switch (opt) {  // For scalability
+        case 'v':
+            verbose = true;
+            break;
+        default:
+            ERR("Bad args");
+            showHelp(argv[0]);
+            return EXIT_FAILURE;
+        }
     }
+
+    double a = 0, b = 0, c = 0;
+    if (parseArgCoeffs(argc, argv, &a, &b, &c) != 0) {
+        ERR("Bad args");
+        showHelp(argv[0]);
+        return EXIT_FAILURE;
+    }
+
+//    printf("Enter the coefficients: ");
+//    if (scanf("%lg %lg %lg", &a, &b, &c) != 3) {
+//        ERR("Error while trying to read input");
+//        return EXIT_FAILURE;  // Since I'm only allowed to use exits in main, there's no more consistency requirement between all functions and I can just use return
+//    }
 
     se_solution_t solution;
     if (solveSE(a, b, c, &solution) != 0) {
@@ -164,4 +213,3 @@ int main()
     }
     return EXIT_SUCCESS;
 }
-
