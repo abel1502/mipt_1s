@@ -1,3 +1,6 @@
+#define TEST
+#include "test.h"
+
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -173,6 +176,11 @@ int solveSE(double a, double b, double c, se_solution_t * solution) {
 
 int main(int argc, char ** argv)
 {
+    TEST_MAIN(
+        printf("123%d\n", 4);
+        printf("You can only see this in a test\n");
+    )
+
     showBanner();
 
     int opt;

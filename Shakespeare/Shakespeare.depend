@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1598612381 source:d:\workspace\.mipt\s1\shakespeare\main.cpp
+	<stdio.h>
+	<string.h>
+	<stdlib.h>
+	<assert.h>
+
