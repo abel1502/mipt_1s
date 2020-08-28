@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1598627527 source:d:\workspace\.mipt\s1\solvesquare\main.cpp
+1598636069 source:d:\workspace\.mipt\s1\solvesquare\main.cpp
 	"test.h"
 	<stdio.h>
 	<math.h>
@@ -7,9 +7,10 @@
 	<assert.h>
 	<unistd.h>
 
-1598628844 d:\workspace\.mipt\s1\solvesquare\test.h
+1598635881 d:\workspace\.mipt\s1\solvesquare\test.h
 	<stdio.h>
 	<math.h>
 	<stdlib.h>
 	<assert.h>
+	<setjmp.h>
 

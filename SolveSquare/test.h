@@ -40,27 +40,39 @@ jmp_buf __cleanup_env;
         longjmp(__test_env, 1); \
     } \
     return EXIT_SUCCESS;
-
-#define TEST_EXIT() MACROFUNC(longjmp(__cleanup_env, 1);)
-
-#define TEST_MSG(msg) MACROFUNC(printf("[TEST] " msg "\n");)
-
-#define TEST_ASSERT(stmt) MACROFUNC(if (!(stmt)) {TEST_MSG("Assertion (" #stmt ") failed"); TEST_EXIT();})
-
-#define TEST_ASSERT_M(stmt, msg) MACROFUNC(if (!(stmt)) {TEST_MSG("Assertion (" #stmt ") failed with message " #msg); TEST_EXIT();})
-
 #else
-
-#define TEST_MAIN(...)
-#define TEST_EXIT_LABEL
-#define TEST_EXIT()
-#define TEST_MSG(msg)
-#define TEST_ASSERT(stmt)
-#define TEST_ASSERT_M(stmt, msg)
-
+#define TEST_MAIN(testcode, cleanupcode)
 #endif
 
 
+#define TEST_EXIT() MACROFUNC(longjmp(__cleanup_env, 1);)
+#define TEST_MSG(msg, ...) MACROFUNC(printf("[TEST] " msg "\n", ##__VA_ARGS__);)
+#define TEST_ASSERT(stmt) MACROFUNC(if (!(stmt)) {TEST_MSG("Assertion (" #stmt ") failed"); TEST_EXIT();})
+#define TEST_ASSERT_M(stmt, msg, ...) MACROFUNC(if (!(stmt)) {TEST_MSG("Assertion (" #stmt ") failed with message " #msg, ##__VA_ARGS__); TEST_EXIT();})
 
 
+const double _EPSILON = 1e-8;
 
+typedef enum cmp_res {
+    CMP_LESS,
+    CMP_EQUAL,
+    CMP_GREATER
+} cmp_res_t;
+
+/**
+ * Helper function to approximately compare doubles
+ *
+ * @param [in] left  The first value
+ * @param [in] right The second value
+ */
+cmp_res_t cmpDouble(double left, double right) {
+    double ldelta = fabs(left * _EPSILON);
+    double rdelta = fabs(right * _EPSILON);
+    double delta = (ldelta < rdelta) ? ldelta : rdelta;
+    if (left < right - delta)
+        return CMP_LESS;
+    else if (right - delta <= left && left <= right + delta)
+        return CMP_EQUAL;
+    else
+        return CMP_GREATER;
+}
