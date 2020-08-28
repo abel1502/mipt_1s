@@ -18,6 +18,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <setjmp.h>
 
 
 #define MACROFUNC(...) do {__VA_ARGS__} while (0)
@@ -25,13 +26,22 @@
 
 #ifdef TEST
 
-#define TEST_MAIN(...) \
-    __VA_ARGS__ \
+jmp_buf __test_env;
+jmp_buf __cleanup_env;
+
+#define TEST_MAIN(testcode, cleanupcode) \
+    if (setjmp(__test_env) != 0) { \
+        testcode \
+        longjmp(__cleanup_env, 1); \
+    } \
+    if (setjmp(__cleanup_env) != 0) { \
+        cleanupcode \
+    } else { \
+        longjmp(__test_env, 1); \
+    } \
     return EXIT_SUCCESS;
 
-#define TEST_EXIT_LABEL __testExitLabel:
-
-#define TEST_EXIT() MACROFUNC(goto __testExitLabel;)
+#define TEST_EXIT() MACROFUNC(longjmp(__cleanup_env, 1);)
 
 #define TEST_MSG(msg) MACROFUNC(printf("[TEST] " msg "\n");)
 

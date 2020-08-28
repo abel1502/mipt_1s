@@ -3,12 +3,12 @@ var indexSectionsWithContent =
   0: "elmpstvx",
   1: "s",
   2: "m",
-  3: "lmps",
+  3: "lmpst",
   4: "tvx",
   5: "s",
   6: "s",
   7: "s",
-  8: "e"
+  8: "et"
 };
 
 var indexSectionNames =

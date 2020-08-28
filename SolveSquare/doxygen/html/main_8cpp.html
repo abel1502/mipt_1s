@@ -92,7 +92,8 @@ $(document).ready(function(){initNavTree('main_8cpp.html',''); initResizable(); 
 <div class="title">main.cpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;stdio.h&gt;</code><br />
+<div class="textblock"><code>#include &quot;test.h&quot;</code><br />
+<code>#include &lt;stdio.h&gt;</code><br />
 <code>#include &lt;math.h&gt;</code><br />
 <code>#include &lt;stdlib.h&gt;</code><br />
 <code>#include &lt;assert.h&gt;</code><br />
@@ -105,6 +106,8 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
+<tr class="memitem:ab946e2e7f7679350627acfded8e2658b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#ab946e2e7f7679350627acfded8e2658b">TEST</a></td></tr>
+<tr class="separator:ab946e2e7f7679350627acfded8e2658b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a53920b362caf5d82db53de41a7740232"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a53920b362caf5d82db53de41a7740232">ERR</a>(msg, ...)&#160;&#160;&#160;do {if (<a class="el" href="main_8cpp.html#ab3f078684998b83967d507d0f453f454">verbose</a>) fprintf(stderr, &quot;[ERROR in %s()] &quot; msg &quot;\n&quot;, __func__, ##__VA_ARGS__);} while (0)</td></tr>
 <tr class="separator:a53920b362caf5d82db53de41a7740232"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -136,6 +139,8 @@ Functions</h2></td></tr>
 <tr class="separator:a1eb53b541490c9b52d9604765cf90bdb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4f9ec8580edfb72aaa6f47c15ef0462c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a4f9ec8580edfb72aaa6f47c15ef0462c">solveSE</a> (double a, double b, double c, <a class="el" href="main_8cpp.html#aa40d21b026860decb46d9b35bd0b6ca9">se_solution_t</a> *solution)</td></tr>
 <tr class="separator:a4f9ec8580edfb72aaa6f47c15ef0462c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9bb3c6d521daca6501f891aa71af6fc3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a9bb3c6d521daca6501f891aa71af6fc3">test_solveSE</a> (void)</td></tr>
+<tr class="separator:a9bb3c6d521daca6501f891aa71af6fc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3c04138a5bfe5d72780bb7e82a18e627"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a> (int argc, char **argv)</td></tr>
 <tr class="separator:a3c04138a5bfe5d72780bb7e82a18e627"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -167,6 +172,20 @@ Variables</h2></td></tr>
           <td></td>
           <td>)</td>
           <td></td><td>&#160;&#160;&#160;do {if (<a class="el" href="main_8cpp.html#ab3f078684998b83967d507d0f453f454">verbose</a>) fprintf(stderr, &quot;[ERROR in %s()] &quot; msg &quot;\n&quot;, __func__, ##__VA_ARGS__);} while (0)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab946e2e7f7679350627acfded8e2658b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab946e2e7f7679350627acfded8e2658b">&#9670;&nbsp;</a></span>TEST</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define TEST</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -438,6 +457,24 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a9bb3c6d521daca6501f891aa71af6fc3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9bb3c6d521daca6501f891aa71af6fc3">&#9670;&nbsp;</a></span>test_solveSE()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void test_solveSE </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Variable Documentation</h2>
 <a id="ab3f078684998b83967d507d0f453f454"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab3f078684998b83967d507d0f453f454">&#9670;&nbsp;</a></span>verbose</h2>
@@ -455,30 +492,31 @@ Variables</h2></td></tr>
 </div>
 </div><!-- contents -->
 </div><!-- doc-content -->
-<div class="ttc" id="amain_8cpp_html_aea494a1a87018db489e656f8e6e5b06a"><div class="ttname"><a href="main_8cpp.html#aea494a1a87018db489e656f8e6e5b06a">parseArgCoeffs</a></div><div class="ttdeci">int parseArgCoeffs(int argc, char **argv, double *a, double *b, double *c)</div><div class="ttdef"><b>Definition:</b> main.cpp:76</div></div>
+<div class="ttc" id="amain_8cpp_html_aea494a1a87018db489e656f8e6e5b06a"><div class="ttname"><a href="main_8cpp.html#aea494a1a87018db489e656f8e6e5b06a">parseArgCoeffs</a></div><div class="ttdeci">int parseArgCoeffs(int argc, char **argv, double *a, double *b, double *c)</div><div class="ttdef"><b>Definition:</b> main.cpp:79</div></div>
 <div class="ttc" id="amain_8cpp_html_aa40d21b026860decb46d9b35bd0b6ca9"><div class="ttname"><a href="main_8cpp.html#aa40d21b026860decb46d9b35bd0b6ca9">se_solution_t</a></div><div class="ttdeci">struct se_solution se_solution_t</div></div>
-<div class="ttc" id="amain_8cpp_html_a1eb53b541490c9b52d9604765cf90bdb"><div class="ttname"><a href="main_8cpp.html#a1eb53b541490c9b52d9604765cf90bdb">logSolution</a></div><div class="ttdeci">int logSolution(se_solution_t *solution)</div><div class="ttdef"><b>Definition:</b> main.cpp:96</div></div>
-<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17daa4832daea0b768ca70db09739a5e278d"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17daa4832daea0b768ca70db09739a5e278d">SE_ANY_ROOT</a></div><div class="ttdeci">@ SE_ANY_ROOT</div><div class="ttdef"><b>Definition:</b> main.cpp:21</div></div>
-<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17da36ec5a12432f96903803cef10b00fef0"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17da36ec5a12432f96903803cef10b00fef0">SE_NO_ROOTS</a></div><div class="ttdeci">@ SE_NO_ROOTS</div><div class="ttdef"><b>Definition:</b> main.cpp:18</div></div>
-<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17da904a530f4daee69c8ba79f74ebd8fc09"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17da904a530f4daee69c8ba79f74ebd8fc09">SE_ONE_ROOT</a></div><div class="ttdeci">@ SE_ONE_ROOT</div><div class="ttdef"><b>Definition:</b> main.cpp:19</div></div>
-<div class="ttc" id="amain_8cpp_html_a4f9ec8580edfb72aaa6f47c15ef0462c"><div class="ttname"><a href="main_8cpp.html#a4f9ec8580edfb72aaa6f47c15ef0462c">solveSE</a></div><div class="ttdeci">int solveSE(double a, double b, double c, se_solution_t *solution)</div><div class="ttdef"><b>Definition:</b> main.cpp:133</div></div>
-<div class="ttc" id="amain_8cpp_html_a3c04138a5bfe5d72780bb7e82a18e627"><div class="ttname"><a href="main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a></div><div class="ttdeci">int main(int argc, char **argv)</div><div class="ttdef"><b>Definition:</b> main.cpp:174</div></div>
-<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17daf5cfa6a7687cb804f0841ac39b0125e0"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17daf5cfa6a7687cb804f0841ac39b0125e0">SE_TWO_ROOTS</a></div><div class="ttdeci">@ SE_TWO_ROOTS</div><div class="ttdef"><b>Definition:</b> main.cpp:20</div></div>
-<div class="ttc" id="astructse__solution_html_aee2cced63d37d927dab04f8de09c93c6"><div class="ttname"><a href="structse__solution.html#aee2cced63d37d927dab04f8de09c93c6">se_solution::x2</a></div><div class="ttdeci">double x2</div><div class="ttdef"><b>Definition:</b> main.cpp:30</div></div>
-<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17d"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17d">se_type</a></div><div class="ttdeci">se_type</div><div class="ttdef"><b>Definition:</b> main.cpp:17</div></div>
-<div class="ttc" id="astructse__solution_html_a92b0a5fd41b95bfa69bb283ea3280e82"><div class="ttname"><a href="structse__solution.html#a92b0a5fd41b95bfa69bb283ea3280e82">se_solution::x1</a></div><div class="ttdeci">double x1</div><div class="ttdef"><b>Definition:</b> main.cpp:29</div></div>
-<div class="ttc" id="astructse__solution_html"><div class="ttname"><a href="structse__solution.html">se_solution</a></div><div class="ttdef"><b>Definition:</b> main.cpp:28</div></div>
-<div class="ttc" id="amain_8cpp_html_a6c85cf12ae582725fcf2b4531803c6ab"><div class="ttname"><a href="main_8cpp.html#a6c85cf12ae582725fcf2b4531803c6ab">showBanner</a></div><div class="ttdeci">void showBanner(void)</div><div class="ttdef"><b>Definition:</b> main.cpp:38</div></div>
-<div class="ttc" id="amain_8cpp_html_a02f0203c2c6f9cdec49afaaba25e1e99"><div class="ttname"><a href="main_8cpp.html#a02f0203c2c6f9cdec49afaaba25e1e99">showHelp</a></div><div class="ttdeci">void showHelp(char *binname)</div><div class="ttdef"><b>Definition:</b> main.cpp:58</div></div>
-<div class="ttc" id="astructse__solution_html_a887a1352436779b81684af8f1fe19973"><div class="ttname"><a href="structse__solution.html#a887a1352436779b81684af8f1fe19973">se_solution::type</a></div><div class="ttdeci">se_type_t type</div><div class="ttdef"><b>Definition:</b> main.cpp:31</div></div>
-<div class="ttc" id="amain_8cpp_html_a53920b362caf5d82db53de41a7740232"><div class="ttname"><a href="main_8cpp.html#a53920b362caf5d82db53de41a7740232">ERR</a></div><div class="ttdeci">#define ERR(msg,...)</div><div class="ttdef"><b>Definition:</b> main.cpp:8</div></div>
-<div class="ttc" id="amain_8cpp_html_ab3f078684998b83967d507d0f453f454"><div class="ttname"><a href="main_8cpp.html#ab3f078684998b83967d507d0f453f454">verbose</a></div><div class="ttdeci">bool verbose</div><div class="ttdef"><b>Definition:</b> main.cpp:11</div></div>
+<div class="ttc" id="amain_8cpp_html_a1eb53b541490c9b52d9604765cf90bdb"><div class="ttname"><a href="main_8cpp.html#a1eb53b541490c9b52d9604765cf90bdb">logSolution</a></div><div class="ttdeci">int logSolution(se_solution_t *solution)</div><div class="ttdef"><b>Definition:</b> main.cpp:99</div></div>
+<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17daa4832daea0b768ca70db09739a5e278d"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17daa4832daea0b768ca70db09739a5e278d">SE_ANY_ROOT</a></div><div class="ttdeci">@ SE_ANY_ROOT</div><div class="ttdef"><b>Definition:</b> main.cpp:24</div></div>
+<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17da36ec5a12432f96903803cef10b00fef0"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17da36ec5a12432f96903803cef10b00fef0">SE_NO_ROOTS</a></div><div class="ttdeci">@ SE_NO_ROOTS</div><div class="ttdef"><b>Definition:</b> main.cpp:21</div></div>
+<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17da904a530f4daee69c8ba79f74ebd8fc09"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17da904a530f4daee69c8ba79f74ebd8fc09">SE_ONE_ROOT</a></div><div class="ttdeci">@ SE_ONE_ROOT</div><div class="ttdef"><b>Definition:</b> main.cpp:22</div></div>
+<div class="ttc" id="amain_8cpp_html_a4f9ec8580edfb72aaa6f47c15ef0462c"><div class="ttname"><a href="main_8cpp.html#a4f9ec8580edfb72aaa6f47c15ef0462c">solveSE</a></div><div class="ttdeci">int solveSE(double a, double b, double c, se_solution_t *solution)</div><div class="ttdef"><b>Definition:</b> main.cpp:136</div></div>
+<div class="ttc" id="amain_8cpp_html_a3c04138a5bfe5d72780bb7e82a18e627"><div class="ttname"><a href="main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a></div><div class="ttdeci">int main(int argc, char **argv)</div><div class="ttdef"><b>Definition:</b> main.cpp:184</div></div>
+<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17daf5cfa6a7687cb804f0841ac39b0125e0"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17daf5cfa6a7687cb804f0841ac39b0125e0">SE_TWO_ROOTS</a></div><div class="ttdeci">@ SE_TWO_ROOTS</div><div class="ttdef"><b>Definition:</b> main.cpp:23</div></div>
+<div class="ttc" id="astructse__solution_html_aee2cced63d37d927dab04f8de09c93c6"><div class="ttname"><a href="structse__solution.html#aee2cced63d37d927dab04f8de09c93c6">se_solution::x2</a></div><div class="ttdeci">double x2</div><div class="ttdef"><b>Definition:</b> main.cpp:33</div></div>
+<div class="ttc" id="amain_8cpp_html_af390a70870f554eb42a80c433dfad17d"><div class="ttname"><a href="main_8cpp.html#af390a70870f554eb42a80c433dfad17d">se_type</a></div><div class="ttdeci">se_type</div><div class="ttdef"><b>Definition:</b> main.cpp:20</div></div>
+<div class="ttc" id="amain_8cpp_html_a9bb3c6d521daca6501f891aa71af6fc3"><div class="ttname"><a href="main_8cpp.html#a9bb3c6d521daca6501f891aa71af6fc3">test_solveSE</a></div><div class="ttdeci">void test_solveSE(void)</div><div class="ttdef"><b>Definition:</b> main.cpp:177</div></div>
+<div class="ttc" id="astructse__solution_html_a92b0a5fd41b95bfa69bb283ea3280e82"><div class="ttname"><a href="structse__solution.html#a92b0a5fd41b95bfa69bb283ea3280e82">se_solution::x1</a></div><div class="ttdeci">double x1</div><div class="ttdef"><b>Definition:</b> main.cpp:32</div></div>
+<div class="ttc" id="astructse__solution_html"><div class="ttname"><a href="structse__solution.html">se_solution</a></div><div class="ttdef"><b>Definition:</b> main.cpp:31</div></div>
+<div class="ttc" id="amain_8cpp_html_a6c85cf12ae582725fcf2b4531803c6ab"><div class="ttname"><a href="main_8cpp.html#a6c85cf12ae582725fcf2b4531803c6ab">showBanner</a></div><div class="ttdeci">void showBanner(void)</div><div class="ttdef"><b>Definition:</b> main.cpp:41</div></div>
+<div class="ttc" id="amain_8cpp_html_a02f0203c2c6f9cdec49afaaba25e1e99"><div class="ttname"><a href="main_8cpp.html#a02f0203c2c6f9cdec49afaaba25e1e99">showHelp</a></div><div class="ttdeci">void showHelp(char *binname)</div><div class="ttdef"><b>Definition:</b> main.cpp:61</div></div>
+<div class="ttc" id="astructse__solution_html_a887a1352436779b81684af8f1fe19973"><div class="ttname"><a href="structse__solution.html#a887a1352436779b81684af8f1fe19973">se_solution::type</a></div><div class="ttdeci">se_type_t type</div><div class="ttdef"><b>Definition:</b> main.cpp:34</div></div>
+<div class="ttc" id="amain_8cpp_html_a53920b362caf5d82db53de41a7740232"><div class="ttname"><a href="main_8cpp.html#a53920b362caf5d82db53de41a7740232">ERR</a></div><div class="ttdeci">#define ERR(msg,...)</div><div class="ttdef"><b>Definition:</b> main.cpp:11</div></div>
+<div class="ttc" id="amain_8cpp_html_ab3f078684998b83967d507d0f453f454"><div class="ttname"><a href="main_8cpp.html#ab3f078684998b83967d507d0f453f454">verbose</a></div><div class="ttdeci">bool verbose</div><div class="ttdef"><b>Definition:</b> main.cpp:14</div></div>
 <div class="ttc" id="amain_8cpp_html_a8a98ad5060ee284f67a1d35b397bb5a8"><div class="ttname"><a href="main_8cpp.html#a8a98ad5060ee284f67a1d35b397bb5a8">se_type_t</a></div><div class="ttdeci">enum se_type se_type_t</div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="main_8cpp.html">main.cpp</a></li>
-    <li class="footer">Generated on Thu Aug 27 2020 20:36:09 for SolveSquare by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.8.20 </li>
+    <li class="footer">Generated on Fri Aug 28 2020 19:46:19 for SolveSquare by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.8.20 </li>
   </ul>
 </div>
 </body>

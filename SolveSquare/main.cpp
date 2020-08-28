@@ -174,18 +174,23 @@ int solveSE(double a, double b, double c, se_solution_t * solution) {
 }
 
 
+void test_solveSE(void) {
+    printf("%d\n", 2);
+    TEST_ASSERT(false);
+    printf("%d\n", 3);
+}
+
+
 int main(int argc, char ** argv)
 {
     TEST_MAIN(
-        printf("You can only this in a test\n");
-        TEST_ASSERT(true);  // This is an example of a successful assertion
-        TEST_ASSERT_M(false, "This is an example of a failed assertion with a message");
-        printf("This part isn\'t reached\n");
-
-        TEST_EXIT_LABEL
-
-        printf("Cleanup may be placed here\n");
+        printf("%d\n", 1);
+        test_solveSE();
+        printf("%d\n", 4);
+        ,
+        printf("%d\n", 5);
     )
+    printf("6\n");
 
     showBanner();
 
