@@ -1,4 +1,6 @@
-#define TEST
+#pragma once
+
+//#define TEST
 #include "test.h"
 
 #include <stdio.h>
@@ -6,6 +8,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 
 #define ERR(msg, ...) do {if (verbose) fprintf(stderr, "[ERROR in %s()] " msg "\n", __func__, ##__VA_ARGS__);} while (0)
@@ -199,10 +202,10 @@ void test_solveSE_(double a, double b, double c, int exp_ret, se_solution_t exp_
     if (exp_ret == 0) {
         TEST_ASSERT_M(solution.type == exp_solution.type, "Different numbers of roots: %d instead of %d", solution.type, exp_solution.type);
         if (solution.type == SE_ONE_ROOT || solution.type == SE_TWO_ROOTS) {
-            TEST_ASSERT_M(cmpDouble(solution.x1, exp_solution.x1) == CMP_EQUAL, "Different 1st roots: %lg != %lg", solution.x1, exp_solution.x1);
+            TEST_ASSERT_M(cmpDouble(solution.x1, exp_solution.x1) == 0, "Different 1st roots: %lg != %lg", solution.x1, exp_solution.x1);
         }
         if (solution.type == SE_TWO_ROOTS) {
-            TEST_ASSERT_M(cmpDouble(solution.x2, exp_solution.x2) == CMP_EQUAL, "Different 2nd roots: %lg != %lg", solution.x2, exp_solution.x2);
+            TEST_ASSERT_M(cmpDouble(solution.x2, exp_solution.x2) == 0, "Different 2nd roots: %lg != %lg", solution.x2, exp_solution.x2);
         }
     }
     TEST_MSG("Passed");
@@ -217,12 +220,12 @@ void test_solveSE(void) {
     test_solveSE_(0.1, -0.5, 0.6, 0, makeSolution(SE_TWO_ROOTS, 2, 3));
     test_solveSE_(NAN, 0, 0, 1, makeSolution(SE_NO_ROOTS, 0, 0));
 }
-#endif
+#endif // TEST
 
 int main(int argc, char ** argv)
 {
     TEST_MAIN(
-        //verbose = true;
+        verbose = true;
         test_solveSE();
         TEST_MSG("Passed All.");
         ,

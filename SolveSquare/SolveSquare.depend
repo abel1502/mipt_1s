@@ -1,13 +1,14 @@
 # depslib dependency file v1.0
-1598636069 source:d:\workspace\.mipt\s1\solvesquare\main.cpp
+1598686568 source:d:\workspace\.mipt\s1\solvesquare\main.cpp
 	"test.h"
 	<stdio.h>
 	<math.h>
 	<stdlib.h>
 	<assert.h>
 	<unistd.h>
+	<stdbool.h>
 
-1598635881 d:\workspace\.mipt\s1\solvesquare\test.h
+1598686142 d:\workspace\.mipt\s1\solvesquare\test.h
 	<stdio.h>
 	<math.h>
 	<stdlib.h>

@@ -7,12 +7,18 @@
  *
  *   TEST_MAIN(
  *       <Here you can place all your tests' code>
- *       TEST_EXIT_LABEL
+ *       ,
  *       <Here you can place all your cleanup code>
  *   )
  *
  *
  */  // I have no idea if doxygen can document macros, so why not make a module-wise docstring?)
+
+
+#ifndef TESTLIB_GUARD
+#define TESTLIB_GUARD
+
+#ifdef TEST
 
 #include <stdio.h>
 #include <math.h>
@@ -23,8 +29,6 @@
 
 #define MACROFUNC(...) do {__VA_ARGS__} while (0)
 
-
-#ifdef TEST
 
 jmp_buf __test_env;
 jmp_buf __cleanup_env;
@@ -40,10 +44,6 @@ jmp_buf __cleanup_env;
         longjmp(__test_env, 1); \
     } \
     return EXIT_SUCCESS;
-#else
-#define TEST_MAIN(testcode, cleanupcode)
-#endif
-
 
 #define TEST_EXIT() MACROFUNC(longjmp(__cleanup_env, 1);)
 #define TEST_MSG(msg, ...) MACROFUNC(printf("[TEST] " msg "\n", ##__VA_ARGS__);)
@@ -53,26 +53,28 @@ jmp_buf __cleanup_env;
 
 const double _EPSILON = 1e-8;
 
-typedef enum cmp_res {
-    CMP_LESS,
-    CMP_EQUAL,
-    CMP_GREATER
-} cmp_res_t;
-
 /**
  * Helper function to approximately compare doubles
  *
  * @param [in] left  The first value
  * @param [in] right The second value
+ *
+ * @return -1 if left < right, 0 if left == right, 1 if left > right
  */
-cmp_res_t cmpDouble(double left, double right) {
+static int cmpDouble(double left, double right) {
     double ldelta = fabs(left * _EPSILON);
     double rdelta = fabs(right * _EPSILON);
     double delta = (ldelta < rdelta) ? ldelta : rdelta;
     if (left < right - delta)
-        return CMP_LESS;
+        return -1;
     else if (right - delta <= left && left <= right + delta)
-        return CMP_EQUAL;
+        return 0;
     else
-        return CMP_GREATER;
+        return 1;
 }
+
+#else
+#define TEST_MAIN(testcode, cleanupcode)
+#endif // TEST
+
+#endif // TESTLIB_GUARD
