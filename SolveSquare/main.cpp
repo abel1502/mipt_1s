@@ -1,7 +1,5 @@
-#pragma once
-
 #define TEST
-#include "test.h"
+#include "../libs/test.h"
 
 #include <stdio.h>
 #include <math.h>
