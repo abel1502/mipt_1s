@@ -34,7 +34,6 @@
 			<Add option="-fexceptions" />
 		</Compiler>
 		<Unit filename="main.cpp" />
-		<Unit filename="test.h" />
 		<Extensions>
 			<DoxyBlocks>
 				<comment_style block="0" line="0" />
