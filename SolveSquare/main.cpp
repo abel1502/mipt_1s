@@ -108,7 +108,7 @@ int main(int argc, char ** argv) {
     TEST_MAIN(
         verbose = true;
         test_solveSE();
-        TEST_MSG("Passed All.");
+        $g; TEST_MSG("Passed All."); $d;
         ,
     )
 
@@ -139,6 +139,7 @@ int main(int argc, char ** argv) {
 //        ERR("Error while trying to read input");
 //        return EXIT_FAILURE;  // Since I'm only allowed to use exits in main, there's no more consistency requirement between all functions and I can just use return
 //    }
+    printf("Solving %lg*x^2 + %lg*x + %lg == 0\n\n", a, b, c);
 
     se_solution_t solution;
     if (solveSE(a, b, c, &solution) != 0) {
@@ -279,7 +280,7 @@ void test_solveSE_(double a, double b, double c, int exp_ret, se_solution_t * ex
             TEST_ASSERT_M(cmpDouble(solution.x2, exp_solution->x2) == 0, "Different 2nd roots: %lg != %lg", solution.x2, exp_solution->x2);
         }
     }
-    TEST_MSG("Passed");
+    $g; TEST_MSG("Passed"); $d;
 }
 
 void test_solveSE(void) {
@@ -293,3 +294,4 @@ void test_solveSE(void) {
     test_solveSE_(NAN, 0, 0, 1, &exp_solution);
 }
 #endif // TEST
+

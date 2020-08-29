@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1598686568 source:d:\workspace\.mipt\s1\solvesquare\main.cpp
+1598695348 source:d:\workspace\.mipt\s1\solvesquare\main.cpp
 	"test.h"
 	<stdio.h>
 	<math.h>
@@ -8,7 +8,8 @@
 	<unistd.h>
 	<stdbool.h>
 
-1598686142 d:\workspace\.mipt\s1\solvesquare\test.h
+1598695595 d:\workspace\.mipt\s1\solvesquare\test.h
+	"TXLib.h"
 	<stdio.h>
 	<math.h>
 	<stdlib.h>

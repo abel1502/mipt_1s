@@ -20,6 +20,8 @@
 
 #ifdef TEST
 
+#include "TXLib.h"
+
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -47,8 +49,9 @@ jmp_buf __cleanup_env;
 
 #define TEST_EXIT() MACROFUNC(longjmp(__cleanup_env, 1);)
 #define TEST_MSG(msg, ...) MACROFUNC(printf("[TEST] " msg "\n", ##__VA_ARGS__);)
-#define TEST_ASSERT(stmt) MACROFUNC(if (!(stmt)) {TEST_MSG("Assertion (" #stmt ") failed"); TEST_EXIT();})
-#define TEST_ASSERT_M(stmt, msg, ...) MACROFUNC(if (!(stmt)) {TEST_MSG("Assertion (" #stmt ") failed with message " #msg, ##__VA_ARGS__); TEST_EXIT();})
+#define TEST_ASSERT(stmt) MACROFUNC(if (!(stmt)) {$r; TEST_MSG("[!] Assertion (" #stmt ") failed"); $d; TEST_EXIT();} else {printf(".");})
+#define TEST_ASSERT_M(stmt, msg, ...) MACROFUNC(if (!(stmt)) {$r; TEST_MSG("[!] Assertion (" #stmt ") failed with message " #msg, ##__VA_ARGS__); $d; TEST_EXIT();} else {printf(".");})
+#define TEST_SETUP(stmt) MACROFUNC(TEST_MSG("Setting up {%s}", #stmt); stmt)
 
 
 const double _EPSILON = 1e-8;

@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['test_5fsolvese_30',['test_solveSE',['../main_8cpp.html#a9bb3c6d521daca6501f891aa71af6fc3',1,'main.cpp']]]
+  ['showbanner_30',['showBanner',['../main_8cpp.html#a6c85cf12ae582725fcf2b4531803c6ab',1,'main.cpp']]],
+  ['showhelp_31',['showHelp',['../main_8cpp.html#a02f0203c2c6f9cdec49afaaba25e1e99',1,'main.cpp']]],
+  ['solvese_32',['solveSE',['../main_8cpp.html#a4f9ec8580edfb72aaa6f47c15ef0462c',1,'main.cpp']]]
 ];
