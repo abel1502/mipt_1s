@@ -1,4 +1,4 @@
-#define TEST
+//#define TEST
 #include "../libs/test.h"
 
 #include <stdio.h>
@@ -15,16 +15,16 @@
 
 //--------------------------------------------------------------------------------
 
-const int MAX_POEM_LINE = 128; // These values are intended for Hamlet specifically,
-const int MAX_RAW_LINE = 1024; // but should probably work for most other poems as well
+const int MAX_LINE = 80;
+const int MAX_LINES = 2048;
 
 //--------------------------------------------------------------------------------
 
 void showBanner(void);
 void showUsage(char * binname);
 long int fsize(FILE * ifile);
-int readPoemLine(FILE * ifile, char * line, int maxLen);  //!
-char ** readPoemLines(FILE * ifile);  //!
+int readLine(FILE * ifile, char * line, int maxLen);
+int readLines(FILE * ifile, char ** lines, int maxLines);
 
 //================================================================================
 
@@ -43,15 +43,23 @@ int main(int argc, char **argv) {
     }
 
     FILE * ifile = fopen(argv[1], "r");
-    long int isize = fsize(ifile);
-    char * text = (char *) malloc(isize + 1);
-    fread((void *) text, sizeof(char), isize, ifile);
-    fclose(ifile);
+    char ** lines = (char **) malloc(sizeof(char *) * MAX_LINES);
+    if (lines == NULL) {
+        ERR("Can't allocate space for lines");
+        return EXIT_FAILURE;
+    }
+    int lineCnt = readLines(ifile, lines, MAX_LINES);
+    if (lineCnt < 0) {
+        ERR("Error while reading lines");
+        return EXIT_FAILURE;
+    }
+    printf("%d\n", lineCnt);
 
-    // Special lines: any word in caps, "["..."]", "Exit"
-
-    long int linecnt;
-    long int * linestarts;
+    for (int i = 0; i < lineCnt; ++i) {
+        free(lines[i]);
+    }
+    free(lines);
+    return EXIT_SUCCESS;
 }
 
 //================================================================================
@@ -63,8 +71,8 @@ void showBanner(void) {
            "#        (c) Abel, 2020        #\n"
            "#                              #\n"
            "################################\n");
-    printf("This program sorts a poem (preferably Shakespearean) in several funky ways.\n"
-           "I'm too lazy to explain. Just try it).\n\n");
+    printf("This program sorts a Shakespearean poem in several funky ways.\n"
+           "I'm too lazy to explain. Just give it a try).\n\n");
 }
 
 void showUsage(char * binname) {
@@ -82,24 +90,36 @@ long int fsize(FILE * ifile) {
 }
 
 
-int readPoemLine(FILE * ifile, char * line, int maxLen) {
-    /*
-     There are several special lines, which don't rhyme and aren't even
-     part of the poem. Here are those I was able to identify:
-      - Empty lines
-      - Anything with two or more characters in caps one after the other
-      - Anything with a square bracket
-      - Lines explicitly commented out with a "#" (In this case, the general header)
-    */
+int readLine(FILE * ifile, char * line, int maxLen) {
     int cur = fgetc(ifile);
-    int pos = 0;
-    while (cur != EOF && cur != '\n' && pos < maxLen) {
+    for (int pos = 0; cur != EOF && cur != '\n' && pos < maxLen; ++pos) {
         line[pos] = cur;
-        pos++;
         cur = fgetc(ifile);
+    }
+    if (cur == '\n') {
+        return 0;
+    } else if (cur == EOF) {
+        return 1;
+    } else {
+        ERR("Line too long");
+        return 2;
     }
 }
 
-char ** readPoemLines(FILE * ifile) {
-
+int readLines(FILE * ifile, char ** lines, int maxLines) {
+    int state = 0;
+    int i = 0;
+    for (; state == 0 && i < maxLines; ++i) {
+        lines[i] = (char *) malloc(sizeof(char) * MAX_LINE);
+        if (lines[i] == NULL) {
+            ERR("Can't allocate space for a line");
+            return -1;
+        }
+        state = readLine(ifile, lines[i], MAX_LINE);
+    }
+    if (state == 2) {
+        ERR("Line #%d too long", i);
+        return -2;
+    }
+    return i;
 }

@@ -1,7 +1,16 @@
 # depslib dependency file v1.0
-1598612381 source:d:\workspace\.mipt\s1\shakespeare\main.cpp
+1598716796 source:d:\workspace\.mipt\s1\shakespeare\main.cpp
+	"../libs/test.h"
 	<stdio.h>
 	<string.h>
 	<stdlib.h>
 	<assert.h>
+
+1598696286 d:\workspace\.mipt\s1\libs\test.h
+	"TXLib.h"
+	<stdio.h>
+	<math.h>
+	<stdlib.h>
+	<assert.h>
+	<setjmp.h>
 
