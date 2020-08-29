@@ -1,6 +1,6 @@
 #pragma once
 
-//#define TEST
+#define TEST
 #include "test.h"
 
 #include <stdio.h>
@@ -41,16 +41,50 @@ typedef struct se_solution {
 /**
  * Solution constructor, but in C
  *
- * @param [in] type se_solution.type
- * @param [in] x1   se_solution.x1
- * @param [in] x2   se_solution.x2
+ * @param [in] res  The actual solution instance
+ * @param [in] type res.type
+ * @param [in] x1   res.x1
+ * @param [in] x2   res.x2
  */
-se_solution_t makeSolution(se_type type, double x1, double x2) {
-    se_solution_t res;
-    res.type = type;
-    res.x1 = x1;
-    res.x2 = x2;
+se_solution_t * initSolution(se_solution_t * res, se_type type, double x1, double x2) {
+    res->type = type;
+    res->x1 = x1;
+    res->x2 = x2;
     return res;
+}
+
+
+/**
+ * Pretty-prints a solution into the console
+ *
+ * @param [in] solution The solution to print
+ *
+ * @return Error code (0 means success, non-0 - an exception)
+ */
+int logSolution(se_solution_t * solution) {
+//    if (solution == NULL) {
+//        ERR("nullptr solution");
+//        return 1;
+//    }
+    assert(solution != NULL);
+    switch (solution->type) {
+    case SE_NO_ROOTS:
+        printf("No solutions\n");
+        break;
+    case SE_ONE_ROOT:
+        printf("x = %lg\n", solution->x1);
+        break;
+    case SE_TWO_ROOTS:
+        printf("x1 = %lg\nx2 = %lg\n", solution->x1, solution->x2);
+        break;
+    case SE_ANY_ROOT:
+        printf("x = Anything\n");
+        break;
+    default:
+        ERR("Unexpected value for solution type: %d", solution->type);
+        return 2;
+    }
+    return 0;
 }
 
 
@@ -69,7 +103,6 @@ void showBanner(void) {
            "a * x^2 + b * x + c == 0\n"
            "with variable coefficients\n\n");
 }
-
 
 
 /**
@@ -102,40 +135,6 @@ int parseArgCoeffs(int argc, char ** argv, double * a, double * b, double * c) {
     }
     if ((sscanf(argv[1], "%lg", a) < 1) || (sscanf(argv[2], "%lg", b) < 1) || (sscanf(argv[3], "%lg", c) < 1)) {
         ERR("Bad argument format");
-        return 2;
-    }
-    return 0;
-}
-
-
-/**
- * Pretty-prints a solution into the console
- *
- * @param [in] solution The solution to print
- *
- * @return Error code (0 means success, non-0 - an exception)
- */
-int logSolution(se_solution_t * solution) {
-//    if (solution == NULL) {
-//        ERR("nullptr solution");
-//        return 1;
-//    }
-    assert(solution != NULL);
-    switch (solution->type) {
-    case SE_NO_ROOTS:
-        printf("No solutions\n");
-        break;
-    case SE_ONE_ROOT:
-        printf("x = %lg\n", solution->x1);
-        break;
-    case SE_TWO_ROOTS:
-        printf("x1 = %lg\nx2 = %lg\n", solution->x1, solution->x2);
-        break;
-    case SE_ANY_ROOT:
-        printf("x = Anything\n");
-        break;
-    default:
-        ERR("Unexpected value for solution type: %d", solution->type);
         return 2;
     }
     return 0;
@@ -194,31 +193,32 @@ int solveSE(double a, double b, double c, se_solution_t * solution) {
 
 
 #ifdef TEST
-void test_solveSE_(double a, double b, double c, int exp_ret, se_solution_t exp_solution) {
+void test_solveSE_(double a, double b, double c, int exp_ret, se_solution_t * exp_solution) {
     se_solution_t solution;
     TEST_MSG("Testing solve_SE on a=%lg, b=%lg, c=%lg", a, b, c);
     int ret = solveSE(a, b, c, &solution);
     TEST_ASSERT_M(ret == exp_ret, "Unexpected return value: %d instead of %d", ret, exp_ret);
     if (exp_ret == 0) {
-        TEST_ASSERT_M(solution.type == exp_solution.type, "Different numbers of roots: %d instead of %d", solution.type, exp_solution.type);
+        TEST_ASSERT_M(solution.type == exp_solution->type, "Different numbers of roots: %d instead of %d", solution.type, exp_solution->type);
         if (solution.type == SE_ONE_ROOT || solution.type == SE_TWO_ROOTS) {
-            TEST_ASSERT_M(cmpDouble(solution.x1, exp_solution.x1) == 0, "Different 1st roots: %lg != %lg", solution.x1, exp_solution.x1);
+            TEST_ASSERT_M(cmpDouble(solution.x1, exp_solution->x1) == 0, "Different 1st roots: %lg != %lg", solution.x1, exp_solution->x1);
         }
         if (solution.type == SE_TWO_ROOTS) {
-            TEST_ASSERT_M(cmpDouble(solution.x2, exp_solution.x2) == 0, "Different 2nd roots: %lg != %lg", solution.x2, exp_solution.x2);
+            TEST_ASSERT_M(cmpDouble(solution.x2, exp_solution->x2) == 0, "Different 2nd roots: %lg != %lg", solution.x2, exp_solution->x2);
         }
     }
     TEST_MSG("Passed");
 }
 
 void test_solveSE(void) {
-    test_solveSE_(1, 2, 1, 0, makeSolution(SE_ONE_ROOT, -1, 0));
-    test_solveSE_(1, 4, 4, 0, makeSolution(SE_ONE_ROOT, -2, 0));
-    test_solveSE_(0, 1, 1, 0, makeSolution(SE_ONE_ROOT, -1, 0));
-    test_solveSE_(0, 0, 0, 0, makeSolution(SE_ANY_ROOT, 0, 0));
-    test_solveSE_(0, 0, 1, 0, makeSolution(SE_NO_ROOTS, 0, 0));
-    test_solveSE_(0.1, -0.5, 0.6, 0, makeSolution(SE_TWO_ROOTS, 2, 3));
-    test_solveSE_(NAN, 0, 0, 1, makeSolution(SE_NO_ROOTS, 0, 0));
+    se_solution_t exp_solution;
+    test_solveSE_(1, 2, 1, 0, initSolution(&exp_solution, SE_ONE_ROOT, -1, 0));
+    test_solveSE_(1, 4, 4, 0, initSolution(&exp_solution, SE_ONE_ROOT, -2, 0));
+    test_solveSE_(0, 1, 1, 0, initSolution(&exp_solution, SE_ONE_ROOT, -1, 0));
+    test_solveSE_(0, 0, 0, 0, initSolution(&exp_solution, SE_ANY_ROOT, 0, 0));
+    test_solveSE_(0, 0, 1, 0, initSolution(&exp_solution, SE_NO_ROOTS, 0, 0));
+    test_solveSE_(0.1, -0.5, 0.6, 0, initSolution(&exp_solution, SE_TWO_ROOTS, 2, 3));
+    test_solveSE_(NAN, 0, 0, 1, &exp_solution);
 }
 #endif // TEST
 
