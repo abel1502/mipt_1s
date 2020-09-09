@@ -25,7 +25,7 @@ const int MAX_LINES = 0x4000;
 // TODO: Document exceptional return values
 
 /**
- * A type for a russian-compatible letter
+ * A type for a Cyrillic-compatible letter
  */
 typedef unsigned char letter;
 
@@ -33,8 +33,8 @@ typedef unsigned char letter;
  * An array of lines of a poem
  */
 typedef struct lines {
-    int len;
-    letter ** vals;
+    int len;  /**< The number of lines */
+    letter ** vals;  /**< The actual lines */
 } lines_t;
 
 /**
@@ -53,6 +53,14 @@ void showUsage(const char * binname);
  * @param [in]  ifile   The input file
  * @param [out] line    The destination
  * @param [in]  maxLen  A limit to how long the line may be
+ *
+ * @return An error code:
+ *  - 0
+ *    Success
+ *  - 1
+ *    Success (?), but EOF was reached instead of '\n'
+ *  - 2
+ *    Error, line's length exceeds `maxLen`
  */
 int readLine(FILE * ifile, letter * line, int maxLen);
 
@@ -62,6 +70,18 @@ int readLine(FILE * ifile, letter * line, int maxLen);
  * @param [in]  ifile     The input file
  * @param [out] lines     The destination
  * @param [in]  maxLines  A limit to how many lines there may be
+ *
+ * @return An error code:
+ *  - 0
+ *    Success
+ *  - 1
+ *    Error, space couldn't have been allocated for one of the lines
+ *  - 2
+ *    Error, one of the lines was too long
+ *
+ *  Attention: if `maxLines` lines were read, 0 is returned,
+ *  but EOF may not have been reached yet
+ *
  */
 int readLines(FILE * ifile, lines_t * lines, int maxLines);
 
@@ -70,6 +90,12 @@ int readLines(FILE * ifile, lines_t * lines, int maxLines);
  *
  * @param [in]  ofile  The output file
  * @param [in]  lines  The lines to write
+ *
+ * @return An error code:
+ *  - 0
+ *    Success
+ *  - 1
+ *    Error, fputs failed
  */
 int writeLines(FILE * ofile, lines_t * lines);
 
@@ -77,6 +103,12 @@ int writeLines(FILE * ofile, lines_t * lines);
  * A constructor for lines
  *
  * @param [out] lines  The lines to be initialized
+ *
+ * @return An error code:
+ *  - 0
+ *    Success
+ *  - 1
+ *    Error, space couldn't have been allocated for the lines array
  */
 int initLines(lines_t * lines);
 
@@ -94,6 +126,8 @@ void sortLines(lines_t * lines, int (*cmp)(const void *, const void *));
  * Checks if a letter is an alphabetic character in Latin or Cyrillic
  *
  * @param [in]  c  The letter to be checked
+ *
+ * @return True if `c` is an alphabetic character
  */
 bool isLetter(letter c);
 
@@ -102,13 +136,15 @@ bool isLetter(letter c);
  *  ignoring the non-alphabetical characters
  *
  * @param [in]  a, b  The first lines to be compared. (Actual type: letter**)
+ *
+ * @return The rugh equivalent of a - b, as specified in `sortLines`
  */
 int cmpLines(const void * a, const void * b);  // Attention: compares two strings, not lines_t!
 
 /**
- * Frees the memory allocated by initLines
+ * Frees the memory allocated by `initLines`
  *
- * @param [in,out]  lines  The same lines as what you passed to initLines
+ * @param [in,out]  lines  The same lines as what you passed to `initLines`
  */
 void freeLines(lines_t * lines);
 
@@ -212,7 +248,7 @@ int readLines(FILE * ifile, lines_t * lines, int maxLines) {
         state = readLine(ifile, lines->vals[i], MAX_LINE - 1);
         lines->len++;
     }
-    if (state == 1) { // Empty last line
+    if (state == 1 && lines->vals[lines->len - 1][0] == '\0') { // Empty last line
         free(lines->vals[lines->len - 1]);
         lines->len--;
     }
