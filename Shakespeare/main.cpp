@@ -22,8 +22,6 @@ const int MAX_LINES = 0x4000;
 
 //--------------------------------------------------------------------------------
 
-// TODO: Document exceptional return values
-
 /**
  * A type for a Cyrillic-compatible letter
  */
@@ -176,12 +174,17 @@ int main(const int argc, const char **argv) {
     }
 
     FILE * ifile = fopen(argv[1], "r");
+    if (ifile == NULL) {
+        ERR("Couldn't open \'%s\' to read", argv[1]);
+        return EXIT_FAILURE;
+    }
     lines_t lines;
     initLines(&lines);
     int result = readLines(ifile, &lines, MAX_LINES);
     fclose(ifile);
     if (result) {
         ERR("Error while reading lines");
+        freeLines(&lines);
         return EXIT_FAILURE;
     }
 
@@ -191,16 +194,23 @@ int main(const int argc, const char **argv) {
     char newName[32] = "sorted_";
     if (strlen(newName) + strlen(argv[1]) > sizeof(newName)) {
         ERR("Binary\'s name is too long");
+        freeLines(&lines);
         return EXIT_FAILURE;
     }
     strcat(newName, argv[1]);
 
     printf("Done sorting, writing to %s\n", newName);
     FILE * ofile = fopen(newName, "w");
+    if (ofile == NULL) {
+        ERR("Couldn't open \'%s\' to write", newName);
+        freeLines(&lines);
+        return EXIT_FAILURE;
+    }
     result = writeLines(ofile, &lines);
     fclose(ofile);
     if (result) {
         ERR("Error while writing lines");
+        freeLines(&lines);
         return EXIT_FAILURE;
     }
 
@@ -231,6 +241,8 @@ void showUsage(const char *binname) {
 }
 
 int readLine(FILE *ifile, letter *line, int maxLen) {
+    assert(ifile != NULL);
+    assert(line != NULL);
     int cur = fgetc(ifile);
     int pos = 0;
     for (; cur != EOF && cur != '\n' && pos < maxLen; ++pos) {
@@ -249,6 +261,8 @@ int readLine(FILE *ifile, letter *line, int maxLen) {
 }
 
 int readLines(FILE *ifile, lines_t *lines, int maxLines) {
+    assert(ifile != NULL);
+    assert(lines != NULL);
     int state = 0;
     int i = 0;
     for (; state == 0 && i < maxLines; ++i) {
@@ -272,6 +286,8 @@ int readLines(FILE *ifile, lines_t *lines, int maxLines) {
 }
 
 int writeLines(FILE *ofile, lines_t *lines) {
+    assert(ofile != NULL);
+    assert(lines != NULL);
     for (int i = 0; i < lines->len; ++i) {
         if (fputs((const char *)lines->vals[i], ofile) == EOF) {
             ERR("Can\'t write line #%d", i);
@@ -283,6 +299,7 @@ int writeLines(FILE *ofile, lines_t *lines) {
 }
 
 int initLines(lines_t *lines) {
+    assert(lines != NULL);
     lines->vals = (letter **) calloc(MAX_LINES, sizeof(letter *));
     if (lines->vals == NULL) {
         ERR("Can't allocate space for lines");
@@ -293,6 +310,8 @@ int initLines(lines_t *lines) {
 }
 
 void sortLines(lines_t *lines, int (*cmp)(const void *, const void *)) {
+    assert(lines != NULL);
+    assert(cmp != NULL);
     qsort(lines->vals, lines->len, sizeof(lines->vals[0]), cmp);
 }
 
@@ -301,6 +320,8 @@ bool isLetter(letter c) {
 }
 
 int cmpLines(const void *a, const void *b) {
+    assert(a != NULL);
+    assert(b != NULL);
     const letter * a_str = *(const letter **)a;
     const letter * b_str = *(const letter **)b;
 
@@ -319,10 +340,14 @@ int cmpLines(const void *a, const void *b) {
 }
 
 void freeLines(lines_t *lines) {
+    if (lines == NULL) return;
+    if (lines->vals == NULL) return;
     for (int i = 0; i < lines->len; ++i) {
-        free(lines->vals[i]);
+        if (lines->vals[i] != NULL) free(lines->vals[i]);
+        lines->vals[i] = NULL;
     }
     free(lines->vals);
+    lines->vals = NULL;
     lines->len = 0;
 }
 
