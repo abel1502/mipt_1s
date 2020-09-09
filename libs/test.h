@@ -6,6 +6,8 @@
  *   Then in main(), embed the following code:
  *
  *   TEST_MAIN(
+ *       <Here you can place all yout setup code>
+ *       ,
  *       <Here you can place all your tests' code>
  *       ,
  *       <Here you can place all your cleanup code>
