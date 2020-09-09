@@ -34,8 +34,8 @@
 #define MACROFUNC(...) do {__VA_ARGS__} while (0)
 
 
-jmp_buf __test_env;
-jmp_buf __cleanup_env;
+static jmp_buf __test_env;
+static jmp_buf __cleanup_env;
 
 #define TEST_MAIN(setupcode, testcode, cleanupcode) \
     setupcode \
@@ -69,7 +69,7 @@ jmp_buf __cleanup_env;
 )
 
 
-const double _EPSILON = 1e-8;
+static const double _EPSILON = 1e-8;
 
 /**
  * Helper function to approximately compare doubles
