@@ -58,7 +58,7 @@ void showUsage(const char * binname);
  *  - 0
  *    Success
  *  - 1
- *    Success (?), but EOF was reached instead of '\n'
+ *    Success (?), but EOF was reached instead of '\\n'
  *  - 2
  *    Error, line's length exceeds `maxLen`
  */
@@ -117,8 +117,8 @@ int initLines(lines_t * lines);
  *
  * @param [in,out] lines  The lines to be sorted
  * @param [in]     cmp    The comparator function.
- *   Real signature: int cmp(const letter ** a, const letter ** b).
- *   Should return the equivalent of a - b
+ *   Real signature: `int cmp(const letter ** a, const letter ** b)`.
+ *   Should return the equivalent of `a` - `b`
  */
 void sortLines(lines_t * lines, int (*cmp)(const void *, const void *));
 
@@ -137,7 +137,7 @@ bool isLetter(letter c);
  *
  * @param [in]  a, b  The first lines to be compared. (Actual type: letter**)
  *
- * @return The rugh equivalent of a - b, as specified in `sortLines`
+ * @return The rugh equivalent of `a` - `b`, as specified in `sortLines`
  */
 int cmpLines(const void * a, const void * b);  // Attention: compares two strings, not lines_t!
 
