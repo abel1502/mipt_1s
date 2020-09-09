@@ -34,7 +34,7 @@ typedef unsigned char letter;
  */
 typedef struct lines {
     int len;  /**< The number of lines */
-    letter ** vals;  /**< The actual lines */
+    letter **vals;  /**< The actual lines */
 } lines_t;
 
 /**
@@ -45,7 +45,7 @@ void showBanner(void);
 /**
  * Shows help on how to use the program
  */
-void showUsage(const char * binname);
+void showUsage(const char *binname);
 
 /**
  * Reads a line from a file
@@ -62,7 +62,7 @@ void showUsage(const char * binname);
  *  - 2
  *    Error, line's length exceeds `maxLen`
  */
-int readLine(FILE * ifile, letter * line, int maxLen);
+int readLine(FILE *ifile, letter *line, int maxLen);
 
 /**
  * Reads all lines from a file
@@ -83,7 +83,7 @@ int readLine(FILE * ifile, letter * line, int maxLen);
  *  but EOF may not have been reached yet
  *
  */
-int readLines(FILE * ifile, lines_t * lines, int maxLines);
+int readLines(FILE *ifile, lines_t *lines, int maxLines);
 
 /**
  * Writes all lines to a file
@@ -97,7 +97,7 @@ int readLines(FILE * ifile, lines_t * lines, int maxLines);
  *  - 1
  *    Error, fputs failed
  */
-int writeLines(FILE * ofile, lines_t * lines);
+int writeLines(FILE *ofile, lines_t *lines);
 
 /**
  * A constructor for lines
@@ -110,7 +110,7 @@ int writeLines(FILE * ofile, lines_t * lines);
  *  - 1
  *    Error, space couldn't have been allocated for the lines array
  */
-int initLines(lines_t * lines);
+int initLines(lines_t *lines);
 
 /**
  * Quick sorts lines based on a comparator
@@ -120,7 +120,7 @@ int initLines(lines_t * lines);
  *   Real signature: `int cmp(const letter ** a, const letter ** b)`.
  *   Should return the equivalent of `a` - `b`
  */
-void sortLines(lines_t * lines, int (*cmp)(const void *, const void *));
+void sortLines(lines_t *lines, int (*cmp)(const void *, const void *));
 
 /**
  * Checks if a letter is an alphabetic character in Latin or Cyrillic
@@ -135,11 +135,11 @@ bool isLetter(letter c);
  * A comparator function for lines that compares two lines,
  *  ignoring the non-alphabetical characters
  *
- * @param [in]  a, b  The first lines to be compared. (Actual type: letter**)
+ * @param [in]  a, b  The first lines to be compared. (Actual type: `letter**`)
  *
  * @return The rugh equivalent of `a` - `b`, as specified in `sortLines`
  */
-int cmpLines(const void * a, const void * b);  // Attention: compares two strings, not lines_t!
+int cmpLines(const void *a, const void *b);  // Attention: compares two strings, not lines_t!
 
 /**
  * Frees the memory allocated by `initLines`
@@ -148,14 +148,23 @@ int cmpLines(const void * a, const void * b);  // Attention: compares two string
  */
 void freeLines(lines_t * lines);
 
+#ifdef TEST
+void test_cmpLines(lines_t * lines);
+#endif // TEST
+
 //================================================================================
 
 int main(const int argc, const char **argv) {
     setlocale(LC_ALL, "Russian");
 
     TEST_MAIN(
-        //
+        lines_t test_lines;
+        initLines(&test_lines);
         ,
+        test_cmpLines(&test_lines);
+        $g; TEST_MSG("Passed All."); $d;
+        ,
+        freeLines(&test_lines);
     )
 
     showBanner();
@@ -176,7 +185,7 @@ int main(const int argc, const char **argv) {
         return EXIT_FAILURE;
     }
 
-    //printf("%d\n", lines.len);
+    printf("Read %d lines, sorting...\n", lines.len);
     sortLines(&lines, cmpLines);
 
     char newName[32] = "sorted_";
@@ -185,6 +194,8 @@ int main(const int argc, const char **argv) {
         return EXIT_FAILURE;
     }
     strcat(newName, argv[1]);
+
+    printf("Done sorting, writing to %s\n", newName);
     FILE * ofile = fopen(newName, "w");
     result = writeLines(ofile, &lines);
     fclose(ofile);
@@ -193,6 +204,7 @@ int main(const int argc, const char **argv) {
         return EXIT_FAILURE;
     }
 
+    printf("Done.\n");
     freeLines(&lines);
     return EXIT_SUCCESS;
 }
@@ -212,13 +224,13 @@ void showBanner(void) {
            "proclaim that this also works on Eugene Onegin\n\n");
 }
 
-void showUsage(const char * binname) {
+void showUsage(const char *binname) {
     printf("Usage: %s ifile\n\n"
            "ifile - The file containing the source poem\n"
            "(The results are placed in files with the same names with extra prefixes)\n\n", binname);
 }
 
-int readLine(FILE * ifile, letter * line, int maxLen) {
+int readLine(FILE *ifile, letter *line, int maxLen) {
     int cur = fgetc(ifile);
     int pos = 0;
     for (; cur != EOF && cur != '\n' && pos < maxLen; ++pos) {
@@ -236,7 +248,7 @@ int readLine(FILE * ifile, letter * line, int maxLen) {
     }
 }
 
-int readLines(FILE * ifile, lines_t * lines, int maxLines) {
+int readLines(FILE *ifile, lines_t *lines, int maxLines) {
     int state = 0;
     int i = 0;
     for (; state == 0 && i < maxLines; ++i) {
@@ -259,7 +271,7 @@ int readLines(FILE * ifile, lines_t * lines, int maxLines) {
     return 0;
 }
 
-int writeLines(FILE * ofile, lines_t * lines) {
+int writeLines(FILE *ofile, lines_t *lines) {
     for (int i = 0; i < lines->len; ++i) {
         if (fputs((const char *)lines->vals[i], ofile) == EOF) {
             ERR("Can\'t write line #%d", i);
@@ -270,7 +282,7 @@ int writeLines(FILE * ofile, lines_t * lines) {
     return 0;
 }
 
-int initLines(lines_t * lines) {
+int initLines(lines_t *lines) {
     lines->vals = (letter **) calloc(MAX_LINES, sizeof(letter *));
     if (lines->vals == NULL) {
         ERR("Can't allocate space for lines");
@@ -280,7 +292,7 @@ int initLines(lines_t * lines) {
     return 0;
 }
 
-void sortLines(lines_t * lines, int (*cmp)(const void *, const void *)) {
+void sortLines(lines_t *lines, int (*cmp)(const void *, const void *)) {
     qsort(lines->vals, lines->len, sizeof(lines->vals[0]), cmp);
 }
 
@@ -288,9 +300,9 @@ bool isLetter(letter c) {
     return isalpha(c) || ((letter)'а' <= c && c <= (letter)'я') || ((letter)'А' <= c && c <= (letter)'Я');
 }
 
-int cmpLines(const void * a, const void * b) {
-    letter * a_str = *(letter **)a;
-    letter * b_str = *(letter **)b;
+int cmpLines(const void *a, const void *b) {
+    const letter * a_str = *(const letter **)a;
+    const letter * b_str = *(const letter **)b;
 
     int i = 0, j = 0;
     while (i < MAX_LINE && j < MAX_LINE && a_str[i] && b_str[j]) {
@@ -306,7 +318,7 @@ int cmpLines(const void * a, const void * b) {
     return 0;
 }
 
-void freeLines(lines_t * lines) {
+void freeLines(lines_t *lines) {
     for (int i = 0; i < lines->len; ++i) {
         free(lines->vals[i]);
     }
@@ -314,3 +326,25 @@ void freeLines(lines_t * lines) {
     lines->len = 0;
 }
 
+//================================================================================
+
+#ifdef TEST
+void test_cmpLines(lines_t * lines) {
+    const int cnt = 5;
+    const letter values[cnt][20] = {"Привет", "При, вот", "!При, ват", "Bonjour", "[123]"};
+    const letter result[cnt][20] = {"[123]", "Bonjour", "!При, ват", "Привет", "При, вот"};
+
+    for (int i = 0; i < cnt; ++i) {
+        lines->vals[i] = (letter *)calloc(20, sizeof(letter));
+        TEST_ASSERT_M(lines->vals[i] != NULL, "Not enough RAM for the test");
+        strcpy((char *)lines->vals[lines->len++], (const char *)values[i]);
+    }
+
+    sortLines(lines, cmpLines);
+
+    TEST_ASSERT(lines->len == cnt);
+    for (int i = 0; i < cnt; ++i) {
+        TEST_ASSERT_M(strcmp((const char *)lines->vals[i], (const char *)result[i]) == 0, "Expected %s on %ith place, got %s instead", result[i], i, lines->vals[i]);
+    }
+}
+#endif // TEST
