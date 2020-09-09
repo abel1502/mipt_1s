@@ -35,7 +35,8 @@
 jmp_buf __test_env;
 jmp_buf __cleanup_env;
 
-#define TEST_MAIN(testcode, cleanupcode) \
+#define TEST_MAIN(setupcode, testcode, cleanupcode) \
+    setupcode \
     if (setjmp(__test_env) != 0) { \
         testcode \
         longjmp(__cleanup_env, 1); \
@@ -89,7 +90,7 @@ static int cmpDouble(double left, double right) {
 }
 
 #else
-#define TEST_MAIN(testcode, cleanupcode)
+#define TEST_MAIN(setupcode, testcode, cleanupcode)
 #endif // TEST
 
 #endif // TESTLIB_GUARD

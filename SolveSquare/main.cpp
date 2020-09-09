@@ -105,6 +105,7 @@ void test_solveSE(void);
 int main(int argc, char ** argv) {
     TEST_MAIN(
         verbose = true;
+        ,
         test_solveSE();
         $g; TEST_MSG("Passed All."); $d;
         ,
