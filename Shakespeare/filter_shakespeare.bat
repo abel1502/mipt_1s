@@ -1,0 +1,1 @@
+python filter_shakespeare.py ./hamlet.raw.txt ./hamlet.txt
