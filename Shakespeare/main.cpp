@@ -50,15 +50,18 @@ void showUsage(const char *binname);
  *
  * @param [in]  ifile     The input file
  * @param [out] lines     The destination
- * @param [in]  maxLines  A limit to how many lines there may be
  *
  * @return An error code:
  *  - 0
  *    Success
  *  - 1
- *    Error, space couldn't have been allocated for one of the lines
+ *    Error, space couldn't have been allocated for the lines
  *  - 2
- *    Error, one of the lines was too long
+ *    Error, couldn't read the entire file
+ *  - 3
+ *    Error, number of lines changed (somehow)
+ *  - 4
+ *    Error, the file is empty
  */
 int readLines(FILE *ifile, lines_t *lines);
 
@@ -79,15 +82,19 @@ int writeLines(FILE *ofile, lines_t *lines);
 /**
  * A constructor for lines
  *
- * @param [out] lines  The lines to be initialized
+ * @param [out] lines     The lines to be initialized
+ * @param [in]  maxLines  The limit to how many lines there may be
+ * @param [in]  maxLen    The limit to text's length
  *
  * @return An error code:
  *  - 0
  *    Success
  *  - 1
- *    Error, space couldn't have been allocated for the lines array
+ *    Error, space couldn't have been allocated for the lines
+ *  - 2
+ *    Error, space couldn't have been allocated for the text
  */
-int initLines(lines_t *lines, long int maxLen);
+int initLines(lines_t *lines, int maxLines, size_t maxLen);
 
 /**
  * Quick sorts lines based on a comparator
@@ -114,7 +121,7 @@ bool isLetter(letter c);
  *
  * @param [in]  a, b  The first lines to be compared. (Actual type: `letter**`)
  *
- * @return The rugh equivalent of `a` - `b`, as specified in `sortLines`
+ * @return The rough equivalent of `a` - `b`, as specified in `sortLines`
  */
 int cmpLines(const void *a, const void *b);  // Attention: compares two strings, not lines_t!
 
@@ -125,6 +132,13 @@ int cmpLines(const void *a, const void *b);  // Attention: compares two strings,
  */
 void freeLines(lines_t * lines);
 
+/**
+ * Goes over the file and identifies its length and line count
+ *
+ * @param [in]  ifile    The input file
+ * @param [out] lineCnt  Line counter
+ * @param [out] length   Length counter
+ */
 void analyzeFile(FILE * ifile, int *lineCnt, size_t *length);
 
 #ifdef TEST
@@ -233,8 +247,7 @@ int readLines(FILE *ifile, lines_t *lines) {
         return 4;
     }
 
-    initLines(lines, lineCnt);
-    lines->text = (letter *)malloc(textLen * sizeof(letter));
+    initLines(lines, lineCnt, textLen);
     if (lines->text == NULL) {
         ERR("Can\'t allocate space for the lines");
         return 1;
@@ -266,7 +279,6 @@ int readLines(FILE *ifile, lines_t *lines) {
 
     if (lines->len != lineCnt) {
         ERR("Wrong number of lines. Why would one even perform a race condition here?");
-        ERR("%d instead of %d", lines->len, lineCnt);
         return 3;
     }
     return 0;
@@ -285,15 +297,19 @@ int writeLines(FILE *ofile, lines_t *lines) {
     return 0;
 }
 
-int initLines(lines_t *lines, long int maxLen) {
+int initLines(lines_t *lines, int maxLines, size_t maxLen) {
     assert(lines != NULL);
-    lines->vals = (letter **) calloc(maxLen, sizeof(letter *));
+    lines->vals = (letter **) calloc(maxLines, sizeof(letter *));
     if (lines->vals == NULL) {
         ERR("Can't allocate space for lines");
         return 1;
     }
+    lines->text = (letter *)malloc(maxLen * sizeof(letter));
+    if (lines->text == NULL) {
+        ERR("Can't allocate space for text");
+        return 2;
+    }
     lines->len = 0;
-    lines->text = NULL;
     return 0;
 }
 
