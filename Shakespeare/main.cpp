@@ -18,7 +18,6 @@
 //--------------------------------------------------------------------------------
 
 const int MAX_LINE = 80;
-const int MAX_LINES = 0x4000;
 
 //--------------------------------------------------------------------------------
 
@@ -33,6 +32,7 @@ typedef unsigned char letter;
 typedef struct lines {
     int len;  /**< The number of lines */
     letter **vals;  /**< The actual lines */
+    letter *text;  /**< Where all lines reside */
 } lines_t;
 
 /**
@@ -44,23 +44,6 @@ void showBanner(void);
  * Shows help on how to use the program
  */
 void showUsage(const char *binname);
-
-/**
- * Reads a line from a file
- *
- * @param [in]  ifile   The input file
- * @param [out] line    The destination
- * @param [in]  maxLen  A limit to how long the line may be
- *
- * @return An error code:
- *  - 0
- *    Success
- *  - 1
- *    Success (?), but EOF was reached instead of '\\n'
- *  - 2
- *    Error, line's length exceeds `maxLen`
- */
-int readLine(FILE *ifile, letter *line, int maxLen);
 
 /**
  * Reads all lines from a file
@@ -76,12 +59,8 @@ int readLine(FILE *ifile, letter *line, int maxLen);
  *    Error, space couldn't have been allocated for one of the lines
  *  - 2
  *    Error, one of the lines was too long
- *
- *  Attention: if `maxLines` lines were read, 0 is returned,
- *  but EOF may not have been reached yet
- *
  */
-int readLines(FILE *ifile, lines_t *lines, int maxLines);
+int readLines(FILE *ifile, lines_t *lines);
 
 /**
  * Writes all lines to a file
@@ -93,7 +72,7 @@ int readLines(FILE *ifile, lines_t *lines, int maxLines);
  *  - 0
  *    Success
  *  - 1
- *    Error, fputs failed
+ *    Error, `fputs` failed
  */
 int writeLines(FILE *ofile, lines_t *lines);
 
@@ -108,7 +87,7 @@ int writeLines(FILE *ofile, lines_t *lines);
  *  - 1
  *    Error, space couldn't have been allocated for the lines array
  */
-int initLines(lines_t *lines);
+int initLines(lines_t *lines, long int maxLen);
 
 /**
  * Quick sorts lines based on a comparator
@@ -146,6 +125,8 @@ int cmpLines(const void *a, const void *b);  // Attention: compares two strings,
  */
 void freeLines(lines_t * lines);
 
+void analyzeFile(FILE * ifile, int *lineCnt, size_t *length);
+
 #ifdef TEST
 void test_cmpLines(lines_t * lines);
 #endif // TEST
@@ -157,7 +138,7 @@ int main(const int argc, const char **argv) {
 
     TEST_MAIN(
         lines_t test_lines;
-        initLines(&test_lines);
+        initLines(&test_lines, 40);
         ,
         test_cmpLines(&test_lines);
         $g; TEST_MSG("Passed All."); $d;
@@ -179,8 +160,8 @@ int main(const int argc, const char **argv) {
         return EXIT_FAILURE;
     }
     lines_t lines;
-    initLines(&lines);
-    int result = readLines(ifile, &lines, MAX_LINES);
+    //initLines(&lines);
+    int result = readLines(ifile, &lines);
     fclose(ifile);
     if (result) {
         ERR("Error while reading lines");
@@ -206,6 +187,7 @@ int main(const int argc, const char **argv) {
         freeLines(&lines);
         return EXIT_FAILURE;
     }
+
     result = writeLines(ofile, &lines);
     fclose(ofile);
     if (result) {
@@ -240,47 +222,52 @@ void showUsage(const char *binname) {
            "(The results are placed in files with the same names with extra prefixes)\n\n", binname);
 }
 
-int readLine(FILE *ifile, letter *line, int maxLen) {
-    assert(ifile != NULL);
-    assert(line != NULL);
-    int cur = fgetc(ifile);
-    int pos = 0;
-    for (; cur != EOF && cur != '\n' && pos < maxLen; ++pos) {
-        line[pos] = cur;
-        cur = fgetc(ifile);
-    }
-    line[pos] = '\0';
-    if (cur == '\n') {
-        return 0;
-    } else if (cur == EOF) {
-        return 1;
-    } else {
-        ERR("Line too long");
-        return 2;
-    }
-}
-
-int readLines(FILE *ifile, lines_t *lines, int maxLines) {
+int readLines(FILE *ifile, lines_t *lines) {
     assert(ifile != NULL);
     assert(lines != NULL);
-    int state = 0;
-    int i = 0;
-    for (; state == 0 && i < maxLines; ++i) {
-        lines->vals[i] = (letter *) malloc(sizeof(letter) * MAX_LINE);
-        if (lines->vals[i] == NULL) {
-            ERR("Can\'t allocate space for a line");
-            return 1;
-        }
-        state = readLine(ifile, lines->vals[i], MAX_LINE - 1);
-        lines->len++;
+    size_t textLen = 0;
+    int lineCnt = 0;
+    analyzeFile(ifile, &lineCnt, &textLen);
+    if (textLen <= 2) {
+        ERR("Empty file");
+        return 4;
     }
-    if (state == 1 && lines->vals[lines->len - 1][0] == '\0') { // Empty last line
-        free(lines->vals[lines->len - 1]);
-        lines->len--;
+
+    initLines(lines, lineCnt);
+    lines->text = (letter *)malloc(textLen * sizeof(letter));
+    if (lines->text == NULL) {
+        ERR("Can\'t allocate space for the lines");
+        return 1;
     }
-    if (state == 2) {
-        ERR("Line #%d too long", i);
+
+    if (fread(lines->text, sizeof(letter), textLen - 1, ifile) != textLen - 1) {
+        ERR("Insufficient data read from file. Race condition, huh?");
         return 2;
+    }
+    lines->text[textLen - 1] = '\0';
+    if (lines->text[textLen - 2] == '\n') {
+        lines->text[textLen - 2] = '\0';
+        lineCnt--;
+    }
+    //printf("%d\n%s", textLen,  text);
+    //printf("%02x%02x%02x%02x", text[textLen - 4], text[textLen - 3], text[textLen - 2], text[textLen - 1]);
+
+    lines->vals[0] = lines->text;
+    lines->len++;
+    size_t pos = 0;
+    while (pos < textLen) {
+        if (lines->text[pos] == '\n') {
+            lines->text[pos] = '\0';
+            lines->vals[lines->len] = lines->text + pos + 1;
+            lines->len++;
+        }
+        pos++;
+    }
+
+    if (lines->len != lineCnt) {
+        ERR("Wrong number of lines. Why would one even perform a race condition here?");
+        ERR("%d instead of %d", lines->len, lineCnt);
+        return 3;
     }
     return 0;
 }
@@ -298,14 +285,15 @@ int writeLines(FILE *ofile, lines_t *lines) {
     return 0;
 }
 
-int initLines(lines_t *lines) {
+int initLines(lines_t *lines, long int maxLen) {
     assert(lines != NULL);
-    lines->vals = (letter **) calloc(MAX_LINES, sizeof(letter *));
+    lines->vals = (letter **) calloc(maxLen, sizeof(letter *));
     if (lines->vals == NULL) {
         ERR("Can't allocate space for lines");
         return 1;
     }
     lines->len = 0;
+    lines->text = NULL;
     return 0;
 }
 
@@ -341,14 +329,25 @@ int cmpLines(const void *a, const void *b) {
 
 void freeLines(lines_t *lines) {
     if (lines == NULL) return;
-    if (lines->vals == NULL) return;
-    for (int i = 0; i < lines->len; ++i) {
-        if (lines->vals[i] != NULL) free(lines->vals[i]);
-        lines->vals[i] = NULL;
-    }
-    free(lines->vals);
+    if (lines->vals != NULL) free(lines->vals);
+    if (lines->text != NULL) free(lines->text);
     lines->vals = NULL;
+    lines->text = NULL;
     lines->len = 0;
+}
+
+void analyzeFile(FILE * ifile, int *lineCnt, size_t *length) {
+    assert(ifile != NULL);
+    fseek(ifile, 0L, SEEK_SET);
+    (*lineCnt) = 0;
+    (*length) = 0;
+    int cur = 0;
+    do {
+        cur = fgetc(ifile);
+        (*length)++;
+        if (cur == '\n' || cur == EOF) (*lineCnt)++; // We'll assume there's another line at the end terminated by EOF
+    } while (cur != EOF);
+    fseek(ifile, 0L, SEEK_SET);
 }
 
 //================================================================================
