@@ -26,12 +26,16 @@ const int MAX_LINE = 80;
  */
 typedef unsigned char letter;
 
+typedef struct line {
+    letter *val;
+} line_t;
+
 /**
  * An array of lines of a poem
  */
 typedef struct lines {
     int len;  /**< The number of lines */
-    letter **vals;  /**< The actual lines */
+    line_t *vals;  /**< The actual lines */
     letter *text;  /**< Where all lines reside */
 } lines_t;
 
@@ -101,7 +105,7 @@ int initLines(lines_t *lines, int maxLines, size_t maxLen);
  *
  * @param [in,out] lines  The lines to be sorted
  * @param [in]     cmp    The comparator function.
- *   Real signature: `int cmp(const letter ** a, const letter ** b)`.
+ *   Real signature: `int cmp(const line_t * a, const line_t * b)`.
  *   Should return the equivalent of `a` - `b`
  */
 void sortLines(lines_t *lines, int (*cmp)(const void *, const void *));
@@ -119,7 +123,7 @@ bool isLetter(letter c);
  * A comparator function for lines that compares two lines,
  *  ignoring the non-alphabetical characters
  *
- * @param [in]  a, b  The first lines to be compared. (Actual type: `letter**`)
+ * @param [in]  a, b  The first lines to be compared. (Actual type: `line *`)
  *
  * @return The rough equivalent of `a` - `b`, as specified in `sortLines`
  */
@@ -152,7 +156,7 @@ int main(const int argc, const char **argv) {
 
     TEST_MAIN(
         lines_t test_lines;
-        initLines(&test_lines, 40);
+        initLines(&test_lines, 40, 1000);
         ,
         test_cmpLines(&test_lines);
         $g; TEST_MSG("Passed All."); $d;
@@ -265,13 +269,13 @@ int readLines(FILE *ifile, lines_t *lines) {
     //printf("%d\n%s", textLen,  text);
     //printf("%02x%02x%02x%02x", text[textLen - 4], text[textLen - 3], text[textLen - 2], text[textLen - 1]);
 
-    lines->vals[0] = lines->text;
+    lines->vals[0].val = lines->text;
     lines->len++;
     size_t pos = 0;
     while (pos < textLen) {
         if (lines->text[pos] == '\n') {
             lines->text[pos] = '\0';
-            lines->vals[lines->len] = lines->text + pos + 1;
+            lines->vals[lines->len].val = lines->text + pos + 1;
             lines->len++;
         }
         pos++;
@@ -288,7 +292,7 @@ int writeLines(FILE *ofile, lines_t *lines) {
     assert(ofile != NULL);
     assert(lines != NULL);
     for (int i = 0; i < lines->len; ++i) {
-        if (fputs((const char *)lines->vals[i], ofile) == EOF) {
+        if (fputs((const char *)lines->vals[i].val, ofile) == EOF) {
             ERR("Can\'t write line #%d", i);
             return 1;
         }
@@ -299,7 +303,7 @@ int writeLines(FILE *ofile, lines_t *lines) {
 
 int initLines(lines_t *lines, int maxLines, size_t maxLen) {
     assert(lines != NULL);
-    lines->vals = (letter **) calloc(maxLines, sizeof(letter *));
+    lines->vals = (line *) calloc(maxLines, sizeof(line));
     if (lines->vals == NULL) {
         ERR("Can't allocate space for lines");
         return 1;
@@ -326,8 +330,8 @@ bool isLetter(letter c) {
 int cmpLines(const void *a, const void *b) {
     assert(a != NULL);
     assert(b != NULL);
-    const letter * a_str = *(const letter **)a;
-    const letter * b_str = *(const letter **)b;
+    const letter * a_str = (*(const line *)a).val;
+    const letter * b_str = (*(const line *)b).val;
 
     int i = 0, j = 0;
     while (i < MAX_LINE && j < MAX_LINE && a_str[i] && b_str[j]) {
@@ -375,16 +379,16 @@ void test_cmpLines(lines_t * lines) {
     const letter result[cnt][20] = {"[123]", "Bonjour", "!При, ват", "Привет", "При, вот"};
 
     for (int i = 0; i < cnt; ++i) {
-        lines->vals[i] = (letter *)calloc(20, sizeof(letter));
-        TEST_ASSERT_M(lines->vals[i] != NULL, "Not enough RAM for the test");
-        strcpy((char *)lines->vals[lines->len++], (const char *)values[i]);
+        lines->vals[i].val = (letter *)calloc(20, sizeof(letter));
+        TEST_ASSERT_M(lines->vals[i].val != NULL, "Not enough RAM for the test");
+        strcpy((char *)lines->vals[lines->len++].val, (const char *)values[i]);
     }
 
     sortLines(lines, cmpLines);
 
     TEST_ASSERT(lines->len == cnt);
     for (int i = 0; i < cnt; ++i) {
-        TEST_ASSERT_M(strcmp((const char *)lines->vals[i], (const char *)result[i]) == 0, "Expected %s on %ith place, got %s instead", result[i], i, lines->vals[i]);
+        TEST_ASSERT_M(strcmp((const char *)lines->vals[i].val, (const char *)result[i]) == 0, "Expected %s on %ith place, got %s instead", result[i], i, lines->vals[i].val);
     }
 }
 #endif // TEST
