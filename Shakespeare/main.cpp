@@ -26,8 +26,11 @@ const int MAX_LINE = 80;
  */
 typedef unsigned char letter;
 
+/**
+ * A line, possibly with metadata
+ */
 typedef struct line {
-    letter *val;
+    letter *val;  /**< The string value */
 } line_t;
 
 /**
