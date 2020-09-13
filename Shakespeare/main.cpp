@@ -9,7 +9,7 @@
  # Store line's length in line_t
  ? Remove struct names (and possibly remove _t from typedef ones)
  # Add ¸ and ¨
- - Add error handling to readLine
+ # Add error handling to readLine
  ? Maybe exclude ¸¨ from the whitelist, since they're not in alphabetical order inside the encoding
 */
 
