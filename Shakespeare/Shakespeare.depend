@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1599934642 source:d:\workspace\.mipt\s1\shakespeare\main.cpp
+1600013121 source:d:\workspace\.mipt\s1\shakespeare\main.cpp
 	"../libs/test.h"
 	<stdio.h>
 	<string.h>
