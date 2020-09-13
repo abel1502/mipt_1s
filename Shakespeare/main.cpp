@@ -73,7 +73,19 @@ void showBanner(void);
  */
 void showUsage(const char *binname);
 
-void readLine(letter *text, size_t *offset, line_t *line);
+/**
+ * Reads a single line from a file
+ * @param [in]     text    The raw text of the poem
+ * @param [in,out] offset  The offset from which to start (Changes to the next line's beginning
+ * @param [out]    line    The output line
+ *
+ * @return An error code:
+ *  - 0
+ *    Success
+ *  - 1
+ *    Error, line too long
+ */
+int readLine(letter *text, size_t *offset, line_t *line);
 
 /**
  * Reads all lines from a file
@@ -92,6 +104,8 @@ void readLine(letter *text, size_t *offset, line_t *line);
  *    Error, number of lines changed (somehow)
  *  - 4
  *    Error, the file is empty
+ *  - 5
+ *    Error, `readLine` failed
  */
 int readLines(FILE *ifile, lines_t *lines);
 
@@ -109,6 +123,18 @@ int readLines(FILE *ifile, lines_t *lines);
  */
 int writeLines(FILE *ofile, lines_t *lines);
 
+/**
+ * Writes all lines to a file in their original order
+ *
+ * @param [in]  ofile  The output file
+ * @param [in]  lines  The lines to write
+ *
+ * @return An error code:
+ *  - 0
+ *    Success
+ *  - 1
+ *    Error, `fputc` failed
+ */
 int writeOriginalLines(FILE *ofile, lines_t *lines);
 
 /**
@@ -157,6 +183,13 @@ bool isRelevant(letter c);
  */
 int cmpLines(const void *a, const void *b);  // Attention: compares two strings, not lines_t!
 
+/**
+ * The same as cmpLines, but from the back
+ *
+ * @param [in]  a, b  The first lines to be compared. (Actual type: `line *`)
+ *
+ * @return The rough equivalent of `a` - `b`, as specified in `sortLines`
+ */
 int cmpLinesReverse(const void *a, const void *b);
 
 /**
@@ -289,13 +322,17 @@ void showUsage(const char *binname) {
            "(The results are placed in files with the same names with extra prefixes)\n\n", binname);
 }
 
-void readLine(letter *text, size_t *offset, line_t *line) {
+int readLine(letter *text, size_t *offset, line_t *line) {
     line->val = text + (*offset);
     for (line->len = 0; text[*offset] != '\n' && line->len < MAX_LINE; (*offset)++, line->len++) {}
-    assert(text[*offset] == '\n');
+    if (text[*offset] != '\n') {
+        ERR("Line too long");
+        return 1;
+    }
     text[*offset] = '\0';
     line->len++;
     (*offset)++;
+    return 0;
 }
 
 int readLines(FILE *ifile, lines_t *lines) {
@@ -330,7 +367,10 @@ int readLines(FILE *ifile, lines_t *lines) {
 
     size_t offset = 0;
     for (lines->len = 0; lines->len < lineCnt; lines->len++) {
-        readLine(lines->text, &offset, &lines->vals[lines->len]);
+        if (readLine(lines->text, &offset, &lines->vals[lines->len])) {
+            ERR("Can't parse line #%d", lines->len);
+            return 5;
+        }
     }
     //printf("[DBG] %llu out of %llu\n", offset, textLen);
     //assert(offset == textLen);
