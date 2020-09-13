@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1599754968 source:d:\workspace\.mipt\s1\shakespeare\main.cpp
+1599934642 source:d:\workspace\.mipt\s1\shakespeare\main.cpp
 	"../libs/test.h"
 	<stdio.h>
 	<string.h>
@@ -7,6 +7,7 @@
 	<assert.h>
 	<locale.h>
 	<ctype.h>
+	<stdbool.h>
 
 1599678203 d:\workspace\.mipt\s1\libs\test.h
 	"TXLib.h"
