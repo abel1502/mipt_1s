@@ -1,3 +1,18 @@
+/*
+ Global TODO:
+
+ # Add reverse sort and restoration
+ - Wrap all error codes in enums
+ - Move tests into files
+ # Open files in binary mode
+ # Add digits to whitelist in the comparator
+ # Store line's length in line_t
+ ? Remove struct names (and possibly remove _t from typedef ones)
+ # Add ¸ and ¨
+ - Add error handling to readLine
+ ? Maybe exclude ¸¨ from the whitelist, since they're not in alphabetical order inside the encoding
+*/
+
 //#define TEST
 #include "../libs/test.h"
 
@@ -7,17 +22,21 @@
 #include <assert.h>
 #include <locale.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 
 #if !NDEBUG  // Okay, not gonna bother this time
 #define ERR(msg, ...) do {fprintf(stderr, "[ERROR in %s()] " msg "\n", __func__, ##__VA_ARGS__);} while (0)
 #else
-#definne ERR(msg, ...) do {} while (0)
+#define ERR(msg, ...) do {} while (0)
 #endif
 
 //--------------------------------------------------------------------------------
 
-const int MAX_LINE = 80;
+const unsigned char MAX_LINE = 80;
+// It's a letter[] constant, but even when I moved the typedef to the top, it still didn't work
+// (error: structured binding declaration cannot have type 'const letter' {aka 'const unsigned char'}|)
+#define SEP "\n--------------------------------------------------------------------------------\n\n"
 
 //--------------------------------------------------------------------------------
 
@@ -31,6 +50,7 @@ typedef unsigned char letter;
  */
 typedef struct line {
     letter *val;  /**< The string value */
+    unsigned char len;  /**< The line's length */
 } line_t;
 
 /**
@@ -39,6 +59,7 @@ typedef struct line {
 typedef struct lines {
     int len;  /**< The number of lines */
     line_t *vals;  /**< The actual lines */
+    size_t textLen;  /**< `text`'s length */
     letter *text;  /**< Where all lines reside */
 } lines_t;
 
@@ -51,6 +72,8 @@ void showBanner(void);
  * Shows help on how to use the program
  */
 void showUsage(const char *binname);
+
+void readLine(letter *text, size_t *offset, line_t *line);
 
 /**
  * Reads all lines from a file
@@ -86,6 +109,8 @@ int readLines(FILE *ifile, lines_t *lines);
  */
 int writeLines(FILE *ofile, lines_t *lines);
 
+int writeOriginalLines(FILE *ofile, lines_t *lines);
+
 /**
  * A constructor for lines
  *
@@ -114,13 +139,13 @@ int initLines(lines_t *lines, int maxLines, size_t maxLen);
 void sortLines(lines_t *lines, int (*cmp)(const void *, const void *));
 
 /**
- * Checks if a letter is an alphabetic character in Latin or Cyrillic
+ * Checks if a letter shouldn't be ignored during the sorting
  *
  * @param [in]  c  The letter to be checked
  *
- * @return True if `c` is an alphabetic character
+ * @return True if `c` is an alphabetic character in Latin or Cyrillic or a decimal digit
  */
-bool isLetter(letter c);
+bool isRelevant(letter c);
 
 /**
  * A comparator function for lines that compares two lines,
@@ -131,6 +156,8 @@ bool isLetter(letter c);
  * @return The rough equivalent of `a` - `b`, as specified in `sortLines`
  */
 int cmpLines(const void *a, const void *b);  // Attention: compares two strings, not lines_t!
+
+int cmpLinesReverse(const void *a, const void *b);
 
 /**
  * Frees the memory allocated by `initLines`
@@ -175,13 +202,12 @@ int main(const int argc, const char **argv) {
         return EXIT_FAILURE;
     }
 
-    FILE * ifile = fopen(argv[1], "r");
+    FILE * ifile = fopen(argv[1], "rb");
     if (ifile == NULL) {
         ERR("Couldn't open \'%s\' to read", argv[1]);
         return EXIT_FAILURE;
     }
-    lines_t lines;
-    //initLines(&lines);
+    lines_t lines;  // Lines intentionally not init-ed, because readLines does it itself
     int result = readLines(ifile, &lines);
     fclose(ifile);
     if (result) {
@@ -189,9 +215,6 @@ int main(const int argc, const char **argv) {
         freeLines(&lines);
         return EXIT_FAILURE;
     }
-
-    printf("Read %d lines, sorting...\n", lines.len);
-    sortLines(&lines, cmpLines);
 
     char newName[32] = "sorted_";
     if (strlen(newName) + strlen(argv[1]) > sizeof(newName)) {
@@ -201,23 +224,46 @@ int main(const int argc, const char **argv) {
     }
     strcat(newName, argv[1]);
 
-    printf("Done sorting, writing to %s\n", newName);
-    FILE * ofile = fopen(newName, "w");
+
+    FILE * ofile = fopen(newName, "wb");
     if (ofile == NULL) {
         ERR("Couldn't open \'%s\' to write", newName);
         freeLines(&lines);
         return EXIT_FAILURE;
     }
 
-    result = writeLines(ofile, &lines);
-    fclose(ofile);
-    if (result) {
+    printf("Read %d lines, sorting...\n", lines.len);
+    sortLines(&lines, cmpLines);
+
+    printf("Done sorting, writing to %s\n", newName);
+    if (writeLines(ofile, &lines)) {
         ERR("Error while writing lines");
+        fclose(ofile);
+        freeLines(&lines);
+        return EXIT_FAILURE;
+    }
+
+    printf("Sorting again, this time in reverse...\n");
+    sortLines(&lines, cmpLinesReverse);
+
+    printf("Done sorting for the second time, writing to the same file\n");
+    if (fprintf(ofile, SEP) < 0 || writeLines(ofile, &lines)) {
+        ERR("Error while writing lines");
+        fclose(ofile);
+        freeLines(&lines);
+        return EXIT_FAILURE;
+    }
+
+    printf("Okay, returning the original text now...\n");
+    if (fprintf(ofile, SEP) < 0 || writeOriginalLines(ofile, &lines)) {
+        ERR("Error while writing lines");
+        fclose(ofile);
         freeLines(&lines);
         return EXIT_FAILURE;
     }
 
     printf("Done.\n");
+    fclose(ofile);
     freeLines(&lines);
     return EXIT_SUCCESS;
 }
@@ -243,6 +289,15 @@ void showUsage(const char *binname) {
            "(The results are placed in files with the same names with extra prefixes)\n\n", binname);
 }
 
+void readLine(letter *text, size_t *offset, line_t *line) {
+    line->val = text + (*offset);
+    for (line->len = 0; text[*offset] != '\n' && line->len < MAX_LINE; (*offset)++, line->len++) {}
+    assert(text[*offset] == '\n');
+    text[*offset] = '\0';
+    line->len++;
+    (*offset)++;
+}
+
 int readLines(FILE *ifile, lines_t *lines) {
     assert(ifile != NULL);
     assert(lines != NULL);
@@ -254,9 +309,8 @@ int readLines(FILE *ifile, lines_t *lines) {
         return 4;
     }
 
-    initLines(lines, lineCnt, textLen);
-    if (lines->text == NULL) {
-        ERR("Can\'t allocate space for the lines");
+    if (initLines(lines, lineCnt, textLen) != 0) {
+        ERR("Trouble initializing lines");
         return 1;
     }
 
@@ -264,13 +318,23 @@ int readLines(FILE *ifile, lines_t *lines) {
         ERR("Insufficient data read from file. Race condition, huh?");
         return 2;
     }
+    lines->textLen = textLen;
     lines->text[textLen - 1] = '\0';
-    if (lines->text[textLen - 2] == '\n') {
-        lines->text[textLen - 2] = '\0';
-        lineCnt--;
+    if (lines->text[textLen - 2] != '\n') {
+        lines->text[textLen - 1] = '\n';
+        lineCnt++;
+    } else {
+        lines->textLen--;
+        textLen--;
     }
-    //printf("%d\n%s", textLen,  text);
-    //printf("%02x%02x%02x%02x", text[textLen - 4], text[textLen - 3], text[textLen - 2], text[textLen - 1]);
+
+    size_t offset = 0;
+    for (lines->len = 0; lines->len < lineCnt; lines->len++) {
+        readLine(lines->text, &offset, &lines->vals[lines->len]);
+    }
+    //printf("[DBG] %llu out of %llu\n", offset, textLen);
+    //assert(offset == textLen);
+    /*
 
     lines->vals[0].val = lines->text;
     lines->len++;
@@ -279,13 +343,18 @@ int readLines(FILE *ifile, lines_t *lines) {
         if (lines->text[pos] == '\n') {
             lines->text[pos] = '\0';
             lines->vals[lines->len].val = lines->text + pos + 1;
+            lines->vals[lines->len - 1].len = lines->vals[lines->len].val - lines->vals[lines->len - 1].val;
             lines->len++;
         }
         pos++;
     }
+    if (lines->text[textLen - 2] != '\n') {
+        //lines->len--;
+        lines->vals[lines->len - 1].len = lines->vals[lines->len - 1].val - lines->vals[lines->len - 1].val;
+    }*/
 
     if (lines->len != lineCnt) {
-        ERR("Wrong number of lines. Why would one even perform a race condition here?");
+        ERR("Wrong number of lines (%d instead of %d)", lines->len, lineCnt);
         return 3;
     }
     return 0;
@@ -299,7 +368,20 @@ int writeLines(FILE *ofile, lines_t *lines) {
             ERR("Can\'t write line #%d", i);
             return 1;
         }
+        //fprintf(ofile, " (%d)", lines->vals[i].len);
         fputc('\n', ofile);
+    }
+    return 0;
+}
+
+int writeOriginalLines(FILE *ofile, lines_t *lines) {
+    for (size_t i = 0; i < lines->textLen; ++i) {
+        letter cur = lines->text[i];
+        if (cur == '\0') cur = '\n';
+        if (fputc(cur, ofile) == EOF) {
+            ERR("Can\'t write letter #%llu", i);
+            return 1;
+        }
     }
     return 0;
 }
@@ -317,6 +399,7 @@ int initLines(lines_t *lines, int maxLines, size_t maxLen) {
         return 2;
     }
     lines->len = 0;
+    lines->textLen = 0;
     return 0;
 }
 
@@ -326,8 +409,12 @@ void sortLines(lines_t *lines, int (*cmp)(const void *, const void *)) {
     qsort(lines->vals, lines->len, sizeof(lines->vals[0]), cmp);
 }
 
-bool isLetter(letter c) {
-    return isalpha(c) || ((letter)'à' <= c && c <= (letter)'ÿ') || ((letter)'À' <= c && c <= (letter)'ß');
+bool isRelevant(letter c) {
+    return isalpha(c) || \
+           ((letter)'à' <= c && c <= (letter)'ÿ') || \
+           ((letter)'À' <= c && c <= (letter)'ß') || \
+           ((letter)'0' <= c && c <= (letter)'9') || \
+           (c == (letter)'¸') || (c == (letter)'¨');
 }
 
 int cmpLines(const void *a, const void *b) {
@@ -335,18 +422,44 @@ int cmpLines(const void *a, const void *b) {
     assert(b != NULL);
     const letter * a_str = (*(const line *)a).val;
     const letter * b_str = (*(const line *)b).val;
+    const unsigned char a_len = (*(const line *)a).len;
+    const unsigned char b_len = (*(const line *)b).len;
 
     int i = 0, j = 0;
-    while (i < MAX_LINE && j < MAX_LINE && a_str[i] && b_str[j]) {
-        if (isLetter(a_str[i]) && isLetter(b_str[j])) {
+    while (i < a_len && j < b_len) {
+        if (isRelevant(a_str[i]) && isRelevant(b_str[j])) {
             int res = (int)a_str[i] - (int)b_str[j];
             if (res) return res;
             i++; j++;
             continue;
         }
-        if (!isLetter(a_str[i])) i++;
-        if (!isLetter(b_str[j])) j++;
+        if (!isRelevant(a_str[i])) i++;
+        if (!isRelevant(b_str[j])) j++;
     }
+    return 0;
+}
+
+int cmpLinesReverse(const void *a, const void *b) {
+    assert(a != NULL);
+    assert(b != NULL);
+    const letter * a_str = (*(const line *)a).val;
+    const letter * b_str = (*(const line *)b).val;
+    const unsigned char a_len = (*(const line *)a).len;
+    const unsigned char b_len = (*(const line *)b).len;
+
+    int i = a_len - 1, j = b_len - 1;
+    while (i >= 0 && j >= 0) {
+        if (isRelevant(a_str[i]) && isRelevant(b_str[j])) {
+            int res = (int)a_str[i] - (int)b_str[j];
+            if (res) return res;
+            i--; j--;
+            continue;
+        }
+        if (!isRelevant(a_str[i])) i--;
+        if (!isRelevant(b_str[j])) j--;
+    }
+    if (i < 0 && j >= 0) return -1;
+    if (i >= 0 && j < 0) return 1;
     return 0;
 }
 
@@ -361,6 +474,8 @@ void freeLines(lines_t *lines) {
 
 void analyzeFile(FILE * ifile, int *lineCnt, size_t *length) {
     assert(ifile != NULL);
+    assert(lineCnt != NULL);
+    assert(length != NULL);
     fseek(ifile, 0L, SEEK_SET);
     (*lineCnt) = 0;
     (*length) = 0;
@@ -368,7 +483,7 @@ void analyzeFile(FILE * ifile, int *lineCnt, size_t *length) {
     do {
         cur = fgetc(ifile);
         (*length)++;
-        if (cur == '\n' || cur == EOF) (*lineCnt)++; // We'll assume there's another line at the end terminated by EOF
+        if (cur == '\n') (*lineCnt)++;
     } while (cur != EOF);
     fseek(ifile, 0L, SEEK_SET);
 }
