@@ -7,7 +7,7 @@
  # Open files in binary mode
  # Add digits to whitelist in the comparator
  # Store line's length in line_t
- ? Remove struct names (and possibly remove _t from typedef ones)
+ / Remove struct names (and possibly remove _t from typedef ones)
  # Add ¸ and ¨
  # Add error handling to readLine
  ? Maybe exclude ¸¨ from the whitelist, since they're not in alphabetical order inside the encoding
@@ -25,11 +25,7 @@
 #include <stdbool.h>
 
 
-#if !NDEBUG  // Okay, not gonna bother this time
 #define ERR(msg, ...) do {fprintf(stderr, "[ERROR in %s()] " msg "\n", __func__, ##__VA_ARGS__);} while (0)
-#else
-#define ERR(msg, ...) do {} while (0)
-#endif
 
 //--------------------------------------------------------------------------------
 
