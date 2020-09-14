@@ -415,7 +415,7 @@ int writeOriginalLines(FILE *ofile, lines_t *lines) {
         letter cur = lines->text[i];
         if (cur == '\0') cur = '\n';
         if (fputc(cur, ofile) == EOF) {
-            ERR("Can\'t write letter #%llu", i);
+            ERR("Can\'t write letter #%zu", i);
             return 1;
         }
     }
