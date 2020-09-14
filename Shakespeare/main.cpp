@@ -211,7 +211,7 @@ void test_cmpLines(lines_t * lines);
 //================================================================================
 
 int main(const int argc, const char **argv) {
-    setlocale(LC_ALL, "Russian");
+    setlocale(LC_CTYPE, "Russian");
 
     TEST_MAIN(
         lines_t test_lines;
@@ -446,11 +446,7 @@ void sortLines(lines_t *lines, int (*cmp)(const void *, const void *)) {
 }
 
 bool isRelevant(letter c) {
-    return isalpha(c) || \
-           ((letter)'à' <= c && c <= (letter)'ÿ') || \
-           ((letter)'À' <= c && c <= (letter)'ß') || \
-           ((letter)'0' <= c && c <= (letter)'9') || \
-           (c == (letter)'¸') || (c == (letter)'¨');
+    return isalnum(c);
 }
 
 int cmpLines(const void *a, const void *b) {
