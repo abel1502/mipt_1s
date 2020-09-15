@@ -2,16 +2,20 @@
  Global TODO:
 
  # Add reverse sort and restoration
- - Wrap all error codes in enums
- - Move tests into files
+ # Wrap all error codes in enums
+ - Move tests into files (and add new ones)
  # Open files in binary mode
  # Add digits to whitelist in the comparator
  # Store line's length in line_t
  / Remove struct names (and possibly remove _t from typedef ones)
  # Add ¸ and ¨
  # Add error handling to readLine
- ? Maybe exclude ¸¨ from the whitelist, since they're not in alphabetical order inside the encoding
 */
+
+#if __STDC_VERSION__ < 199901L && !defined(__cplusplus)
+// This program will work with c99 and higher or presumably any c++
+#error This program should only be compiled by to the C99 standards
+#endif
 
 //#define TEST
 #include "../libs/test.h"
@@ -42,21 +46,33 @@ const unsigned char MAX_LINE = 80;
 typedef unsigned char letter;
 
 /**
+ * An error code
+ */
+typedef enum {
+    SS_OK,        ///< Success
+    SS_NOALLOC,   ///< Memory allocation failed
+    SS_TOOBIG,    ///< Something overflows some limit
+    SS_TOOSMALL,  ///< Something underflows some limit
+    SS_RACECOND,  ///< Some sort of race condition happened
+    SS_INNER      ///< Some inner function failed
+} SS_ERROR;  // SS means ShakeSpeare
+
+/**
  * A line, possibly with metadata
  */
 typedef struct line {
-    letter *val;  /**< The string value */
-    unsigned char len;  /**< The line's length */
+    letter *val;        ///< The string value
+    unsigned char len;  ///< The line's length
 } line_t;
 
 /**
  * An array of lines of a poem
  */
 typedef struct lines {
-    int len;  /**< The number of lines */
-    line_t *vals;  /**< The actual lines */
-    size_t textLen;  /**< `text`'s length */
-    letter *text;  /**< Where all lines reside */
+    int len;         ///< The number of lines
+    line_t *vals;    ///< The actual lines
+    size_t textLen;  ///< `text`'s length
+    letter *text;    ///< Where all lines reside
 } lines_t;
 
 /**
@@ -76,12 +92,10 @@ void showUsage(const char *binname);
  * @param [out]    line    The output line
  *
  * @return An error code:
- *  - 0
- *    Success
- *  - 1
- *    Error, line too long
+ *  - `SS_OK`
+ *  - `SS_TOOBIG`  The line was too long
  */
-int readLine(letter *text, size_t *offset, line_t *line);
+SS_ERROR readLine(letter *text, size_t *offset, line_t *line);
 
 /**
  * Reads all lines from a file
@@ -90,20 +104,13 @@ int readLine(letter *text, size_t *offset, line_t *line);
  * @param [out] lines     The destination
  *
  * @return An error code:
- *  - 0
- *    Success
- *  - 1
- *    Error, space couldn't have been allocated for the lines
- *  - 2
- *    Error, couldn't read the entire file
- *  - 3
- *    Error, number of lines changed (somehow)
- *  - 4
- *    Error, the file is empty
- *  - 5
- *    Error, `readLine` failed
+ *  - `SS_OK`
+ *  - `SS_NOALLOC`   `initLines`
+ *  - `SS_RACECOND`
+ *  - `SS_TOOSMALL`  The file is (almost) empty
+ *  - `SS_INNER`     `readLine`
  */
-int readLines(FILE *ifile, lines_t *lines);
+SS_ERROR readLines(FILE *ifile, lines_t *lines);
 
 /**
  * Writes all lines to a file
@@ -112,12 +119,10 @@ int readLines(FILE *ifile, lines_t *lines);
  * @param [in]  lines  The lines to write
  *
  * @return An error code:
- *  - 0
- *    Success
- *  - 1
- *    Error, `fputs` failed
+ *  - `SS_OK`
+ *  - `SS_INNER`  `fputs`
  */
-int writeLines(FILE *ofile, lines_t *lines);
+SS_ERROR writeLines(FILE *ofile, lines_t *lines);
 
 /**
  * Writes all lines to a file in their original order
@@ -126,12 +131,10 @@ int writeLines(FILE *ofile, lines_t *lines);
  * @param [in]  lines  The lines to write
  *
  * @return An error code:
- *  - 0
- *    Success
- *  - 1
- *    Error, `fputc` failed
+ *  - `SS_OK`
+ *  - `SS_INNER`  `fputc`
  */
-int writeOriginalLines(FILE *ofile, lines_t *lines);
+SS_ERROR writeOriginalLines(FILE *ofile, lines_t *lines);
 
 /**
  * A constructor for lines
@@ -141,14 +144,10 @@ int writeOriginalLines(FILE *ofile, lines_t *lines);
  * @param [in]  maxLen    The limit to text's length
  *
  * @return An error code:
- *  - 0
- *    Success
- *  - 1
- *    Error, space couldn't have been allocated for the lines
- *  - 2
- *    Error, space couldn't have been allocated for the text
+ *  - `SS_OK`
+ *  - `SS_NOALLOC`
  */
-int initLines(lines_t *lines, int maxLines, size_t maxLen);
+SS_ERROR initLines(lines_t *lines, int maxLines, size_t maxLen);
 
 /**
  * Quick sorts lines based on a comparator
@@ -190,6 +189,7 @@ int cmpLinesReverse(const void *a, const void *b);
 
 /**
  * Frees the memory allocated by `initLines`
+ * Whatever states the lines are in, cleanup will happen
  *
  * @param [in,out]  lines  The same lines as what you passed to `initLines`
  */
@@ -318,20 +318,20 @@ void showUsage(const char *binname) {
            "(The results are placed in files with the same names with extra prefixes)\n\n", binname);
 }
 
-int readLine(letter *text, size_t *offset, line_t *line) {
+SS_ERROR readLine(letter *text, size_t *offset, line_t *line) {
     line->val = text + (*offset);
     for (line->len = 0; text[*offset] != '\n' && line->len < MAX_LINE; (*offset)++, line->len++) {}
     if (text[*offset] != '\n') {
         ERR("Line too long");
-        return 1;
+        return SS_TOOBIG;
     }
     text[*offset] = '\0';
     line->len++;
     (*offset)++;
-    return 0;
+    return SS_OK;
 }
 
-int readLines(FILE *ifile, lines_t *lines) {
+SS_ERROR readLines(FILE *ifile, lines_t *lines) {
     assert(ifile != NULL);
     assert(lines != NULL);
     size_t textLen = 0;
@@ -339,17 +339,17 @@ int readLines(FILE *ifile, lines_t *lines) {
     analyzeFile(ifile, &lineCnt, &textLen);
     if (textLen <= 2) {
         ERR("Empty file");
-        return 4;
+        return SS_TOOSMALL;
     }
 
     if (initLines(lines, lineCnt, textLen) != 0) {
         ERR("Trouble initializing lines");
-        return 1;
+        return SS_NOALLOC;
     }
 
     if (fread(lines->text, sizeof(letter), textLen - 1, ifile) != textLen - 1) {
         ERR("Insufficient data read from file. Race condition, huh?");
-        return 2;
+        return SS_RACECOND;
     }
     lines->textLen = textLen;
     lines->text[textLen - 1] = '\0';
@@ -365,78 +365,65 @@ int readLines(FILE *ifile, lines_t *lines) {
     for (lines->len = 0; lines->len < lineCnt; lines->len++) {
         if (readLine(lines->text, &offset, &lines->vals[lines->len])) {
             ERR("Can't parse line #%d", lines->len);
-            return 5;
+            return SS_INNER;
         }
     }
-    //printf("[DBG] %llu out of %llu\n", offset, textLen);
-    //assert(offset == textLen);
-    /*
-
-    lines->vals[0].val = lines->text;
-    lines->len++;
-    size_t pos = 0;
-    while (pos < textLen) {
-        if (lines->text[pos] == '\n') {
-            lines->text[pos] = '\0';
-            lines->vals[lines->len].val = lines->text + pos + 1;
-            lines->vals[lines->len - 1].len = lines->vals[lines->len].val - lines->vals[lines->len - 1].val;
-            lines->len++;
-        }
-        pos++;
-    }
-    if (lines->text[textLen - 2] != '\n') {
-        //lines->len--;
-        lines->vals[lines->len - 1].len = lines->vals[lines->len - 1].val - lines->vals[lines->len - 1].val;
-    }*/
 
     if (lines->len != lineCnt) {
         ERR("Wrong number of lines (%d instead of %d)", lines->len, lineCnt);
-        return 3;
+        return SS_RACECOND;
     }
-    return 0;
+    return SS_OK;
 }
 
-int writeLines(FILE *ofile, lines_t *lines) {
+SS_ERROR writeLines(FILE *ofile, lines_t *lines) {
     assert(ofile != NULL);
     assert(lines != NULL);
     for (int i = 0; i < lines->len; ++i) {
         if (fputs((const char *)lines->vals[i].val, ofile) == EOF) {
             ERR("Can\'t write line #%d", i);
-            return 1;
+            return SS_INNER;
         }
-        //fprintf(ofile, " (%d)", lines->vals[i].len);
         fputc('\n', ofile);
     }
-    return 0;
+    return SS_OK;
 }
 
-int writeOriginalLines(FILE *ofile, lines_t *lines) {
+SS_ERROR writeOriginalLines(FILE *ofile, lines_t *lines) {
     for (size_t i = 0; i < lines->textLen; ++i) {
         letter cur = lines->text[i];
         if (cur == '\0') cur = '\n';
         if (fputc(cur, ofile) == EOF) {
+            #pragma GCC diagnostic push
+            // %z is supported starting from c99 (and the sufficiency of the current
+            // compiler is ensured by a preprocessor check in the beginning of the file),
+            // but the compiler for some reason wants to warn me that this specifier is unknown
+            // and the argument count is wrong.
+            #pragma GCC diagnostic ignored "-Wformat"
+            #pragma GCC diagnostic ignored "-Wformat-extra-args"
             ERR("Can\'t write letter #%zu", i);
-            return 1;
+            #pragma GCC diagnostic pop
+            return SS_INNER;
         }
     }
-    return 0;
+    return SS_OK;
 }
 
-int initLines(lines_t *lines, int maxLines, size_t maxLen) {
+SS_ERROR initLines(lines_t *lines, int maxLines, size_t maxLen) {
     assert(lines != NULL);
     lines->vals = (line *) calloc(maxLines, sizeof(line));
     if (lines->vals == NULL) {
         ERR("Can't allocate space for lines");
-        return 1;
+        return SS_NOALLOC;
     }
     lines->text = (letter *)malloc(maxLen * sizeof(letter));
     if (lines->text == NULL) {
         ERR("Can't allocate space for text");
-        return 2;
+        return SS_NOALLOC;
     }
     lines->len = 0;
     lines->textLen = 0;
-    return 0;
+    return SS_OK;
 }
 
 void sortLines(lines_t *lines, int (*cmp)(const void *, const void *)) {
