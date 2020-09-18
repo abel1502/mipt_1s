@@ -4,7 +4,7 @@
  # Add reverse sort and restoration
  # Wrap all error codes in enums
  - Move tests into files (and add new ones)
- ? Move test code into a makefile (or smth line that)
+ # Move test code into a different build configuration
  # Open files in binary mode
  # Add digits to whitelist in the comparator
  # Store line's length in line_t
@@ -12,6 +12,7 @@
  # Add ¸ and ¨
  # Add error handling to readLine
  - Add line_t 'methods'
+ > Custom qsort
 */
 
 #if __STDC_VERSION__ < 199901L && !defined(__cplusplus)
