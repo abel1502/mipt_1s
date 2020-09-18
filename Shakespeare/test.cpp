@@ -17,6 +17,7 @@
 
 void test_sortLines(lines_t *lines);
 void test_cmpLines();
+void test_isRelevant();
 
 int main() {
     setlocale(LC_CTYPE, "Russian");
@@ -44,7 +45,7 @@ void test_sortLines(lines_t *lines) {
         lines->len++;
     }
 
-    sortLines(lines, cmpLines);
+    sortLines(lines, cmpLinesForward);
 
     TEST_ASSERT(lines->len == cnt);
     for (int i = 0; i < cnt; ++i) {
@@ -61,24 +62,40 @@ void test_cmpLines() {
     #pragma GCC diagnostic ignored "-Wwrite-strings"
 
     line_t lineA, lineB;
-    #define TEST_CMPLINES(_lineA, relation, _lineB) \
+    #define TEST_CMPLINES(direction, _lineA, relation, _lineB) \
         MACROFUNC( \
         assignLiteralLine(&lineA, (_lineA)); \
         assignLiteralLine(&lineB, (_lineB)); \
         { \
-            int result = cmpLines(&lineA, &lineB); \
+            int result = cmpLines##direction(&lineA, &lineB); \
             TEST_ASSERT_M(result relation 0, "%s %s %s", #_lineA, (result < 0 ? "<" : result > 0 ? ">" : "=="), #_lineB); \
         } \
         )
 
-    TEST_ASSERT(isRelevant('H'));  // Ignore this)
-    TEST_CMPLINES("123", ==, "#12!3\"");
-    TEST_CMPLINES("Привет, Андрей", >, "Hello, Andrew");
-    TEST_CMPLINES("", ==, "");
-    TEST_CMPLINES("", <, "йцукен");
-    TEST_CMPLINES("", ==, ",./");
+    TEST_CMPLINES(Forward, "123", ==, "#12!3\"");
+    TEST_CMPLINES(Forward, "Привет, Андрей", >, "Hello, Andrew");
+    TEST_CMPLINES(Forward, "", ==, "");
+    TEST_CMPLINES(Forward, "", <, "йцукен");
+    TEST_CMPLINES(Forward, "", ==, ",./");
 
     #undef TEST_CMPLINES
 
     #pragma GCC diagnostic pop
+}
+
+void test_isRelevant() {
+    TEST_ASSERT(isRelevant('r'));
+    TEST_ASSERT(isRelevant('H'));
+    TEST_ASSERT(isRelevant('Ъ'));
+    TEST_ASSERT(isRelevant('ф'));
+    TEST_ASSERT(isRelevant('я'));
+    TEST_ASSERT(isRelevant('ё'));
+    TEST_ASSERT(isRelevant('Ё'));
+    TEST_ASSERT(isRelevant('7'));
+
+    TEST_ASSERT(!isRelevant(','));
+    TEST_ASSERT(!isRelevant('!'));
+    TEST_ASSERT(!isRelevant('\n'));
+    TEST_ASSERT(!isRelevant(' '));
+    TEST_ASSERT(!isRelevant('\0'));
 }

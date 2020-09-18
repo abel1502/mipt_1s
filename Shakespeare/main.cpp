@@ -68,8 +68,6 @@ void showUsage(const char *binname);
 int main(const int argc, const char **argv) {
     setlocale(LC_CTYPE, "Russian");
 
-
-
     showBanner();
 
     if (argc != 2) {

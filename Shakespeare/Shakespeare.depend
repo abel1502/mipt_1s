@@ -15,7 +15,7 @@
 	<setjmp.h>
 	<signal.h>
 
-1600418702 source:d:\workspace\.mipt\s1\shakespeare\line.cpp
+1600419916 source:d:\workspace\.mipt\s1\shakespeare\line.cpp
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -39,7 +39,7 @@
 	"general.h"
 	"line.h"
 
-1600352804 source:d:\workspace\.mipt\s1\shakespeare\test.cpp
+1600419993 source:d:\workspace\.mipt\s1\shakespeare\test.cpp
 	"../libs/test.h"
 	<stdio.h>
 	<stdlib.h>

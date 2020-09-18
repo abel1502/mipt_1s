@@ -46,11 +46,13 @@ static int cmpLines_(const line_t *a, const line_t *b, const int step) {
         b_offset = b->len - 1;
     }
 
-    int a_hasNext = 1;
-    int b_hasNext = 1;
+    int a_noNext;
+    int b_noNext;
 
     while (1) {
-        if ((a_hasNext = nextLetter(a, &a_offset, step)) || (b_hasNext = nextLetter(b, &b_offset, step))) {
+        a_noNext = nextLetter(a, &a_offset, step);
+        b_noNext = nextLetter(b, &b_offset, step);
+        if (a_noNext || b_noNext) {
             break;
         }
         int res = (int)(a->val[a_offset]) - (int)(b->val[b_offset]);
@@ -58,8 +60,8 @@ static int cmpLines_(const line_t *a, const line_t *b, const int step) {
         a_offset += step;
         b_offset += step;
     }
-    if (a_hasNext && !b_hasNext) return 1;
-    if (!a_hasNext && b_hasNext) return -1;
+    if (a_noNext && !b_noNext) return -1;
+    if (!a_noNext && b_noNext) return 1;
     return 0;
 }
 
