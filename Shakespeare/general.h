@@ -2,7 +2,6 @@
 #define SS_GENERAL_H_GUARD
 
 #include <assert.h>
-#include <assert.h>
 
 #define ERR(msg, ...) do {fprintf(stderr, "[ERROR in %s()] " msg "\n", __func__, ##__VA_ARGS__);} while (0)
 
