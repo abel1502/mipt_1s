@@ -31,12 +31,27 @@
 //#include "line.h"
 #include "poem.h"
 
+//--------------------------------------------------------------------------------
 
-// It's a letter[] constant, but even when I moved the typedef to the top, it still didn't work
-// (error: structured binding declaration cannot have type 'const letter' {aka 'const unsigned char'}|)
-//#define SEP "\n--------------------------------------------------------------------------------\n\n"
-const char *SEP = "\n--------------------------------------------------------------------------------\n\n";
+const char USAGE_INFO[]= "Usage: %s ifile\n\n"                           \
+                         "ifile - The file containing the source poem\n" \
+                         "(The results are placed in files with the same names with extra prefixes)\n\n";
 
+const char BANNER[] = "################################\n" \
+                      "#                              #\n" \
+                      "#         Shakespeare          #\n" \
+                      "#        (c) Abel, 2020        #\n" \
+                      "#                              #\n" \
+                      "################################\n";
+
+const char DESCR[] = "This program sorts a Shakespearean poem in several funky ways.\n"  \
+                     "I\'m too lazy to explain. Just give it a try).\n"                  \
+                     "\nEDIT: Okay, apparently Hamlet isn\'t a real poem, so I hereby\n" \
+                     "proclaim that this also works on Eugene Onegin\n\n";
+
+const char SEP[] = "\n--------------------------------------------------------------------------------\n\n";
+
+//--------------------------------------------------------------------------------
 
 /**
  * Shows a constant banner at the beginning of execution
@@ -132,20 +147,10 @@ int main(const int argc, const char **argv) {
 //================================================================================
 
 void showBanner(void) {
-    printf("################################\n"
-           "#                              #\n"
-           "#         Shakespeare          #\n"
-           "#        (c) Abel, 2020        #\n"
-           "#                              #\n"
-           "################################\n");
-    printf("This program sorts a Shakespearean poem in several funky ways.\n"
-           "I\'m too lazy to explain. Just give it a try).\n"
-           "\nEDIT: Okay, apparently Hamlet isn\'t a real poem, so I hereby\n"
-           "proclaim that this also works on Eugene Onegin\n\n");
+    printf(BANNER);
+    printf(DESCR);
 }
 
 void showUsage(const char *binname) {
-    printf("Usage: %s ifile\n\n"
-           "ifile - The file containing the source poem\n"
-           "(The results are placed in files with the same names with extra prefixes)\n\n", binname);
+    printf(USAGE_INFO, binname);
 }
