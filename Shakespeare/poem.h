@@ -8,7 +8,7 @@
 /**
  * An array of lines of a poem
  */
-typedef struct lines {
+typedef struct {
     int len;         ///< The number of lines
     line_t *vals;    ///< The actual lines
     size_t textLen;  ///< `text`'s length

@@ -8,11 +8,14 @@
  # Open files in binary mode
  # Add digits to whitelist in the comparator
  # Store line's length in line_t
- / Remove struct names (and possibly remove _t from typedef ones)
+ # Remove struct names (and possibly remove _t from typedef ones)
  # Add ¸ and ¨
  # Add error handling to readLine
  - Add line_t 'methods'
+ ? Rename lines to poem
  > Custom qsort
+ # Encapsulate comparators
+ ? Create a getopt
 */
 
 #if __STDC_VERSION__ < 199901L && !defined(__cplusplus)
@@ -31,7 +34,8 @@
 
 // It's a letter[] constant, but even when I moved the typedef to the top, it still didn't work
 // (error: structured binding declaration cannot have type 'const letter' {aka 'const unsigned char'}|)
-#define SEP "\n--------------------------------------------------------------------------------\n\n"
+//#define SEP "\n--------------------------------------------------------------------------------\n\n"
+const char *SEP = "\n--------------------------------------------------------------------------------\n\n";
 
 
 /**
@@ -90,7 +94,7 @@ int main(const int argc, const char **argv) {
     }
 
     printf("Read %d lines, sorting...\n", lines.len);
-    sortLines(&lines, cmpLines);
+    sortLines(&lines, cmpLinesForward);
 
     printf("Done sorting, writing to %s\n", newName);
     if (writeLines(ofile, &lines) != SS_OK) {

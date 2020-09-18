@@ -23,56 +23,52 @@ int isRelevant(letter c) {
     return isalnum(c);
 }
 
-int cmpLines(const void *a, const void *b) {
+static inline int inBounds(const line_t *line, int offset) {
+    return 0 <= offset && offset < line->len;
+}
+
+static int nextLetter(const line_t *line, int *offset, int step) {
+    while (inBounds(line, *offset) && !isRelevant(line->val[*offset])) {
+        (*offset) += step;
+    }
+    return !inBounds(line, *offset);
+}
+
+static int cmpLines_(const line_t *a, const line_t *b, const int step) {
     assert(a != NULL);
     assert(b != NULL);
-    const letter * a_str = (*(const line *)a).val;
-    const letter * b_str = (*(const line *)b).val;
-    const unsigned char a_len = (*(const line *)a).len;
-    const unsigned char b_len = (*(const line *)b).len;
+    assert(step != 0);
 
-    int i = 0, j = 0;
-    while (i < a_len && j < b_len) {
-        if (isRelevant(a_str[i]) && isRelevant(b_str[j])) {
-            int res = (int)a_str[i] - (int)b_str[j];
-            if (res) return res;
-            i++; j++;
-            continue;
-        }
-        if (!isRelevant(a_str[i])) i++;
-        if (!isRelevant(b_str[j])) j++;
+    int a_offset = 0;
+    int b_offset = 0;
+    if (step < 0) {
+        a_offset = a->len - 1;
+        b_offset = b->len - 1;
     }
-    while (i < a_len && !isRelevant(a_str[i])) i++;
-    while (j < b_len && !isRelevant(b_str[j])) j++;
-    if (i >= a_len && j < b_len) return -1;
-    if (i < a_len && j >= b_len) return 1;
+
+    int a_hasNext = 1;
+    int b_hasNext = 1;
+
+    while (1) {
+        if ((a_hasNext = nextLetter(a, &a_offset, step)) || (b_hasNext = nextLetter(b, &b_offset, step))) {
+            break;
+        }
+        int res = (int)(a->val[a_offset]) - (int)(b->val[b_offset]);
+        if (res) return res;
+        a_offset += step;
+        b_offset += step;
+    }
+    if (a_hasNext && !b_hasNext) return 1;
+    if (!a_hasNext && b_hasNext) return -1;
     return 0;
 }
 
-int cmpLinesReverse(const void *a, const void *b) {
-    assert(a != NULL);
-    assert(b != NULL);
-    const letter * a_str = (*(const line *)a).val;
-    const letter * b_str = (*(const line *)b).val;
-    const unsigned char a_len = (*(const line *)a).len;
-    const unsigned char b_len = (*(const line *)b).len;
+int cmpLinesForward(const void *a, const void *b) {
+    return cmpLines_((line_t *)a, (line_t *)b, 1);
+}
 
-    int i = a_len - 1, j = b_len - 1;
-    while (i >= 0 && j >= 0) {
-        if (isRelevant(a_str[i]) && isRelevant(b_str[j])) {
-            int res = (int)a_str[i] - (int)b_str[j];
-            if (res) return res;
-            i--; j--;
-            continue;
-        }
-        if (!isRelevant(a_str[i])) i--;
-        if (!isRelevant(b_str[j])) j--;
-    }
-    while (i < 0 && !isRelevant(a_str[i])) i--;
-    while (j < 0 && !isRelevant(b_str[j])) j--;
-    if (i < 0 && j >= 0) return -1;
-    if (i >= 0 && j < 0) return 1;
-    return 0;
+int cmpLinesReverse(const void *a, const void *b) {
+    return cmpLines_((line_t *)a, (line_t *)b, -1);
 }
 
 line_t * assignLiteralLine(line_t *line, char *value) {

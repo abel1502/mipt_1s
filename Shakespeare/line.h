@@ -9,7 +9,7 @@ const unsigned char MAX_LINE = 80;
 /**
  * A line, possibly with metadata
  */
-typedef struct line {
+typedef struct {
     letter *val;        ///< The string value
     unsigned char len;  ///< The line's length
 } line_t;
@@ -35,7 +35,7 @@ SS_ERROR readLine(letter *text, size_t *offset, line_t *line);
  *
  * @return The rough equivalent of `a` - `b`, as specified in `sortLines`
  */
-int cmpLines(const void *a, const void *b);  // Attention: compares two strings, not lines_t!
+int cmpLinesForward(const void *a, const void *b);  // Attention: compares two strings, not lines_t!
 
 /**
  * The same as cmpLines, but from the back

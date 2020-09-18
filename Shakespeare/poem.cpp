@@ -85,7 +85,7 @@ SS_ERROR writeOriginalLines(FILE *ofile, lines_t *lines) {
 
 SS_ERROR initLines(lines_t *lines, int maxLines, size_t maxLen) {
     assert(lines != NULL);
-    lines->vals = (line *) calloc(maxLines, sizeof(line));
+    lines->vals = (line_t *) calloc(maxLines, sizeof(line_t));
     if (lines->vals == NULL) {
         ERR("Can't allocate space for lines");
         return SS_NOALLOC;
