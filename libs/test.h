@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <setjmp.h>
+#include <signal.h>
 
 
 #define MACROFUNC(...) do {__VA_ARGS__} while (0)
