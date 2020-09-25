@@ -84,6 +84,9 @@ SS_ERROR writeLines(FILE *ofile, lines_t *lines) {
 //--------------------------------------------------------------------------------
 
 SS_ERROR writeOriginalLines(FILE *ofile, lines_t *lines) {
+    assert(ofile != NULL);
+    assert(lines != NULL);
+
     for (size_t i = 0; i < lines->textLen; ++i) {
         letter cur = lines->text[i];
         if (cur == '\0') cur = '\n';
