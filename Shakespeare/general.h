@@ -3,7 +3,7 @@
 
 #include <assert.h>
 
-#define ERR(msg, ...) do {fprintf(stderr, "[ERROR in %s()] " msg "\n", __func__, ##__VA_ARGS__);} while (0)
+#define ERR(msg, ...) do {fprintf(stderr, "[ERROR in %s() on #%d] " msg "\n", __func__, __LINE__, ##__VA_ARGS__); perror(">");} while (0)
 
 
 /**

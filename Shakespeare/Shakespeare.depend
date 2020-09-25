@@ -1,12 +1,12 @@
 # depslib dependency file v1.0
-1600418540 source:d:\workspace\.mipt\s1\shakespeare\main.cpp
+1601019022 source:d:\workspace\.mipt\s1\shakespeare\main.cpp
 	<stdio.h>
 	<string.h>
 	<locale.h>
 	"general.h"
 	"poem.h"
 
-1600332575 d:\workspace\.mipt\s1\libs\test.h
+1600692959 d:\workspace\.mipt\s1\libs\test.h
 	"TXLib.h"
 	<stdio.h>
 	<math.h>
@@ -15,7 +15,7 @@
 	<setjmp.h>
 	<signal.h>
 
-1600419916 source:d:\workspace\.mipt\s1\shakespeare\line.cpp
+1601017822 source:d:\workspace\.mipt\s1\shakespeare\line.cpp
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -23,28 +23,30 @@
 	<assert.h>
 	"line.h"
 
-1600418526 d:\workspace\.mipt\s1\shakespeare\line.h
+1601017918 d:\workspace\.mipt\s1\shakespeare\line.h
 	"general.h"
 
-1600353945 d:\workspace\.mipt\s1\shakespeare\general.h
+1601014363 d:\workspace\.mipt\s1\shakespeare\general.h
 	<assert.h>
 
-1600418723 source:d:\workspace\.mipt\s1\shakespeare\poem.cpp
+1601018943 source:d:\workspace\.mipt\s1\shakespeare\poem.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
+	<sys/stat.h>
 	"poem.h"
 
-1600417993 d:\workspace\.mipt\s1\shakespeare\poem.h
+1601018921 d:\workspace\.mipt\s1\shakespeare\poem.h
 	"general.h"
 	"line.h"
 
-1600419993 source:d:\workspace\.mipt\s1\shakespeare\test.cpp
+1600692673 source:d:\workspace\.mipt\s1\shakespeare\test.cpp
 	"../libs/test.h"
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
 	<locale.h>
+	<windows.h>
 	"general.h"
 	"line.h"
 	"poem.h"
