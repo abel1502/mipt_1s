@@ -50,6 +50,8 @@ SS_ERROR readLines(FILE *ifile, lines_t *lines) {
     return SS_OK;
 }
 
+//--------------------------------------------------------------------------------
+
 SS_ERROR writeLines(FILE *ofile, lines_t *lines) {
     assert(ofile != NULL);
     assert(lines != NULL);
@@ -62,6 +64,8 @@ SS_ERROR writeLines(FILE *ofile, lines_t *lines) {
     }
     return SS_OK;
 }
+
+//--------------------------------------------------------------------------------
 
 SS_ERROR writeOriginalLines(FILE *ofile, lines_t *lines) {
     for (size_t i = 0; i < lines->textLen; ++i) {
@@ -83,6 +87,8 @@ SS_ERROR writeOriginalLines(FILE *ofile, lines_t *lines) {
     return SS_OK;
 }
 
+//--------------------------------------------------------------------------------
+
 SS_ERROR initLines(lines_t *lines, int maxLines, size_t maxLen) {
     assert(lines != NULL);
     lines->vals = (line_t *) calloc(maxLines, sizeof(line_t));
@@ -100,6 +106,8 @@ SS_ERROR initLines(lines_t *lines, int maxLines, size_t maxLen) {
     return SS_OK;
 }
 
+//--------------------------------------------------------------------------------
+
 void sortLines(lines_t *lines, comparator_t cmp) {
     assert(lines != NULL);
     assert(cmp != NULL);
@@ -107,12 +115,16 @@ void sortLines(lines_t *lines, comparator_t cmp) {
     qsort(lines->vals, lines->len, sizeof(lines->vals[0]), cmp);
 }
 
+//--------------------------------------------------------------------------------
+
 void customSortLines(lines_t *lines, comparator_t cmp) {
     assert(lines != NULL);
     assert(cmp != NULL);
 
     ssort(lines->vals, 0, lines->len, sizeof(lines->vals[0]), cmp);
 }
+
+//--------------------------------------------------------------------------------
 
 void freeLines(lines_t *lines) {
     if (lines == NULL) return;
@@ -122,6 +134,8 @@ void freeLines(lines_t *lines) {
     lines->text = NULL;
     lines->len = 0;
 }
+
+//--------------------------------------------------------------------------------
 
 void analyzeFile(FILE *ifile, int *lineCnt, size_t *length) {
     assert(ifile != NULL);
@@ -137,6 +151,8 @@ void analyzeFile(FILE *ifile, int *lineCnt, size_t *length) {
         if (cur == '\n') (*lineCnt)++;
     } while (cur != EOF);
     fseek(ifile, 0L, SEEK_SET);
+//--------------------------------------------------------------------------------
+
 static void _ssort_swap(void *base, size_t a, size_t b, size_t size) {
     assert(base != NULL);
 
@@ -154,6 +170,8 @@ static void _ssort_swap(void *base, size_t a, size_t b, size_t size) {
         b_ptr++;
     }
 }
+
+//--------------------------------------------------------------------------------
 
 static size_t _ssort_partition(void *base, size_t low, size_t high, size_t size, comparator_t cmp) {
     assert(base != NULL);
@@ -177,6 +195,8 @@ static size_t _ssort_partition(void *base, size_t low, size_t high, size_t size,
 
     #undef GET_ITEM
 }
+
+//--------------------------------------------------------------------------------
 
 void ssort(void* base, size_t low, size_t high, size_t size, comparator_t cmp) {
     assert(base != NULL);

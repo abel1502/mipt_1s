@@ -7,6 +7,8 @@
 #include "line.h"
 
 SS_ERROR readLine(letter *text, size_t *offset, line_t *line) {
+//--------------------------------------------------------------------------------
+
     line->val = text + (*offset);
     for (line->len = 0; text[*offset] != '\n' && line->len < MAX_LINE; (*offset)++, line->len++) {}
     if (text[*offset] != '\n') {
@@ -19,13 +21,19 @@ SS_ERROR readLine(letter *text, size_t *offset, line_t *line) {
     return SS_OK;
 }
 
+//--------------------------------------------------------------------------------
+
 int isRelevant(letter c) {
     return isalnum(c);
 }
 
+//--------------------------------------------------------------------------------
+
 inline int inBounds(const line_t *line, int offset) {
     return 0 <= offset && offset < line->len;
 }
+
+//--------------------------------------------------------------------------------
 
 static int nextLetter(const line_t *line, int *offset, int step) {
     while (inBounds(line, *offset) && !isRelevant(line->val[*offset])) {
@@ -33,6 +41,8 @@ static int nextLetter(const line_t *line, int *offset, int step) {
     }
     return !inBounds(line, *offset);
 }
+
+//--------------------------------------------------------------------------------
 
 static int cmpLines_(const line_t *a, const line_t *b, const int step) {
     assert(a != NULL);
@@ -69,13 +79,19 @@ static int cmpLines_(const line_t *a, const line_t *b, const int step) {
     return 0;
 }
 
+//--------------------------------------------------------------------------------
+
 int cmpLinesForward(const void *a, const void *b) {
     return cmpLines_((line_t *)a, (line_t *)b, 1);
 }
 
+//--------------------------------------------------------------------------------
+
 int cmpLinesReverse(const void *a, const void *b) {
     return cmpLines_((line_t *)a, (line_t *)b, -1);
 }
+
+//--------------------------------------------------------------------------------
 
 line_t * assignLiteralLine(line_t *line, char *value) {
     line->val = (letter *)value;
