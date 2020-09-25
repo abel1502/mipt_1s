@@ -155,10 +155,13 @@ void customSortLines(lines_t *lines, comparator_t cmp) {
 
 void freeLines(lines_t *lines) {
     if (lines == NULL) return;
-    if (lines->vals != NULL) free(lines->vals);
-    if (lines->text != NULL) free(lines->text);
+
+    free(lines->vals);
     lines->vals = NULL;
+
+    free(lines->text);
     lines->text = NULL;
+
     lines->len = 0;
 }
 
