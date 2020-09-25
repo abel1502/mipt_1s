@@ -100,10 +100,18 @@ SS_ERROR initLines(lines_t *lines, int maxLines, size_t maxLen) {
     return SS_OK;
 }
 
-void sortLines(lines_t *lines, int (*cmp)(const void *, const void *)) {
+void sortLines(lines_t *lines, comparator_t cmp) {
     assert(lines != NULL);
     assert(cmp != NULL);
+
     qsort(lines->vals, lines->len, sizeof(lines->vals[0]), cmp);
+}
+
+void customSortLines(lines_t *lines, comparator_t cmp) {
+    assert(lines != NULL);
+    assert(cmp != NULL);
+
+    ssort(lines->vals, 0, lines->len, sizeof(lines->vals[0]), cmp);
 }
 
 void freeLines(lines_t *lines) {
@@ -129,4 +137,54 @@ void analyzeFile(FILE *ifile, int *lineCnt, size_t *length) {
         if (cur == '\n') (*lineCnt)++;
     } while (cur != EOF);
     fseek(ifile, 0L, SEEK_SET);
+static void _ssort_swap(void *base, size_t a, size_t b, size_t size) {
+    assert(base != NULL);
+
+    // TODO: Basic cases automation
+
+    char *a_ptr = (char *)base + a * size;
+    char *b_ptr = (char *)base + b * size;
+
+    for (size_t i = 0; i < size; ++i) {
+        char tmp = *a_ptr;
+        *a_ptr = *b_ptr;
+        *b_ptr = tmp;
+
+        a_ptr++;
+        b_ptr++;
+    }
+}
+
+static size_t _ssort_partition(void *base, size_t low, size_t high, size_t size, comparator_t cmp) {
+    assert(base != NULL);
+    assert(low + 1 < high);
+
+    #define GET_ITEM(i) (void *)((char *)base + (i) * size)
+
+    void *pivot = GET_ITEM((low + high) / 2);
+    size_t i = low;
+    size_t j = high;
+
+    while (1) {
+        while (i < high && cmp(GET_ITEM(i), pivot) < 0) i++;
+        while (j > low  && cmp(GET_ITEM(j), pivot) > 0) j--;
+        if (i >= j) return j;
+
+        _ssort_swap(base, i, j, size);
+        i++;
+        j--;
+    }
+
+    #undef GET_ITEM
+}
+
+void ssort(void* base, size_t low, size_t high, size_t size, comparator_t cmp) {
+    assert(base != NULL);
+    assert(cmp != NULL);
+    assert(size > 0);
+
+    if (low + 1 >= high) return;
+    size_t separator = _ssort_partition(base, low, high, size, cmp);
+    ssort(base, low, separator, size, cmp);
+    ssort(base, separator + 1, high, size, cmp);
 }

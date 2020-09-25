@@ -23,7 +23,7 @@ int isRelevant(letter c) {
     return isalnum(c);
 }
 
-static inline int inBounds(const line_t *line, int offset) {
+inline int inBounds(const line_t *line, int offset) {
     return 0 <= offset && offset < line->len;
 }
 
@@ -46,22 +46,26 @@ static int cmpLines_(const line_t *a, const line_t *b, const int step) {
         b_offset = b->len - 1;
     }
 
-    int a_noNext;
-    int b_noNext;
+    int a_noNext = 0;
+    int b_noNext = 0;
 
     while (1) {
         a_noNext = nextLetter(a, &a_offset, step);
         b_noNext = nextLetter(b, &b_offset, step);
+
         if (a_noNext || b_noNext) {
             break;
         }
+
         int res = (int)(a->val[a_offset]) - (int)(b->val[b_offset]);
         if (res) return res;
+
         a_offset += step;
         b_offset += step;
     }
-    if (a_noNext && !b_noNext) return -1;
-    if (!a_noNext && b_noNext) return 1;
+
+    if ( a_noNext && !b_noNext) return -1;
+    if (!a_noNext &&  b_noNext) return 1;
     return 0;
 }
 

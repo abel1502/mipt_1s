@@ -27,6 +27,8 @@ typedef struct {
  */
 SS_ERROR readLine(letter *text, size_t *offset, line_t *line);
 
+//static int cmpLines_(const line_t *a, const line_t *b, const int step);
+
 /**
  * A comparator function for lines that compares two lines,
  *  ignoring the non-alphabetical characters
@@ -54,6 +56,18 @@ int cmpLinesReverse(const void *a, const void *b);
  * @return Non-zero if `c` is an alphabetic character in Latin or Cyrillic or a decimal digit
  */
 int isRelevant(letter c);
+
+/**
+ * Checks is `offset` is a valid position within `line`
+ *
+ * @param [in]  line    The line
+ * @param [in]  offset  The offset
+ *
+ * @return Non-zero if offset is valid, zero otherwise
+ */
+inline int inBounds(const line_t *line, int offset);
+
+//static int nextLetter(const line_t *line, int *offset, int step);
 
 line_t * assignLiteralLine(line_t *line, char *value);
 
