@@ -17,15 +17,15 @@ typedef struct {
 
 /**
  * Reads a single line from a file
+ * @param [out]    line    The output line
  * @param [in]     text    The raw text of the poem
  * @param [in,out] offset  The offset from which to start (Changes to the next line's beginning
- * @param [out]    line    The output line
  *
  * @return An error code:
  *  - `SS_OK`
  *  - `SS_TOOBIG`  The line was too long
  */
-SS_ERROR readLine(letter *text, size_t *offset, line_t *line);
+SS_ERROR readLine(line_t *line, letter *text, size_t *offset);
 
 //static int cmpLines_(const line_t *a, const line_t *b, const int step);
 
@@ -69,6 +69,14 @@ inline int inBounds(const line_t *line, int offset);
 
 //static int nextLetter(const line_t *line, int *offset, int step);
 
+/**
+ * A `line` constructor which initializes it with an immediate value
+ *
+ * Currently only used in debug and tests)
+ *
+ * @param [out] line   The line
+ * @param [in]  value  The immediate value
+ */
 line_t * assignLiteralLine(line_t *line, char *value);
 
 #endif // SS_LINE_H_GUARD

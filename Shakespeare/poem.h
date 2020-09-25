@@ -21,14 +21,14 @@ typedef struct {
 typedef int (*comparator_t)(const void*,const void*);
 
 /**
- * Reads all lines from a file
+ * Reads all lines from a file. Essentially a constructor
  *
  * @param [in]  ifile     The input file
  * @param [out] lines     The destination
  *
  * @return An error code:
  *  - `SS_OK`
- *  - `SS_NOALLOC`   `initLines`
+ *  - `SS_NOALLOC`
  *  - `SS_RACECOND`
  *  - `SS_TOOSMALL`  The file is (almost) empty
  *  - `SS_INNER`     `readLine`
@@ -96,15 +96,24 @@ void sortLines(lines_t *lines, comparator_t cmp);
 void customSortLines(lines_t *lines, comparator_t cmp);
 
 /**
- * Frees the memory allocated by `initLines`
+ * Essentially a lines destructor
  * Whatever states the lines are in, cleanup will happen
  *
- * @param [in,out]  lines  The same lines as what you passed to `initLines`
+ * @param [in,out]  lines  The same lines as what you passed to the constructor
  */
 void freeLines(lines_t *lines);
 
 /**
- * Goes over the file and identifies its length and line count
+ * Retrieves the file's size
+ *
+ * @param [in]  ifile   The input file
+ * @param [out] length  The result
+ *
+ * @return An error code:
+ *  - `SS_OK`
+ *  - `SS_INNER`
+ */
+SS_ERROR getFSize(FILE *ifile, size_t *length);
 
 /**
  * A slow sort for all your slow sorting needs)
@@ -115,11 +124,8 @@ void freeLines(lines_t *lines);
  * @param [in]     num   `base`'s length
  * @param [in]     size  `base`'s element size
  * @param [in]     cmp   The comparator
- * @param [in]  ifile    The input file
- * @param [out] lineCnt  Line counter
- * @param [out] length   Length counter
  */
 void ssort(void* base, size_t low, size_t high, size_t size, comparator_t cmp);
-void analyzeFile(FILE *ifile, int *lineCnt, size_t *length);
+
 
 #endif // SS_POEM_H_GUARD

@@ -6,16 +6,25 @@
 
 #include "line.h"
 
-SS_ERROR readLine(letter *text, size_t *offset, line_t *line) {
+
 //--------------------------------------------------------------------------------
 
+SS_ERROR readLine(line_t *line, letter *text, size_t *offset) {
+    assert(line != NULL);
+    assert(text != NULL);
+    assert(offset != NULL);
+
     line->val = text + (*offset);
-    for (line->len = 0; text[*offset] != '\n' && line->len < MAX_LINE; (*offset)++, line->len++) {}
-    if (text[*offset] != '\n') {
+
+    for (line->len = 0;
+         text[*offset] != '\0' && line->len < MAX_LINE;
+         (*offset)++, line->len++) {}
+
+    if (text[*offset] != '\0') {
         ERR("Line too long");
         return SS_TOOBIG;
     }
-    text[*offset] = '\0';
+
     line->len++;
     (*offset)++;
     return SS_OK;
