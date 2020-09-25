@@ -16,6 +16,12 @@
  > Custom qsort
  # Encapsulate comparators
  ? Create a getopt
+ # Remove null checks before free
+ # Remove analyzeFile
+ - HTML log file
+ # Error codes returned from main
+ ? Organize main's return codes
+ / Encapsulate the cleanup in main into a goto
 */
 
 #if __STDC_VERSION__ < 199901L && !defined(__cplusplus)
@@ -33,22 +39,6 @@
 
 //--------------------------------------------------------------------------------
 
-const char USAGE_INFO[]= "Usage: %s ifile\n\n"                           \
-                         "ifile - The file containing the source poem\n" \
-                         "(The results are placed in files with the same names with extra prefixes)\n\n";
-
-const char BANNER[] = "################################\n" \
-                      "#                              #\n" \
-                      "#         Shakespeare          #\n" \
-                      "#        (c) Abel, 2020        #\n" \
-                      "#                              #\n" \
-                      "################################\n";
-
-const char DESCR[] = "This program sorts a Shakespearean poem in several funky ways.\n"  \
-                     "I\'m too lazy to explain. Just give it a try).\n"                  \
-                     "\nEDIT: Okay, apparently Hamlet isn\'t a real poem, so I hereby\n" \
-                     "proclaim that this also works on Eugene Onegin\n\n";
-
 const char SEP[] = "\n--------------------------------------------------------------------------------\n\n";
 
 //--------------------------------------------------------------------------------
@@ -56,12 +46,27 @@ const char SEP[] = "\n----------------------------------------------------------
 /**
  * Shows a constant banner at the beginning of execution
  */
-void showBanner(void);
+static void showBanner(void) {
+    printf("################################\n" \
+           "#                              #\n" \
+           "#         Shakespeare          #\n" \
+           "#        (c) Abel, 2020        #\n" \
+           "#                              #\n" \
+           "################################\n");
+    printf("This program sorts a Shakespearean poem in several funky ways.\n"  \
+           "I\'m too lazy to explain. Just give it a try).\n"                  \
+           "\nEDIT: Okay, apparently Hamlet isn\'t a real poem, so I hereby\n" \
+           "proclaim that this also works on Eugene Onegin\n\n");
+}
 
 /**
  * Shows help on how to use the program
  */
-void showUsage(const char *binname);
+static void showUsage(const char *binname) {
+    printf("Usage: %s ifile\n\n"                           \
+           "ifile - The file containing the source poem (Encoded in WINDOWS-1251)\n" \
+           "(The results are placed in files with the same names with extra prefixes)\n\n", binname);
+}
 
 //================================================================================
 
@@ -73,28 +78,31 @@ int main(const int argc, const char **argv) {
     if (argc != 2) {
         showUsage(argv[0]);
         ERR("Bad arg count");
-        return EXIT_FAILURE;
+        return 1;
     }
 
     FILE * ifile = fopen(argv[1], "rb");
     if (ifile == NULL) {
         ERR("Couldn't open \'%s\' to read", argv[1]);
-        return EXIT_FAILURE;
+        return 2;
     }
-    lines_t lines;  // Lines intentionally not init-ed, because readLines does it itself
+
+    lines_t lines = {};
     int result = readLines(ifile, &lines);
+
     fclose(ifile);
+
     if (result != SS_OK) {
         ERR("Error while reading lines");
         freeLines(&lines);
-        return EXIT_FAILURE;
+        return 3;
     }
 
     char newName[32] = "sorted_";
-    if (strlen(newName) + strlen(argv[1]) > sizeof(newName)) {
+    if (strlen(newName) + strlen(argv[1]) > sizeof(newName) - 1) {
         ERR("Binary\'s name is too long");
         freeLines(&lines);
-        return EXIT_FAILURE;
+        return 4;
     }
     strcat(newName, argv[1]);
 
@@ -103,7 +111,7 @@ int main(const int argc, const char **argv) {
     if (ofile == NULL) {
         ERR("Couldn't open \'%s\' to write", newName);
         freeLines(&lines);
-        return EXIT_FAILURE;
+        return 5;
     }
 
     printf("Read %d lines, sorting...\n", lines.len);
@@ -114,7 +122,7 @@ int main(const int argc, const char **argv) {
         ERR("Error while writing lines");
         fclose(ofile);
         freeLines(&lines);
-        return EXIT_FAILURE;
+        return 6;
     }
 
     printf("Sorting again, this time in reverse...\n");
@@ -125,7 +133,7 @@ int main(const int argc, const char **argv) {
         ERR("Error while writing lines");
         fclose(ofile);
         freeLines(&lines);
-        return EXIT_FAILURE;
+        return 7;
     }
 
     printf("Okay, returning the original text now...\n");
@@ -133,22 +141,12 @@ int main(const int argc, const char **argv) {
         ERR("Error while writing lines");
         fclose(ofile);
         freeLines(&lines);
-        return EXIT_FAILURE;
+        return 8;
     }
 
     printf("Done.\n");
     fclose(ofile);
     freeLines(&lines);
-    return EXIT_SUCCESS;
+    return 0;
 }
 
-//================================================================================
-
-void showBanner(void) {
-    printf(BANNER);
-    printf(DESCR);
-}
-
-void showUsage(const char *binname) {
-    printf(USAGE_INFO, binname);
-}
