@@ -102,7 +102,7 @@ int cmpLinesReverse(const void *a, const void *b) {
 
 //--------------------------------------------------------------------------------
 
-line_t * assignLiteralLine(line_t *line, char *value) {
+line_t *assignLiteralLine(line_t *line, char *value) {
     line->val = (letter *)value;
     line->len = (unsigned char)strlen(value) + 1;
     return line;

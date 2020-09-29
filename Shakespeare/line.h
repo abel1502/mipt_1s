@@ -77,6 +77,6 @@ inline int inBounds(const line_t *line, int offset);
  * @param [out] line   The line
  * @param [in]  value  The immediate value
  */
-line_t * assignLiteralLine(line_t *line, char *value);
+line_t *assignLiteralLine(line_t *line, char *value);
 
 #endif // SS_LINE_H_GUARD

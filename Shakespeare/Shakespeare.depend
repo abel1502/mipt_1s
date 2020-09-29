@@ -15,7 +15,7 @@
 	<setjmp.h>
 	<signal.h>
 
-1601017822 source:d:\workspace\.mipt\s1\shakespeare\line.cpp
+1601025130 source:d:\workspace\.mipt\s1\shakespeare\line.cpp
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -23,10 +23,10 @@
 	<assert.h>
 	"line.h"
 
-1601017918 d:\workspace\.mipt\s1\shakespeare\line.h
+1601025124 d:\workspace\.mipt\s1\shakespeare\line.h
 	"general.h"
 
-1601014363 d:\workspace\.mipt\s1\shakespeare\general.h
+1601019468 d:\workspace\.mipt\s1\shakespeare\general.h
 	<assert.h>
 
 1601018943 source:d:\workspace\.mipt\s1\shakespeare\poem.cpp
