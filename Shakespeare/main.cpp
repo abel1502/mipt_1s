@@ -39,7 +39,17 @@
 
 //--------------------------------------------------------------------------------
 
-const char SEP[] = "\n--------------------------------------------------------------------------------\n\n";
+static const char SEP[] = "\n--------------------------------------------------------------------------------\n\n";
+static const size_t MAX_NAME = 80;
+static const char SORTED_SUFFIX[] = ".sorted";
+
+typedef enum {
+    SSM_OK,
+    SSM_ARGS,
+    SSM_IO,
+    SSM_READLINES,
+    SSM_LONGNAME
+} SHAKESPEARE_MAIN_ERROR;
 
 //--------------------------------------------------------------------------------
 
@@ -78,13 +88,14 @@ int main(const int argc, const char **argv) {
     if (argc != 2) {
         showUsage(argv[0]);
         ERR("Bad arg count");
-        return 1;
+        return SSM_ARGS;
     }
 
-    FILE * ifile = fopen(argv[1], "rb");
+    FILE *ifile = fopen(argv[1], "rb");
+
     if (ifile == NULL) {
         ERR("Couldn't open \'%s\' to read", argv[1]);
-        return 2;
+        return SSM_IO;
     }
 
     lines_t lines = {};
@@ -95,23 +106,26 @@ int main(const int argc, const char **argv) {
     if (result != SS_OK) {
         ERR("Error while reading lines");
         freeLines(&lines);
-        return 3;
+        return SSM_READLINES;
     }
 
-    char newName[32] = "sorted_";
-    if (strlen(newName) + strlen(argv[1]) > sizeof(newName) - 1) {
-        ERR("Binary\'s name is too long");
+    char newName[MAX_NAME] = "\0";
+    size_t suffLen = strlen(SORTED_SUFFIX);
+    strncpy(newName, argv[1], MAX_NAME - suffLen - 1);
+    strncat(newName, SORTED_SUFFIX, suffLen);
+
+    if (newName[MAX_NAME - 1] != '\0') {
+        ERR("File name too long");
         freeLines(&lines);
-        return 4;
+        return SSM_LONGNAME;
     }
-    strcat(newName, argv[1]);
 
+    FILE *ofile = fopen(newName, "wb");
 
-    FILE * ofile = fopen(newName, "wb");
     if (ofile == NULL) {
         ERR("Couldn't open \'%s\' to write", newName);
         freeLines(&lines);
-        return 5;
+        return SSM_IO;
     }
 
     printf("Read %d lines, sorting...\n", lines.len);
@@ -122,7 +136,7 @@ int main(const int argc, const char **argv) {
         ERR("Error while writing lines");
         fclose(ofile);
         freeLines(&lines);
-        return 6;
+        return SSM_IO;
     }
 
     printf("Sorting again, this time in reverse...\n");
@@ -133,7 +147,7 @@ int main(const int argc, const char **argv) {
         ERR("Error while writing lines");
         fclose(ofile);
         freeLines(&lines);
-        return 7;
+        return SSM_IO;
     }
 
     printf("Okay, returning the original text now...\n");
@@ -141,12 +155,12 @@ int main(const int argc, const char **argv) {
         ERR("Error while writing lines");
         fclose(ofile);
         freeLines(&lines);
-        return 8;
+        return SSM_IO;
     }
 
     printf("Done.\n");
     fclose(ofile);
     freeLines(&lines);
-    return 0;
+    return SSM_OK;
 }
 
