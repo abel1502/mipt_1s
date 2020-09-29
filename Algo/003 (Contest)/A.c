@@ -42,15 +42,15 @@ typedef struct stack_item_s stack_item;
 typedef struct stack_s stack;
 
 
-const size_t MAX_STACK = 10001; // Generally (size_t)-1, but for this task the limit is explicitly specified
+static const size_t MAX_STACK = 10001;      // Generally (size_t)-1, but for this task the limit is explicitly specified
 
-const size_t MAX_CMD = 6; // "clear\0"
+static const size_t MAX_CMD = 6;            // "clear\0"
 
-const char CMD_FORMAT[] = "%5s";  // Has to be specified explicitly because otherwise I would have had to do
-                                  // like sprintf("%%%ds", MAX_CMD - 1);, and that feels overcomplicated
+static const char CMD_FORMAT[] = "%5s";     // Has to be specified explicitly because otherwise I would have had to do
+                                            // like sprintf("%%%ds", MAX_CMD - 1);, and that feels overcomplicated
 
-const char ITEM_FORMAT[] = "%lld";  // Same as above, but here there's no way I'm aware of to retrieve the
-                                    // format specifier from the type
+static const char ITEM_FORMAT[] = "%lld";   // Same as above, but here there's no way I'm aware of to retrieve the
+                                            // format specifier from the type
 
 
 struct stack_item_s {
@@ -178,22 +178,16 @@ int main() {
 
         scanf(CMD_FORMAT, cmd);
 
-        #define HANDLE_CMD(cmdName, handleCode) \
-            if (strcmp(cmd, cmdName) == 0) { \
-                handleCode \
-                continue; \
-            }
-
-        // Macro definition and code alignment mostly for aesthetic reasons
-
-        HANDLE_CMD("push",
+        if (strcmp(cmd, "push") == 0) {
             item_t value = 0;
             scanf(ITEM_FORMAT, &value);
             res = stack_push(st, value);
             assert(res == STACK_OK);
             printf("ok\n");
-        )
-        HANDLE_CMD("pop",
+            continue;
+        }
+
+        if (strcmp(cmd, "pop") == 0) {
             item_t value = 0;
             res = stack_pop(st, &value);
             if (res == STACK_UNDERFLOW) {
@@ -203,8 +197,10 @@ int main() {
             assert(res == STACK_OK);
             printf(ITEM_FORMAT, value);
             printf("\n");
-        )
-        HANDLE_CMD("back",
+            continue;
+        }
+
+        if (strcmp(cmd, "back") == 0) {
             item_t value = 0;
             res = stack_peek(st, &value);
             if (res == STACK_UNDERFLOW) {
@@ -214,23 +210,27 @@ int main() {
             assert(res == STACK_OK);
             printf(ITEM_FORMAT, value);
             printf("\n");
-        )
-        HANDLE_CMD("size",
+            continue;
+        }
+
+        if (strcmp(cmd, "size") == 0) {
             printf("%zd\n", st->size);
-        )
-        HANDLE_CMD("clear",
+            continue;
+        }
+
+        if (strcmp(cmd, "clear") == 0) {
             res = stack_clear(st);
             assert(res == STACK_OK);
             printf("ok\n");
-        )
-        HANDLE_CMD("exit",
+            continue;
+        }
+
+        if (strcmp(cmd, "exit") == 0) {
             printf("bye\n");
             res = stack_delete(st);
             // assert(res == STACK_OK); // Intentionally omitted because cleanup should be performed on the stack in any state, even broken
             return EXIT_SUCCESS;
-        )
-
-        #undef HANDLE_CMD
+        }
 
         assert(0); // Is only reached upon an unknown command - a.k.a. shouldn't be reached
     }
