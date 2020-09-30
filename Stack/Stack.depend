@@ -1,0 +1,21 @@
+# depslib dependency file v1.0
+1601495458 source:d:\workspace\.mipt\s1\stack\test.cpp
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"stack.h"
+
+1600692959 d:\workspace\.mipt\s1\libs\test.h
+	"TXLib.h"
+	<stdio.h>
+	<math.h>
+	<stdlib.h>
+	<assert.h>
+	<setjmp.h>
+	<signal.h>
+
+1601496531 d:\workspace\.mipt\s1\stack\stack.h
+	<stdlib.h>
+	<assert.h>
+	<stdio.h>
+
