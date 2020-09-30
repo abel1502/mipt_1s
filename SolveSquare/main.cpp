@@ -44,7 +44,7 @@ typedef struct se_solution {
  * @param [in] x1   res.x1
  * @param [in] x2   res.x2
  */
-se_solution_t * initSolution(se_solution_t * res, se_type type, double x1, double x2);
+se_solution_t *initSolution(se_solution_t *res, se_type type, double x1, double x2);
 
 /**
  * Pretty-prints a solution into the console
@@ -53,7 +53,7 @@ se_solution_t * initSolution(se_solution_t * res, se_type type, double x1, doubl
  *
  * @return Error code (0 means success, non-0 - an exception)
  */
-int logSolution(se_solution_t * solution);
+int logSolution(se_solution_t *solution);
 
 /**
  * Shows a constant banner at the beginning of the execution
@@ -65,7 +65,7 @@ void showBanner(void);
  *
  * @param [in] binname The current binary's name (argv[0])
  */
-void showHelp(char * binname);
+void showHelp(char *binname);
 
 /**
  * Tries to parse the equation coefficients from the program's arguments
@@ -78,7 +78,7 @@ void showHelp(char * binname);
  *
  * @return Error code (0 means success, non-0 - an exception)
  */
-int parseArgCoeffs(int argc, char ** argv, double * a, double * b, double * c);
+int parseArgCoeffs(int argc, char **argv, double *a, double *b, double *c);
 
 /**
  * Solves a square equation (a*x^2+b*x+c==0)
@@ -90,11 +90,11 @@ int parseArgCoeffs(int argc, char ** argv, double * a, double * b, double * c);
  *
  * @return Error code (0 means success, non-0 - an exception)
  */
-int solveSE(double a, double b, double c, se_solution_t * solution);
+int solveSE(double a, double b, double c, se_solution_t *solution);
 
 #ifdef TEST
 
-void test_solveSE_(double a, double b, double c, int exp_ret, se_solution_t * exp_solution);
+void test_solveSE_(double a, double b, double c, int exp_ret, se_solution_t *exp_solution);
 
 void test_solveSE(void);
 
@@ -102,7 +102,7 @@ void test_solveSE(void);
 
 //================================================================================
 
-int main(int argc, char ** argv) {
+int main(int argc, char **argv) {
     TEST_MAIN(
         verbose = true;
         ,
@@ -150,16 +150,18 @@ int main(int argc, char ** argv) {
         ERR("Error while printing the solution");
         return EXIT_FAILURE;
     }
+
     return EXIT_SUCCESS;
 }
 
 //================================================================================
 
-int solveSE(double a, double b, double c, se_solution_t * solution) {
+int solveSE(double a, double b, double c, se_solution_t *solution) {
     if (!isfinite(a) || !isfinite(b) || !isfinite(c)) {
         ERR("some coefficient isn\'t a finite number");
         return 1;
     }
+
 //    if (solution == NULL) {
 //        ERR("nullptr solution");
 //        return 2;
@@ -179,6 +181,7 @@ int solveSE(double a, double b, double c, se_solution_t * solution) {
         }
     } else {
         double discr = b * b - 4 * a * c;
+
         if (discr < 0) {
             solution->type = SE_NO_ROOTS;
         } else {
@@ -195,7 +198,7 @@ int solveSE(double a, double b, double c, se_solution_t * solution) {
     return 0;
 }
 
-se_solution_t * initSolution(se_solution_t * res, se_type type, double x1, double x2) {
+se_solution_t *initSolution(se_solution_t *res, se_type type, double x1, double x2) {
     res->type = type;
     res->x1 = x1;
     res->x2 = x2;
@@ -203,12 +206,13 @@ se_solution_t * initSolution(se_solution_t * res, se_type type, double x1, doubl
 }
 
 
-int logSolution(se_solution_t * solution) {
+int logSolution(se_solution_t *solution) {
 //    if (solution == NULL) {
 //        ERR("nullptr solution");
 //        return 1;
 //    }
     assert(solution != NULL);
+
     switch (solution->type) {
     case SE_NO_ROOTS:
         printf("No solutions\n");
@@ -244,41 +248,49 @@ void showBanner(void) {
 }
 
 
-void showHelp(char * binname) {
+void showHelp(char *binname) {
     printf("\nUsage: %s a b c [-v]\n\n"
            "a, b and c are the coefficients for the equation.\n"
            "-v option enables verbose error output\n\n", binname);
 }
 
 
-int parseArgCoeffs(int argc, char ** argv, double * a, double * b, double * c) {
+int parseArgCoeffs(int argc, char **argv, double *a, double *b, double *c) {
     if (argc < 4) {
         ERR("Too few arguments: %d", argc);
         return 1;
     }
+
     if ((sscanf(argv[1], "%lg", a) < 1) || (sscanf(argv[2], "%lg", b) < 1) || (sscanf(argv[3], "%lg", c) < 1)) {
         ERR("Bad argument format");
         return 2;
     }
+
     return 0;
 }
 
 
 #ifdef TEST
-void test_solveSE_(double a, double b, double c, int exp_ret, se_solution_t * exp_solution) {
+void test_solveSE_(double a, double b, double c, int exp_ret, se_solution_t *exp_solution) {
     se_solution_t solution;
+
     TEST_MSG("Testing solve_SE on a=%lg, b=%lg, c=%lg", a, b, c);
     int ret = solveSE(a, b, c, &solution);
+
     TEST_ASSERT_M(ret == exp_ret, "Unexpected return value: %d instead of %d", ret, exp_ret);
+
     if (exp_ret == 0) {
         TEST_ASSERT_M(solution.type == exp_solution->type, "Different numbers of roots: %d instead of %d", solution.type, exp_solution->type);
+
         if (solution.type == SE_ONE_ROOT || solution.type == SE_TWO_ROOTS) {
             TEST_ASSERT_M(cmpDouble(solution.x1, exp_solution->x1) == 0, "Different 1st roots: %lg != %lg", solution.x1, exp_solution->x1);
         }
+
         if (solution.type == SE_TWO_ROOTS) {
             TEST_ASSERT_M(cmpDouble(solution.x2, exp_solution->x2) == 0, "Different 2nd roots: %lg != %lg", solution.x2, exp_solution->x2);
         }
     }
+
     $g; TEST_MSG("Passed"); $d;
 }
 
