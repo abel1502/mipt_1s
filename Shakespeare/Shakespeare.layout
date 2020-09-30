@@ -2,29 +2,34 @@
 <CodeBlocks_layout_file>
 	<FileVersion major="1" minor="0" />
 	<ActiveTarget name="Debug" />
-	<File name="test.cpp" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="line.h" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="329" topLine="0" />
+			<Cursor1 position="285" topLine="56" />
 		</Cursor>
 	</File>
-	<File name="main.cpp" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+	<File name="line.cpp" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="2606" topLine="102" />
+			<Cursor1 position="784" topLine="84" />
 		</Cursor>
 	</File>
-	<File name="line.cpp" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+	<File name="test.cpp" open="1" top="1" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="784" topLine="71" />
+			<Cursor1 position="3245" topLine="72" />
 		</Cursor>
 	</File>
-	<File name="poem.h" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="main.cpp" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1673" topLine="93" />
+			<Cursor1 position="3675" topLine="141" />
 		</Cursor>
 	</File>
-	<File name="poem.cpp" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="poem.h" open="1" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="3634" topLine="110" />
+			<Cursor1 position="790" topLine="105" />
+		</Cursor>
+	</File>
+	<File name="poem.cpp" open="1" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3086" topLine="89" />
 		</Cursor>
 		<Folding>
 			<Collapse line="186" />
@@ -32,14 +37,9 @@
 			<Collapse line="231" />
 		</Folding>
 	</File>
-	<File name="line.h" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="general.h" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="2211" topLine="44" />
-		</Cursor>
-	</File>
-	<File name="general.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="307" topLine="0" />
+			<Cursor1 position="222" topLine="0" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

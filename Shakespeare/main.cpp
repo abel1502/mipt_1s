@@ -20,7 +20,7 @@
  # Remove analyzeFile
  - HTML log file
  # Error codes returned from main
- ? Organize main's return codes
+ # Organize main's return codes
  / Encapsulate the cleanup in main into a goto
 */
 

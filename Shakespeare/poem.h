@@ -18,7 +18,7 @@ typedef struct {
 /**
  * Type alias for qsort and ssort comparators
  */
-typedef int (*comparator_t)(const void*,const void*);
+typedef int (*comparator_t)(const void*, const void*);
 
 /**
  * Reads all lines from a file. Essentially a constructor
