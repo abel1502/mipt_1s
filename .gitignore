@@ -1,3 +1,5 @@
 **/doxygen/*/
+**/bin/**
+**/obj/**
 *.exe
 *.o
