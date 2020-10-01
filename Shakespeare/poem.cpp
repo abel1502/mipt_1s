@@ -204,7 +204,23 @@ static inline void *_ssort_getitem(void *base, size_t size, size_t i) {
 static void _ssort_swap(void *base, size_t a, size_t b, size_t size) {
     assert(base != NULL);
 
-    // TODO: Basic cases automation
+    #define HANDLE_BASIC_CASE(expType) \
+        if (size == sizeof(expType)) {           \
+            expType *arr = (expType *)base;     \
+            expType tmp = arr[a];               \
+            arr[a] = arr[b];                    \
+            arr[b] = tmp;                       \
+            return;                             \
+        }
+
+    HANDLE_BASIC_CASE(char);
+    HANDLE_BASIC_CASE(short);
+    HANDLE_BASIC_CASE(long);
+    HANDLE_BASIC_CASE(long long);
+
+    #undef HANDLE_BASIC_CASE
+
+
 
     char *a_ptr = (char *)base + a * size;
     char *b_ptr = (char *)base + b * size;

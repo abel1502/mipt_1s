@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1601557425 source:d:\workspace\.mipt\s1\shakespeare\main.cpp
+1601586989 source:d:\workspace\.mipt\s1\shakespeare\main.cpp
 	<stdio.h>
 	<string.h>
 	<locale.h>
@@ -40,7 +40,7 @@
 	"general.h"
 	"line.h"
 
-1601539889 source:d:\workspace\.mipt\s1\shakespeare\test.cpp
+1601541488 source:d:\workspace\.mipt\s1\shakespeare\test.cpp
 	"../libs/test.h"
 	<stdio.h>
 	<stdlib.h>

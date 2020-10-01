@@ -25,6 +25,7 @@
  # Organize main's return codes
  / Encapsulate the cleanup in main into a goto
  # Remove pragma-based warning suspension for %zu in favor of #define __USE_MINGW_ANSI_STDIO 1
+ # Handle basic cases in ssort swap
 */
 
 #include <stdio.h>
