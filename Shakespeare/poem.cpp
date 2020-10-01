@@ -90,20 +90,9 @@ SS_ERROR writeOriginalLines(FILE *ofile, lines_t *lines) {
     for (size_t i = 0; i < lines->textLen; ++i) {
         letter cur = lines->text[i];
         if (cur == '\0') cur = '\n';
+
         if (fputc(cur, ofile) == EOF) {
-
-            #pragma GCC diagnostic push
-            // %z is supported starting from c99 (and the sufficiency of the current
-            // compiler is ensured by a preprocessor check in the beginning of the file),
-            // but the compiler for some reason wants to warn me that this specifier is unknown
-            // and the argument count is wrong.
-            #pragma GCC diagnostic ignored "-Wformat"
-            #pragma GCC diagnostic ignored "-Wformat-extra-args"
-
             ERR("Can\'t write letter #%zu", i);
-
-            #pragma GCC diagnostic pop
-
             return SS_INNER;
         }
     }

@@ -1,9 +1,3 @@
-#if __STDC_VERSION__ < 199901L && !defined(__cplusplus)
-// This program will work with c99 and higher or presumably any c++
-#error This program should only be compiled by to the C99 standards
-#endif
-
-#define TEST
 #include "../libs/test.h"
 
 #include <stdio.h>

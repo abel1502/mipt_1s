@@ -22,12 +22,8 @@
  # Error codes returned from main
  # Organize main's return codes
  / Encapsulate the cleanup in main into a goto
+ # Remove pragma-based warning suspension for %zu in favor of #define __USE_MINGW_ANSI_STDIO 1
 */
-
-#if __STDC_VERSION__ < 199901L && !defined(__cplusplus)
-// This program will work with c99 and higher or presumably any c++
-#error This program should only be compiled by to the C99 standards
-#endif
 
 #include <stdio.h>
 #include <string.h>
