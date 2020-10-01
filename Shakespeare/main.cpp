@@ -13,7 +13,9 @@
  # Add error handling to readLine
  - Add line_t 'methods'
  ? Rename lines to poem
- > Custom qsort
+ # Custom qsort
+ # Fix custom qsort
+ - Modify ssort partition to make ssort O(n lon n) guaranteed?
  # Encapsulate comparators
  ? Create a getopt
  # Remove null checks before free
@@ -125,7 +127,7 @@ int main(const int argc, const char **argv) {
     }
 
     printf("Read %d lines, sorting...\n", lines.len);
-    sortLines(&lines, cmpLinesForward);
+    customSortLines(&lines, cmpLinesForward);
 
     printf("Done sorting, writing to %s\n", newName);
     if (writeLines(ofile, &lines) != SS_OK) {

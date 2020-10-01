@@ -9,6 +9,7 @@
 #include "line.h"
 #include "poem.h"
 
+
 void test_sortLines(lines_t *lines);
 void test_cmpLines();
 void test_isRelevant();
@@ -40,7 +41,7 @@ void test_sortLines(lines_t *lines) {
         lines->len++;
     }
 
-    sortLines(lines, cmpLinesForward);
+    customSortLines(lines, cmpLinesForward);
 
     TEST_ASSERT(lines->len == cnt);
     for (int i = 0; i < cnt; ++i) {

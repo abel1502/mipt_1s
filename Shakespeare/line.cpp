@@ -6,7 +6,6 @@
 
 #include "line.h"
 
-
 //--------------------------------------------------------------------------------
 
 SS_ERROR readLine(line_t *line, letter *text, size_t *offset) {
@@ -105,5 +104,10 @@ int cmpLinesReverse(const void *a, const void *b) {
 line_t *assignLiteralLine(line_t *line, char *value) {
     line->val = (letter *)value;
     line->len = (unsigned char)strlen(value) + 1;
+
+    #if DEBUG_SSORT
+    printf("%u [%p] %s\n", line->len, line->val, line->val);
+    #endif // DEBUG_SSORT
+
     return line;
 }

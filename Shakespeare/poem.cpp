@@ -5,7 +5,6 @@
 
 #include "poem.h"
 
-
 SS_ERROR readLines(FILE *ifile, lines_t *lines) {
     assert(ifile != NULL);
     assert(lines != NULL);
@@ -137,7 +136,7 @@ void customSortLines(lines_t *lines, comparator_t cmp) {
     assert(lines != NULL);
     assert(cmp != NULL);
 
-    ssort(lines->vals, 0, lines->len, sizeof(lines->vals[0]), cmp);
+    ssort(lines->vals, 0, lines->len - 1, sizeof(lines->vals[0]), cmp);
 }
 
 //--------------------------------------------------------------------------------
@@ -173,6 +172,35 @@ SS_ERROR getFSize(FILE *ifile, size_t *length) {
 
 //--------------------------------------------------------------------------------
 
+#if DEBUG_SSORT
+
+static void _ssort_logLine(void *base, size_t i) {
+    line_t *arr = (line_t *)base;
+
+    printf("%2zu) [%p] (%u) %s\n", i, arr[i].val, arr[i].len, arr[i].val);
+}
+
+//--------------------------------------------------------------------------------
+
+static void _ssort_logLines(void *base, size_t low, size_t high) {
+    printf("====== [%zu, %zu]\n", low, high);
+    for (; low <= high; ++low) {
+        _ssort_logLine(base, low);
+    }
+    printf("======\n");
+}
+
+
+#endif // DEBUG_SSORT
+
+//--------------------------------------------------------------------------------
+
+static inline void *_ssort_getitem(void *base, size_t size, size_t i) {
+    return (void *)((char *)base + i * size);
+}
+
+//--------------------------------------------------------------------------------
+
 static void _ssort_swap(void *base, size_t a, size_t b, size_t size) {
     assert(base != NULL);
 
@@ -197,23 +225,60 @@ static size_t _ssort_partition(void *base, size_t low, size_t high, size_t size,
     assert(base != NULL);
     assert(low + 1 < high);
 
-    #define GET_ITEM(i) (void *)((char *)base + (i) * size)
+    void *pivot = calloc(1, size);
+    assert(pivot != NULL);
 
-    void *pivot = GET_ITEM((low + high) / 2);
+    memcpy(pivot, _ssort_getitem(base, size, (low + high) / 2), size);
+
     size_t i = low;
     size_t j = high;
 
+    #if DEBUG_SSORT
+    printf("pivot: ");
+    _ssort_logLine(base, (line_t *)pivot - (line_t *)base);
+    #endif // DEBUG_SSORT
+
     while (1) {
-        while (i < high && cmp(GET_ITEM(i), pivot) < 0) i++;
-        while (j > low  && cmp(GET_ITEM(j), pivot) > 0) j--;
-        if (i >= j) return j;
+        #if DEBUG_SSORT
+        #define LOG_I _ssort_logLine(base, i); printf(" * %d\n", cmp(_ssort_getitem(base, size, i), pivot));
+        #define LOG_J _ssort_logLine(base, j); printf(" * %d\n", cmp(pivot, _ssort_getitem(base, size, j));
+        #else
+        #define LOG_I
+        #define LOG_J
+        #endif // DEBUG_SSORT
+
+
+        while (i <= high && cmp(_ssort_getitem(base, size, i), pivot) < 0) {
+            LOG_I
+            i++;
+        } LOG_I
+
+        #if DEBUG_SSORT
+        printf("--\n");
+        #endif // DEBUG_SSORT
+
+        while (j >= low && j != (size_t)-1 && cmp(pivot, _ssort_getitem(base, size, j)) < 0) {
+            LOG_I
+            j--;
+        } LOG_I
+
+        #undef LOG_I
+        #undef LOG_J
+
+        #if DEBUG_SSORT
+        printf("<%zu %zu>\n", i, j);
+        #endif // DEBUG_SSORT
+
+        if (i >= j) break;
 
         _ssort_swap(base, i, j, size);
         i++;
         j--;
     }
 
-    #undef GET_ITEM
+    free(pivot);
+
+    return j;
 }
 
 //--------------------------------------------------------------------------------
@@ -223,8 +288,29 @@ void ssort(void* base, size_t low, size_t high, size_t size, comparator_t cmp) {
     assert(cmp != NULL);
     assert(size > 0);
 
-    if (low + 1 >= high) return;
+    #if DEBUG_SSORT
+    _ssort_logLines(base, low, high);
+    #endif // DEBUG_SSORT
+
+    if (low + 1 > high) {
+        return;
+    } else if (low + 1 == high) {
+        if (cmp(_ssort_getitem(base, size, low), _ssort_getitem(base, size, high)) > 0) {
+            _ssort_swap(base, low, high, size);
+        }
+        return;
+    }
+
     size_t separator = _ssort_partition(base, low, high, size, cmp);
+
+    #if DEBUG_SSORT
+
+    printf("sep = %zu\n", separator);
+
+    _ssort_logLines(base, low, high);
+
+    #endif // DEBUG_SSORT
+
     ssort(base, low, separator, size, cmp);
     ssort(base, separator + 1, high, size, cmp);
 }
