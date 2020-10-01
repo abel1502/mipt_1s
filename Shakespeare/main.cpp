@@ -11,7 +11,7 @@
  # Remove struct names (and possibly remove _t from typedef ones)
  # Add ¸ and ¨
  # Add error handling to readLine
- - Add line_t 'methods'
+ # Add line_t 'methods'
  ? Rename lines to poem
  # Custom qsort
  # Fix custom qsort
