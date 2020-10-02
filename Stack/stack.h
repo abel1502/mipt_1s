@@ -27,9 +27,10 @@
  - Add release-time checks (+in constructors)
  - Make heavy debug checks conditionally compile
  - Make ASSERT_OK a functional-style marco
- - Poison
+ ? Poison
  - Canaries
  - Hashes
+ # isPointerValid
  ...
     =========================
 */
@@ -93,9 +94,13 @@ stack_validity_e stack_validate(stack_t *self);
 
 const char *stack_describeValidity(stack_validity_e validity);
 
+int isPointerValid(void *ptr);
+
 //--------------------------------------------------------------------------------
 
+#ifndef MACROFUNC  // Same as in tests, but may not be included
 #define MACROFUNC(...) do {__VA_ARGS__} while (0)
+#endif
 
 #define ASSERT_OK()  MACROFUNC(                                                          \
     if (stack_validate(self) != STACK_VALID) {                                           \
@@ -118,7 +123,7 @@ stack_t *stack_new(size_t capacity) {
 }
 
 stack_t *stack_construct(stack_t *self, size_t capacity) {
-    assert(self != NULL);
+    assert(isPointerValid(self));
     assert(capacity > 0);
 
     self->capacity = capacity;
@@ -215,7 +220,7 @@ void stack_dump(stack_t *self) {
     stack_validity_e validity = stack_validate(self);
 
     printf("stack_t (%s) [0x%p] {\n", stack_describeValidity(validity), self);
-    if (self != NULL) {
+    if (isPointerValid(self)) {
         printf("  size     = %zu\n", self->size);
         printf("  capacity = %zu\n", self->capacity);
         printf("  state    = %s\n", (self->state == SAS_USERSPACE) ? \
@@ -226,7 +231,7 @@ void stack_dump(stack_t *self) {
                                     "freed" : \
                                     "CORRUPT");
         printf("  data [0x%p] {\n", self->data);
-        if (self->data != NULL) {
+        if (isPointerValid(self->data)) {
             size_t limit = self->size;
             if (self->capacity < limit) {
                 limit = self->capacity;
@@ -263,7 +268,7 @@ void stack_dump(stack_t *self) {
 }
 
 stack_validity_e stack_validate(stack_t *self) {
-    if (self == NULL || self->data == NULL) {
+    if (!isPointerValid(self) || !isPointerValid(self->data)) {
         return STACK_BADPTR;
     }
 
@@ -293,6 +298,13 @@ const char *stack_describeValidity(stack_validity_e validity) {
     default:
         return "!CORRUPT VALIDITY!";
     }
+}
+
+int isPointerValid(void *ptr) {
+    return ptr >= (void *)4096 \
+        && ptr <= (void *)(~((size_t)1) >> 2);
+        // I know this feels crotchy, but it essentially says that
+        // the lowest and the highest addresses
 }
 
 #undef ASSERT_OK

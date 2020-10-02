@@ -5,8 +5,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+// === [ Stack inclusion ] ===
+
 typedef double stack_elem_t;
+
+static void printHelper(stack_elem_t elem) {
+    printf("%lg", elem);
+}
+
+#define STACK_ELEM_PRINT printHelper
+
 #include "stack.h"
+// ===========================
 
 
 int main() {
