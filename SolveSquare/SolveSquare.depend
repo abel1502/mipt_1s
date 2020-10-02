@@ -1,6 +1,6 @@
 # depslib dependency file v1.0
-1598695348 source:d:\workspace\.mipt\s1\solvesquare\main.cpp
-	"test.h"
+1601667240 source:d:\workspace\.mipt\s1\solvesquare\main.cpp
+	"../libs/test.h"
 	<stdio.h>
 	<math.h>
 	<stdlib.h>
@@ -15,4 +15,13 @@
 	<stdlib.h>
 	<assert.h>
 	<setjmp.h>
+
+1601667077 d:\workspace\.mipt\s1\libs\test.h
+	"TXLib.h"
+	<stdio.h>
+	<math.h>
+	<stdlib.h>
+	<assert.h>
+	<setjmp.h>
+	<signal.h>
 

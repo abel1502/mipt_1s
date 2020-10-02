@@ -1,4 +1,4 @@
-#define TEST
+//#define TEST
 #include "../libs/test.h"
 
 #include <stdio.h>
@@ -12,6 +12,8 @@
 #define ERR(msg, ...) do {if (verbose) fprintf(stderr, "[ERROR in %s()] " msg "\n", __func__, ##__VA_ARGS__);} while (0)
 
 //--------------------------------------------------------------------------------
+
+static const double EPSILON = 1e-8;
 
 bool verbose = false;
 
@@ -92,6 +94,16 @@ int parseArgCoeffs(int argc, char **argv, double *a, double *b, double *c);
  */
 int solveSE(double a, double b, double c, se_solution_t *solution);
 
+/**
+ * Helper function to approximately compare doubles
+ *
+ * @param [in] left  The first value
+ * @param [in] right The second value
+ *
+ * @return -1 if left < right, 0 if left == right, 1 if left > right
+ */
+int cmpDouble(double left, double right);
+
 #ifdef TEST
 
 void test_solveSE_(double a, double b, double c, int exp_ret, se_solution_t *exp_solution);
@@ -168,9 +180,9 @@ int solveSE(double a, double b, double c, se_solution_t *solution) {
 //    }
     assert(solution != NULL);
 
-    if (a == 0) {
-        if (b == 0) {
-            if (c == 0) {
+    if (cmpDouble(a, 0) == 0) {
+        if (cmpDouble(b, 0) == 0) {
+            if (cmpDouble(c, 0) == 0) {
                 solution->type = SE_ANY_ROOT;
             } else {
                 solution->type = SE_NO_ROOTS;
@@ -182,10 +194,12 @@ int solveSE(double a, double b, double c, se_solution_t *solution) {
     } else {
         double discr = b * b - 4 * a * c;
 
-        if (discr < 0) {
+        int discr_0 = cmpDouble(discr, 0);
+
+        if (discr_0 < 0) {
             solution->type = SE_NO_ROOTS;
         } else {
-            if (discr == 0) {
+            if (discr_0 == 0) {
                 solution->type = SE_ONE_ROOT;
             } else {
                 solution->type = SE_TWO_ROOTS;
@@ -198,6 +212,22 @@ int solveSE(double a, double b, double c, se_solution_t *solution) {
     return 0;
 }
 
+//--------------------------------------------------------------------------------
+
+int cmpDouble(double left, double right) {
+    double ldelta = fabs(left * EPSILON);
+    double rdelta = fabs(right * EPSILON);
+    double delta = (ldelta < rdelta) ? ldelta : rdelta;
+    if (left < right - delta)
+        return -1;
+    else if (right - delta <= left && left <= right + delta)
+        return 0;
+    else
+        return 1;
+}
+
+//--------------------------------------------------------------------------------
+
 se_solution_t *initSolution(se_solution_t *res, se_type type, double x1, double x2) {
     res->type = type;
     res->x1 = x1;
@@ -205,6 +235,7 @@ se_solution_t *initSolution(se_solution_t *res, se_type type, double x1, double 
     return res;
 }
 
+//--------------------------------------------------------------------------------
 
 int logSolution(se_solution_t *solution) {
 //    if (solution == NULL) {
@@ -233,6 +264,7 @@ int logSolution(se_solution_t *solution) {
     return 0;
 }
 
+//--------------------------------------------------------------------------------
 
 void showBanner(void) {
     printf("########################\n"
@@ -247,6 +279,7 @@ void showBanner(void) {
            "with variable coefficients\n\n");
 }
 
+//--------------------------------------------------------------------------------
 
 void showHelp(char *binname) {
     printf("\nUsage: %s a b c [-v]\n\n"
@@ -254,6 +287,7 @@ void showHelp(char *binname) {
            "-v option enables verbose error output\n\n", binname);
 }
 
+//--------------------------------------------------------------------------------
 
 int parseArgCoeffs(int argc, char **argv, double *a, double *b, double *c) {
     if (argc < 4) {
@@ -269,6 +303,7 @@ int parseArgCoeffs(int argc, char **argv, double *a, double *b, double *c) {
     return 0;
 }
 
+//--------------------------------------------------------------------------------
 
 #ifdef TEST
 void test_solveSE_(double a, double b, double c, int exp_ret, se_solution_t *exp_solution) {
@@ -293,6 +328,8 @@ void test_solveSE_(double a, double b, double c, int exp_ret, se_solution_t *exp
 
     $g; TEST_MSG("Passed"); $d;
 }
+
+//--------------------------------------------------------------------------------
 
 void test_solveSE(void) {
     se_solution_t exp_solution;

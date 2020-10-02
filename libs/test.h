@@ -73,29 +73,6 @@ static jmp_buf __cleanup_env;
     } \
 )
 
-
-static const double _EPSILON = 1e-8;
-
-/**
- * Helper function to approximately compare doubles
- *
- * @param [in] left  The first value
- * @param [in] right The second value
- *
- * @return -1 if left < right, 0 if left == right, 1 if left > right
- */
-static int cmpDouble(double left, double right) {
-    double ldelta = fabs(left * _EPSILON);
-    double rdelta = fabs(right * _EPSILON);
-    double delta = (ldelta < rdelta) ? ldelta : rdelta;
-    if (left < right - delta)
-        return -1;
-    else if (right - delta <= left && left <= right + delta)
-        return 0;
-    else
-        return 1;
-}
-
 #else
 #define TEST_MAIN(setupcode, testcode, cleanupcode)
 #endif // TEST
