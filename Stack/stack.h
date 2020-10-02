@@ -1,7 +1,8 @@
 /**
  * A secure stack library
  *
- * To use, define stack_elem_t type and include this file.
+ * To use, type-define stack_elem_t type and include this file.
+ *
  * Example:
  *   typedef double stack_elem_t;
  *   #include "stack.h"
@@ -11,20 +12,20 @@
 
 /*
     =====[ Global TODO ]=====
- - Write a basic stack
- - Define ASSERT_OK
+ # Write a basic stack
+ - Protect the stack as hell)
+ # Define ASSERT_OK
  ? Remove asserts from destructors
  ? Change peek and pop to output pointer instead of rval?
  ? Add error codes
+ # Rework destructor SAS checks
+ - Macro-based overloads
+ - Add release-time checks (+in constructors)
+ - Make heavy debug checks conditionally compile
+ - Make ASSERT_OK a functional-style marco
  ...
     =========================
 */
-
-
-#if __STDC_VERSION__ < 199901L && !defined(__cplusplus)
-// This program will work with c99 and higher or presumably any c++
-#error This program should only be compiled by to the C99 standards
-#endif
 
 
 #ifndef STACK_H_GUARD
@@ -53,7 +54,7 @@ struct stack_s {
 
 typedef enum {
     STACK_VALID,
-    STACK_NULLPTR,
+    STACK_BADPTR,
     STACK_BADSIZE,
     STACK_UAF
 } stack_validity_e;
@@ -85,6 +86,8 @@ stack_validity_e stack_validate(stack_t *self);
 
 const char *stack_describeValidity(stack_validity_e validity);
 
+//--------------------------------------------------------------------------------
+
 #define ASSERT_OK                                                                        \
     if (stack_validate(self) != STACK_VALID) {                                           \
         fprintf(stderr, "==============[ !!! CRITICAL FAILURE !!! ]==============\n");   \
@@ -94,7 +97,6 @@ const char *stack_describeValidity(stack_validity_e validity);
         abort();                                                                         \
     }
 
-//--------------------------------------------------------------------------------
 
 stack_t *stack_new(size_t capacity) {
     stack_t *self = (stack_t *)calloc(1, sizeof(stack_t));
@@ -124,6 +126,7 @@ void stack_destroy(stack_t *self) {
     ASSERT_OK;
 
     assert(self->state == SAS_HEAP);
+    self->state = SAS_USERSPACE;
 
     stack_free(self);
 
@@ -132,6 +135,8 @@ void stack_destroy(stack_t *self) {
 
 void stack_free(stack_t *self) {
     ASSERT_OK;
+
+    assert(self->state == SAS_USERSPACE);
 
     free(self->data);
 
@@ -198,14 +203,6 @@ int stack_isEmpty(stack_t *self) {
 }
 
 void stack_dump(stack_t *self) {
-    #pragma GCC diagnostic push
-    // %z is supported starting from c99 (and the sufficiency of the current
-    // compiler is ensured by a preprocessor check in the beginning of the file),
-    // but the compiler for some reason wants to warn me that this specifier is unknown
-    // and the argument count is wrong.
-    #pragma GCC diagnostic ignored "-Wformat"
-    #pragma GCC diagnostic ignored "-Wformat-extra-args"
-
     stack_validity_e validity = stack_validate(self);
 
     printf("stack_t (%s) [0x%p] {\n", stack_describeValidity(validity), self);
@@ -254,13 +251,11 @@ void stack_dump(stack_t *self) {
     }
 
     printf("}\n\n");
-
-    #pragma GCC diagnostic pop
 }
 
 stack_validity_e stack_validate(stack_t *self) {
     if (self == NULL || self->data == NULL) {
-        return STACK_NULLPTR;
+        return STACK_BADPTR;
     }
 
     if (self->capacity == 0 || self->size > self->capacity) {
@@ -280,8 +275,8 @@ const char *stack_describeValidity(stack_validity_e validity) {
     switch (validity) {
     case STACK_VALID:
         return "ok";
-    case STACK_NULLPTR:
-        return "NULL POINTER";
+    case STACK_BADPTR:
+        return "BAD POINTER";
     case STACK_BADSIZE:
         return "BAD SIZE";
     case STACK_UAF:
@@ -290,5 +285,7 @@ const char *stack_describeValidity(stack_validity_e validity) {
         return "!CORRUPT VALIDITY!";
     }
 }
+
+#undef ASSERT_OK
 
 #endif // STACK_H_GUARD
