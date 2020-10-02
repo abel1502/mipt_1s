@@ -95,3 +95,4 @@ void test_isRelevant() {
     TEST_ASSERT(!isRelevant(' '));
     TEST_ASSERT(!isRelevant('\0'));
 }
+

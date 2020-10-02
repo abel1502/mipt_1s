@@ -220,8 +220,6 @@ static void _ssort_swap(void *base, size_t a, size_t b, size_t size) {
 
     #undef HANDLE_BASIC_CASE
 
-
-
     char *a_ptr = (char *)base + a * size;
     char *b_ptr = (char *)base + b * size;
 
@@ -330,3 +328,4 @@ void ssort(void* base, size_t low, size_t high, size_t size, comparator_t cmp) {
     ssort(base, low, separator, size, cmp);
     ssort(base, separator + 1, high, size, cmp);
 }
+
