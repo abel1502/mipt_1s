@@ -115,6 +115,8 @@ int isPointerValid(void *ptr);
 stack_t *stack_new(size_t capacity) {
     stack_t *self = (stack_t *)calloc(1, sizeof(stack_t));
 
+    assert(self != NULL); // TODO
+
     stack_construct(self, capacity);
 
     self->state = SAS_HEAP;
@@ -131,7 +133,10 @@ stack_t *stack_construct(stack_t *self, size_t capacity) {
     self->data = (stack_elem_t *)calloc(capacity, sizeof(stack_elem_t));
     self->state = SAS_USERSPACE;
 
+    assert(self->data != NULL); // TODO
+
     ASSERT_OK();
+
 
     return self;
 }
@@ -154,6 +159,7 @@ void stack_free(stack_t *self) {
 
     free(self->data);
 
+    self->data = NULL;
     self->size = 0;
     self->capacity = 0;
     self->state = SAS_FREED;
@@ -217,6 +223,12 @@ int stack_isEmpty(stack_t *self) {
 }
 
 void stack_dump(stack_t *self) {
+    #if defined(STACK_ELEM_PRINT)
+
+    printf("[WARNING: STACK_ELEM_PRINT is specified, so the dump may fail through the user\'s fault.]\n");
+
+    #endif
+
     stack_validity_e validity = stack_validate(self);
 
     printf("stack_t (%s) [0x%p] {\n", stack_describeValidity(validity), self);
@@ -241,13 +253,24 @@ void stack_dump(stack_t *self) {
             }
 
             for (size_t i = 0; i < self->size; ++i) {
-                printf("    [%2zu] = 0x", i);
+                printf("    [%2zu] = ", i);
+
+                #ifdef STACK_ELEM_PRINT
+
+                // Okay, we'll assume we may trust this 'function'...
+                STACK_ELEM_PRINT(self->data[i]);
+
+                #else
 
                 // We do this so weirdly because the type is unknown and
                 // trusting the user to provide a format specifier is unsafe
+                printf("0x");
+
                 for (size_t j = 0; j < sizeof(stack_elem_t); ++j) {
                     printf("%02X", ((unsigned char *)(self->data + i))[j]);
                 }
+
+                #endif
 
                 printf("\n");
             }
@@ -265,6 +288,9 @@ void stack_dump(stack_t *self) {
     }
 
     printf("}\n\n");
+
+    fflush(stdout);
+    fflush(stderr);
 }
 
 stack_validity_e stack_validate(stack_t *self) {
