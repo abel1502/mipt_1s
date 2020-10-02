@@ -27,8 +27,6 @@ typedef struct {
  */
 SS_ERROR readLine(line_t *line, letter *text, size_t *offset);
 
-//static int cmpLines_(const line_t *a, const line_t *b, const int step);
-
 /**
  * A comparator function for lines that compares two lines,
  *  ignoring the non-alphabetical characters

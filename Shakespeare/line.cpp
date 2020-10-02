@@ -6,6 +6,8 @@
 
 #include "line.h"
 
+static int cmpLines_(const line_t *a, const line_t *b, const int step);
+
 //--------------------------------------------------------------------------------
 
 SS_ERROR readLine(line_t *line, letter *text, size_t *offset) {

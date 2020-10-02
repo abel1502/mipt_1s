@@ -26,6 +26,7 @@
  / Encapsulate the cleanup in main into a goto
  # Remove pragma-based warning suspension for %zu in favor of #define __USE_MINGW_ANSI_STDIO 1
  # Handle basic cases in ssort swap
+ # Rename privates from _*** to ***_
 */
 
 #include <stdio.h>
@@ -33,7 +34,6 @@
 #include <locale.h>
 
 #include "general.h"
-//#include "line.h"
 #include "poem.h"
 
 //--------------------------------------------------------------------------------
