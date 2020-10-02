@@ -3,6 +3,10 @@
  *
  * To use, type-define stack_elem_t type and include this file.
  *
+ * You may also #define a STACK_ELEM_PRINT function with the signature:
+ * (stack_elem_t) -> void
+ * It shall be used during the debug dump
+ *
  * Example:
  *   typedef double stack_elem_t;
  *   #include "stack.h"
@@ -23,6 +27,9 @@
  - Add release-time checks (+in constructors)
  - Make heavy debug checks conditionally compile
  - Make ASSERT_OK a functional-style marco
+ - Poison
+ - Canaries
+ - Hashes
  ...
     =========================
 */
@@ -88,14 +95,16 @@ const char *stack_describeValidity(stack_validity_e validity);
 
 //--------------------------------------------------------------------------------
 
-#define ASSERT_OK                                                                        \
+#define MACROFUNC(...) do {__VA_ARGS__} while (0)
+
+#define ASSERT_OK()  MACROFUNC(                                                          \
     if (stack_validate(self) != STACK_VALID) {                                           \
         fprintf(stderr, "==============[ !!! CRITICAL FAILURE !!! ]==============\n");   \
         fprintf(stderr, "              (or not, but suck it anyway)              \n\n"); \
         stack_dump(self);                                                                \
         fprintf(stderr, "========================================================\n");   \
         abort();                                                                         \
-    }
+    } )
 
 
 stack_t *stack_new(size_t capacity) {
@@ -117,13 +126,13 @@ stack_t *stack_construct(stack_t *self, size_t capacity) {
     self->data = (stack_elem_t *)calloc(capacity, sizeof(stack_elem_t));
     self->state = SAS_USERSPACE;
 
-    ASSERT_OK;
+    ASSERT_OK();
 
     return self;
 }
 
 void stack_destroy(stack_t *self) {
-    ASSERT_OK;
+    ASSERT_OK();
 
     assert(self->state == SAS_HEAP);
     self->state = SAS_USERSPACE;
@@ -134,7 +143,7 @@ void stack_destroy(stack_t *self) {
 }
 
 void stack_free(stack_t *self) {
-    ASSERT_OK;
+    ASSERT_OK();
 
     assert(self->state == SAS_USERSPACE);
 
@@ -146,7 +155,7 @@ void stack_free(stack_t *self) {
 }
 
 void stack_push(stack_t *self, stack_elem_t value) {
-    ASSERT_OK;
+    ASSERT_OK();
 
     if (self->size + 1 > self->capacity) {
         stack_resize(self, self->capacity * 2);
@@ -154,11 +163,11 @@ void stack_push(stack_t *self, stack_elem_t value) {
 
     self->data[self->size++] = value;
 
-    ASSERT_OK;
+    ASSERT_OK();
 }
 
 stack_elem_t stack_peek(stack_t *self) {
-    ASSERT_OK;
+    ASSERT_OK();
 
     assert(!stack_isEmpty(self));
 
@@ -166,7 +175,7 @@ stack_elem_t stack_peek(stack_t *self) {
 }
 
 stack_elem_t stack_pop(stack_t *self) {
-    ASSERT_OK;
+    ASSERT_OK();
 
     assert(!stack_isEmpty(self));
 
@@ -174,7 +183,7 @@ stack_elem_t stack_pop(stack_t *self) {
 }
 
 void stack_resize(stack_t *self, size_t capacity) {
-    ASSERT_OK;
+    ASSERT_OK();
 
     assert(capacity > self->size);
 
@@ -183,21 +192,21 @@ void stack_resize(stack_t *self, size_t capacity) {
 
     self->data = newData;
 
-    ASSERT_OK;
+    ASSERT_OK();
 }
 
 void stack_clear(stack_t *self) {
-    ASSERT_OK;
+    ASSERT_OK();
 
     while (!stack_isEmpty(self)) {
         stack_pop(self);
     }
 
-    ASSERT_OK;
+    ASSERT_OK();
 }
 
 int stack_isEmpty(stack_t *self) {
-    ASSERT_OK;
+    ASSERT_OK();
 
     return self->size == 0;
 }
