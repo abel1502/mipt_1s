@@ -21,7 +21,7 @@
  # Define ASSERT_OK
  ? Remove asserts from destructors
  ? Change peek and pop to output pointer instead of rval?
- ? Add error codes
+ - Add error codes
  # Rework destructor SAS checks
  - Macro-based overloads
  - Add release-time checks (+in constructors)
