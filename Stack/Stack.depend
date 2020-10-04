@@ -1,14 +1,14 @@
 # depslib dependency file v1.0
-1601838066 source:d:\workspace\.mipt\s1\stack\test.cpp
+1601841260 source:d:\workspace\.mipt\s1\stack\test.cpp
 	"../libs/test.h"
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
+	<assert.h>
 	<math.h>
-	"checksum.h"
 	"stack.h"
 
-1601826465 d:\workspace\.mipt\s1\libs\test.h
+1601841312 d:\workspace\.mipt\s1\libs\test.h
 	"TXLib.h"
 	<stdio.h>
 	<math.h>
@@ -17,15 +17,13 @@
 	<setjmp.h>
 	<signal.h>
 
-1601838097 d:\workspace\.mipt\s1\stack\stack.h
+1601841540 d:\workspace\.mipt\s1\stack\stack.h
 	<stdlib.h>
-	<assert.h>
 	<stdio.h>
 	<string.h>
-	"checksum.h"
+	<stdint.h>
 
-1601831165 d:\workspace\.mipt\s1\stack\checksum.h
-	<assert.h>
+1601839833 d:\workspace\.mipt\s1\stack\checksum.h
 	<stdint.h>
 	<string.h>
 

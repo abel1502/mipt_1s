@@ -4,10 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <math.h>
 
-
-#include "checksum.h"
 
 // ==== [ Stack inclusion ] ====
 typedef double stack_elem_t;
@@ -32,11 +31,11 @@ int main() {
     stack_t stk = {};
     stack_construct(&stk, 10);
 
-    stack_push(&stk, NAN);
-    stack_push(&stk, 99.9);
+    assert(!stack_push(&stk, NAN));
+    assert(!stack_push(&stk, 99.9));
     stack_dump(&stk);
 
-    stk.capacity =0xFFFFFFFFFFFFL;
+    stk.capacity = 0xFFFFFFFFFFFFL;
 
     stack_free(&stk);
 
