@@ -12,8 +12,8 @@
  * Signature: void STACK_ELEM_PRINT(stack_elem_t). If not defined, the dump prints raw bytes in hex.
  *
  * - [define]  (optional) STACK_VALIDATION_LEVEL @n
- * A number from 0 to <TODO>, specifying, how much validation will be performed. Defaults to maximum.
- * (@emoji :warning: Actually doesn't work yet)
+ * A number from 0 to 2, specifying, how much validation will be performed. Defaults to maximum.
+ * 0 - no integrity checks; 1 - only the fast integrity checks; 2 - all integrity checks.
  *
  * - ... <TODO>
  *
@@ -35,7 +35,7 @@
  # Rework destructor SAS checks
  ? Macro-based overloads
  - Add release-time checks (+in constructors)
- - Make heavy debug checks conditionally compile
+ # Make heavy debug checks conditionally compile
  # Make ASSERT_OK a functional-style marco
  # Poison
  # Canaries
@@ -62,10 +62,30 @@
 
 //--------------------------------------------------------------------------------
 
-static const unsigned char POISON = 0xAA;
+#ifndef STACK_VALIDATION_LEVEL
+#define STACK_VALIDATION_LEVEL 9
+#endif
 
+#if 0 > STACK_VALIDATION_LEVEL
+#undef STACK_VALIDATION_LEVEL
+#define STACK_VALIDATION_LEVEL 0
+#endif
+
+#if STACK_VALIDATION_LEVEL > 2
+#undef STACK_VALIDATION_LEVEL
+#define STACK_VALIDATION_LEVEL 2
+#endif
+
+//--------------------------------------------------------------------------------
+
+#if STACK_VALIDATION_LEVEL >= 1
+static const unsigned char POISON = 0xAA;
+#endif
+
+#if STACK_VALIDATION_LEVEL >= 1
 typedef unsigned long long canary_t;
 static const canary_t CANARY = ((canary_t)-1 << 32) | 0xDEADB1AD;  // DEADBIRD
+#endif
 
 typedef struct stack_s stack_t;
 
@@ -76,14 +96,24 @@ typedef enum {
 } stack_allocState_e;
 
 struct stack_s {
+    #if STACK_VALIDATION_LEVEL >= 1
     canary_t leftCanary;
+    #endif
+
     stack_elem_t *data;
     size_t size;
     size_t capacity;
+
+    #if STACK_VALIDATION_LEVEL >= 2
     crc32_t structChecksum;
     crc32_t dataChecksum;
+    #endif
+
     stack_allocState_e state;
+
+    #if STACK_VALIDATION_LEVEL >= 1
     canary_t rightCanary;
+    #endif
 };
 
 typedef enum {
@@ -117,9 +147,11 @@ void stack_clear(stack_t *self);
 
 int stack_isEmpty(stack_t *self);
 
+#if STACK_VALIDATION_LEVEL >= 2
 crc32_t stack_hashStruct(stack_t *self);
 
 crc32_t stack_hashData(stack_t *self);
+#endif
 
 void stack_dump(stack_t *self);
 
@@ -129,7 +161,9 @@ const char *stack_validity_describe(stack_validity_e self);
 
 const char *stack_allocState_describe(stack_allocState_e self);
 
+#if STACK_VALIDATION_LEVEL >= 1
 int stack_isPoison(stack_elem_t *item);
+#endif
 
 int isPointerValid(void *ptr);
 
@@ -143,6 +177,8 @@ void test_stack(stack_elem_t val1, stack_elem_t val2, stack_elem_t val3);
 #define MACROFUNC(...) do {__VA_ARGS__} while (0)
 #endif
 
+#if STACK_VALIDATION_LEVEL > 0
+
 #define ASSERT_OK()  MACROFUNC(                                                          \
     if (stack_validate(self) != STACK_VALID) {                                           \
         fprintf(stderr, "==============[ !!! CRITICAL FAILURE !!! ]==============\n");   \
@@ -152,11 +188,19 @@ void test_stack(stack_elem_t val1, stack_elem_t val2, stack_elem_t val3);
         abort();                                                                         \
     } )
 
+#else
+
+#define ASSERT_OK()  MACROFUNC()
+
+#endif
+
+
+
 
 stack_t *stack_new(size_t capacity) {
     stack_t *self = (stack_t *)calloc(1, sizeof(stack_t));
 
-    assert(self != NULL); // TODO
+    assert(isPointerValid(self));  // TODO
 
     stack_construct(self, capacity);
 
@@ -169,24 +213,34 @@ stack_t *stack_construct(stack_t *self, size_t capacity) {
     assert(isPointerValid(self));
     assert(capacity > 0);
 
+    #if STACK_VALIDATION_LEVEL >= 1
     self->leftCanary = CANARY;
+    self->rightCanary = CANARY;
+    #endif
+
+    #if STACK_VALIDATION_LEVEL >= 2
+    self->structChecksum = 0;
+    self->dataChecksum = 0;
+    #endif
+
     self->capacity = capacity;
     self->size = 0;
     self->data = (stack_elem_t *)calloc(capacity, sizeof(stack_elem_t));
-    self->structChecksum = 0;
-    self->dataChecksum = 0;
+
     self->state = SAS_USERSPACE;
-    self->rightCanary = CANARY;
 
-    assert(self->data != NULL); // TODO
+    assert(isPointerValid(self->data)); // TODO
 
+    #if STACK_VALIDATION_LEVEL >= 1
     memset(self->data, POISON, capacity * sizeof(stack_elem_t));
+    #endif
 
+    #if STACK_VALIDATION_LEVEL >= 2
     self->structChecksum = stack_hashStruct(self);
     self->dataChecksum = stack_hashData(self);
+    #endif
 
     ASSERT_OK();
-
 
     return self;
 }
@@ -195,6 +249,7 @@ void stack_destroy(stack_t *self) {
     ASSERT_OK();
 
     assert(self->state == SAS_HEAP);
+
     self->state = SAS_USERSPACE;
 
     stack_free(self);
@@ -209,14 +264,22 @@ void stack_free(stack_t *self) {
 
     free(self->data);
 
+    #if STACK_VALIDATION_LEVEL >= 1
     self->leftCanary = 0;
+    self->rightCanary = 0;
+    #endif
+
+    #if STACK_VALIDATION_LEVEL >= 2
+    self->structChecksum = 1;  // 0 would be the correct checksum for a null stack
+    self->dataChecksum = 1;  // Same as above
+    #endif
+
     self->data = NULL;
     self->size = 0;
     self->capacity = 0;
     self->state = SAS_FREED;
-    self->structChecksum = 1;  // 0 would be the correct checksum for a null stack
-    self->dataChecksum = 1;  // Same as above
-    self->rightCanary = 0;
+
+
 }
 
 void stack_push(stack_t *self, stack_elem_t value) {
@@ -228,8 +291,10 @@ void stack_push(stack_t *self, stack_elem_t value) {
 
     self->data[self->size++] = value;
 
+    #if STACK_VALIDATION_LEVEL >= 2
     self->structChecksum = stack_hashStruct(self);
     self->dataChecksum = stack_hashData(self);
+    #endif
 
     ASSERT_OK();
 }
@@ -237,7 +302,7 @@ void stack_push(stack_t *self, stack_elem_t value) {
 stack_elem_t stack_peek(stack_t *self) {
     ASSERT_OK();
 
-    assert(!stack_isEmpty(self));
+    assert(!stack_isEmpty(self));  // TODO
 
     return self->data[self->size - 1];
 }
@@ -245,14 +310,18 @@ stack_elem_t stack_peek(stack_t *self) {
 stack_elem_t stack_pop(stack_t *self) {
     ASSERT_OK();
 
-    assert(!stack_isEmpty(self));
+    assert(!stack_isEmpty(self));  // TODO
 
     stack_elem_t res = self->data[--(self->size)];
 
+    #if STACK_VALIDATION_LEVEL >= 1
     memset(self->data + self->size, POISON, sizeof(stack_elem_t));
+    #endif
 
+    #if STACK_VALIDATION_LEVEL >= 2
     self->structChecksum = stack_hashStruct(self);
     self->dataChecksum = stack_hashData(self);
+    #endif
 
     ASSERT_OK();
 
@@ -265,18 +334,22 @@ void stack_resize(stack_t *self, size_t capacity) {
     assert(capacity > self->size);
 
     stack_elem_t *newData = (stack_elem_t *)realloc(self->data, capacity * sizeof(stack_elem_t));
-    assert(newData != NULL);
+    assert(isPointerValid(newData));
 
     self->data = newData;
 
+    #if STACK_VALIDATION_LEVEL >= 1
     if (capacity > self->capacity) {
         memset(self->data + self->capacity, POISON, (capacity - self->capacity) * sizeof(stack_elem_t));
     }
+    #endif
 
     self->capacity = capacity;
 
+    #if STACK_VALIDATION_LEVEL >= 2
     self->structChecksum = stack_hashStruct(self);
     self->dataChecksum = stack_hashData(self);
+    #endif
 
     ASSERT_OK();
 }
@@ -296,6 +369,8 @@ int stack_isEmpty(stack_t *self) {
 
     return self->size == 0;
 }
+
+#if STACK_VALIDATION_LEVEL >= 2
 
 crc32_t stack_hashStruct(stack_t *self) {
     //ASSERT_OK(); // Inapplicable!
@@ -331,6 +406,8 @@ crc32_t stack_hashData(stack_t *self) {
     return checksum;
 }
 
+#endif // STACK_VALIDATION_LEVEL
+
 void stack_dump(stack_t *self) {
     #if defined(STACK_ELEM_PRINT)
 
@@ -342,13 +419,22 @@ void stack_dump(stack_t *self) {
 
     printf("stack_t (%s) [0x%p] {\n", stack_validity_describe(validity), self);
     if (isPointerValid(self)) {
+        #if STACK_VALIDATION_LEVEL >= 1
         printf("  left canary     = 0x%016llX\n", self->leftCanary);
+        #endif
+
         printf("  size            = %zu\n", self->size);
         printf("  capacity        = %zu\n", self->capacity);
         printf("  state           = %s\n", stack_allocState_describe(self->state));
+
+        #if STACK_VALIDATION_LEVEL >= 2
         printf("  struct checksum = 0x%08X\n", self->structChecksum);
         printf("  data checksum   = 0x%08X\n", self->dataChecksum);
+        #endif
+
+        #if STACK_VALIDATION_LEVEL >= 1
         printf("  right canary    = 0x%016llX\n", self->rightCanary);
+        #endif
 
         printf("  data [0x%p] {\n", self->data);
         if (isPointerValid(self->data)) {
@@ -358,16 +444,26 @@ void stack_dump(stack_t *self) {
             }
 
             for (size_t i = 0; i < limit; ++i) {
-                printf("  %c [%2zu] = ", \
-                       i < self->size ? '*' : stack_isPoison(self->data + i) ? '~' : ' ', \
-                       i);
+                char lineMarker = 0;
+
+                if (i < self->size) {
+                    lineMarker = '*';
+                } else
+                #if STACK_VALIDATION_LEVEL >= 1
+                if (stack_isPoison(self->data + i)) {
+                    lineMarker = '~';
+                } else
+                #endif
+                {
+                    lineMarker = ' ';
+                }
+
+                printf("  %c [%2zu] = ", lineMarker, i);
 
                 printf("0x");
-
                 for (size_t j = 0; j < sizeof(stack_elem_t); ++j) {
                     printf("%02X", ((unsigned char *)(self->data + i))[j]);
                 }
-
                 printf(" ");
 
                 #ifdef STACK_ELEM_PRINT
@@ -413,19 +509,25 @@ stack_validity_e stack_validate(stack_t *self) {
         return STACK_UAF;
     }
 
+    #if STACK_VALIDATION_LEVEL >= 1
     if (self->leftCanary != CANARY || self->rightCanary != CANARY) {
         return STACK_BADCANARY;
     }
+    #endif
 
+    #if STACK_VALIDATION_LEVEL >= 2
     if (self->structChecksum != stack_hashStruct(self) || \
         self->dataChecksum   != stack_hashData(self)) {
         // Order is important, because the first hash validates capacity, and the second relies on it
         return STACK_BADHASH;
     }
+    #endif
 
+    #if STACK_VALIDATION_LEVEL >= 1
     if (self->size + 1 <= self->capacity && !stack_isPoison(self->data + self->size)) {
         return STACK_BADPOISON;
     }
+    #endif
 
     // TODO
 
@@ -466,6 +568,7 @@ const char *stack_allocState_describe(stack_allocState_e self) {
     }
 }
 
+#if STACK_VALIDATION_LEVEL >= 1
 int stack_isPoison(stack_elem_t *item) {
     unsigned char *charItem = (unsigned char *)item;
     for (size_t i = 0; i < sizeof(stack_elem_t); ++i) {
@@ -475,6 +578,7 @@ int stack_isPoison(stack_elem_t *item) {
     }
     return 1;
 }
+#endif
 
 int isPointerValid(void *ptr) {
     return ptr >= (void *)4096 \
