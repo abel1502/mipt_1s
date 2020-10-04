@@ -56,10 +56,13 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "checksum.h"
 
 //--------------------------------------------------------------------------------
+
+static const unsigned char POISON = 0xAA;
 
 typedef unsigned long long canary_t;
 static const canary_t CANARY = ((canary_t)-1 << 32) | 0xDEADB1AD;  // DEADBIRD
@@ -89,6 +92,7 @@ typedef enum {
     STACK_BADSIZE,
     STACK_BADCANARY,
     STACK_BADHASH,
+    STACK_BADPOISON,
     STACK_UAF
 } stack_validity_e;
 
@@ -113,8 +117,6 @@ void stack_clear(stack_t *self);
 
 int stack_isEmpty(stack_t *self);
 
-//crc32_t stack_hash(stack_t *self);
-
 crc32_t stack_hashStruct(stack_t *self);
 
 crc32_t stack_hashData(stack_t *self);
@@ -123,9 +125,11 @@ void stack_dump(stack_t *self);
 
 stack_validity_e stack_validate(stack_t *self);
 
-const char *stack_describeValidity(stack_validity_e validity);
+const char *stack_validity_describe(stack_validity_e self);
 
-const char *stack_describeAllocState(stack_allocState_e allocState);
+const char *stack_allocState_describe(stack_allocState_e self);
+
+int stack_isPoison(stack_elem_t *item);
 
 int isPointerValid(void *ptr);
 
@@ -175,6 +179,8 @@ stack_t *stack_construct(stack_t *self, size_t capacity) {
     self->rightCanary = CANARY;
 
     assert(self->data != NULL); // TODO
+
+    memset(self->data, POISON, capacity * sizeof(stack_elem_t));
 
     self->structChecksum = stack_hashStruct(self);
     self->dataChecksum = stack_hashData(self);
@@ -243,6 +249,8 @@ stack_elem_t stack_pop(stack_t *self) {
 
     stack_elem_t res = self->data[--(self->size)];
 
+    memset(self->data + self->size, POISON, sizeof(stack_elem_t));
+
     self->structChecksum = stack_hashStruct(self);
     self->dataChecksum = stack_hashData(self);
 
@@ -260,6 +268,12 @@ void stack_resize(stack_t *self, size_t capacity) {
     assert(newData != NULL);
 
     self->data = newData;
+
+    if (capacity > self->capacity) {
+        memset(self->data + self->capacity, POISON, (capacity - self->capacity) * sizeof(stack_elem_t));
+    }
+
+    self->capacity = capacity;
 
     self->structChecksum = stack_hashStruct(self);
     self->dataChecksum = stack_hashData(self);
@@ -282,31 +296,6 @@ int stack_isEmpty(stack_t *self) {
 
     return self->size == 0;
 }
-
-/*crc32_t stack_hash(stack_t *self) {
-    //ASSERT_OK(); // Inapplicable!
-    assert(self != NULL);
-    assert(self->data != NULL);
-    assert(self->capacity > 0);
-
-    crc32_t checksum = 0;
-
-    #define HASH_FIELD(field) \
-        checksum = crc32_update(checksum, (const char *)&self->field, sizeof(self->field));
-
-    HASH_FIELD(size);
-    HASH_FIELD(capacity);
-    HASH_FIELD(state);
-    HASH_FIELD(data);  // Hashes the pointer value to avoid relocation. (Don't know why, though).
-
-    #undef HASH_FIELD
-
-    checksum = crc32_update(checksum, (const char *)self->data, self->capacity * sizeof(stack_elem_t));
-
-    //ASSERT_OK(); // Same as above!; Also not really necessary)
-
-    return checksum;
-}*/
 
 crc32_t stack_hashStruct(stack_t *self) {
     //ASSERT_OK(); // Inapplicable!
@@ -351,12 +340,12 @@ void stack_dump(stack_t *self) {
 
     stack_validity_e validity = stack_validate(self);
 
-    printf("stack_t (%s) [0x%p] {\n", stack_describeValidity(validity), self);
+    printf("stack_t (%s) [0x%p] {\n", stack_validity_describe(validity), self);
     if (isPointerValid(self)) {
         printf("  left canary     = 0x%016llX\n", self->leftCanary);
         printf("  size            = %zu\n", self->size);
         printf("  capacity        = %zu\n", self->capacity);
-        printf("  state           = %s\n", stack_describeAllocState(self->state));
+        printf("  state           = %s\n", stack_allocState_describe(self->state));
         printf("  struct checksum = 0x%08X\n", self->structChecksum);
         printf("  data checksum   = 0x%08X\n", self->dataChecksum);
         printf("  right canary    = 0x%016llX\n", self->rightCanary);
@@ -369,22 +358,24 @@ void stack_dump(stack_t *self) {
             }
 
             for (size_t i = 0; i < limit; ++i) {
-                printf("  %c [%2zu] = ", i < self->size ? '*' : ' ', i);
+                printf("  %c [%2zu] = ", \
+                       i < self->size ? '*' : stack_isPoison(self->data + i) ? '~' : ' ', \
+                       i);
 
-                #ifdef STACK_ELEM_PRINT
-
-                // Okay, we'll assume we may trust this 'function'...
-                STACK_ELEM_PRINT(self->data[i]);
-
-                #else
-
-                // We do this so weirdly because the type is unknown and
-                // trusting the user to provide a format specifier is unsafe
                 printf("0x");
 
                 for (size_t j = 0; j < sizeof(stack_elem_t); ++j) {
                     printf("%02X", ((unsigned char *)(self->data + i))[j]);
                 }
+
+                printf(" ");
+
+                #ifdef STACK_ELEM_PRINT
+
+                // Okay, we'll assume we may trust this 'function'...
+                printf("(");
+                STACK_ELEM_PRINT(self->data[i]);
+                printf(")");
 
                 #endif
 
@@ -432,13 +423,17 @@ stack_validity_e stack_validate(stack_t *self) {
         return STACK_BADHASH;
     }
 
+    if (self->size + 1 <= self->capacity && !stack_isPoison(self->data + self->size)) {
+        return STACK_BADPOISON;
+    }
+
     // TODO
 
     return STACK_VALID;
 }
 
-const char *stack_describeValidity(stack_validity_e validity) {
-    switch (validity) {
+const char *stack_validity_describe(stack_validity_e self) {
+    switch (self) {
     case STACK_VALID:
         return "ok";
     case STACK_BADPTR:
@@ -449,6 +444,8 @@ const char *stack_describeValidity(stack_validity_e validity) {
         return "BAD CANARY";
     case STACK_BADHASH:
         return "BAD CHECKSUM";
+    case STACK_BADPOISON:
+        return "POISON ABSCENT";
     case STACK_UAF:
         return "USE AFTER FREE";
     default:
@@ -456,8 +453,8 @@ const char *stack_describeValidity(stack_validity_e validity) {
     }
 }
 
-const char *stack_describeAllocState(stack_allocState_e allocState) {
-    switch (allocState) {
+const char *stack_allocState_describe(stack_allocState_e self) {
+    switch (self) {
     case SAS_USERSPACE:
         return "userspace";
     case SAS_HEAP:
@@ -467,6 +464,16 @@ const char *stack_describeAllocState(stack_allocState_e allocState) {
     default:
         return "!CORRUPT ALLOCSTATE!";
     }
+}
+
+int stack_isPoison(stack_elem_t *item) {
+    unsigned char *charItem = (unsigned char *)item;
+    for (size_t i = 0; i < sizeof(stack_elem_t); ++i) {
+        if (charItem[i] != POISON) {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 int isPointerValid(void *ptr) {
