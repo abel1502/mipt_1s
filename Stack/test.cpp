@@ -36,9 +36,9 @@ int main() {
     stack_push(&stk, 99.9);
     stack_dump(&stk);
 
-    stack_free(&stk);
+    stk.capacity =0x1FFFFFFFFL;
 
-    stack_push(&stk, 0.);
+    stack_free(&stk);
 
     return EXIT_SUCCESS;
 }

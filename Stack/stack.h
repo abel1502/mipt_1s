@@ -39,6 +39,7 @@
  # Make ASSERT_OK a functional-style marco
  ? Poison
  # Canaries
+ - Data Canaries
  # Hashes
  # isPointerValid
  # CRC32 lib
@@ -76,7 +77,8 @@ struct stack_s {
     stack_elem_t *data;
     size_t size;
     size_t capacity;
-    crc32_t checksum;
+    crc32_t structChecksum;
+    crc32_t dataChecksum;
     stack_allocState_e state;
     canary_t rightCanary;
 };
@@ -111,7 +113,11 @@ void stack_clear(stack_t *self);
 
 int stack_isEmpty(stack_t *self);
 
-crc32_t stack_hash(stack_t *self);
+//crc32_t stack_hash(stack_t *self);
+
+crc32_t stack_hashStruct(stack_t *self);
+
+crc32_t stack_hashData(stack_t *self);
 
 void stack_dump(stack_t *self);
 
@@ -163,13 +169,15 @@ stack_t *stack_construct(stack_t *self, size_t capacity) {
     self->capacity = capacity;
     self->size = 0;
     self->data = (stack_elem_t *)calloc(capacity, sizeof(stack_elem_t));
-    self->checksum = 0;
+    self->structChecksum = 0;
+    self->dataChecksum = 0;
     self->state = SAS_USERSPACE;
     self->rightCanary = CANARY;
 
     assert(self->data != NULL); // TODO
 
-    self->checksum = stack_hash(self);
+    self->structChecksum = stack_hashStruct(self);
+    self->dataChecksum = stack_hashData(self);
 
     ASSERT_OK();
 
@@ -200,7 +208,8 @@ void stack_free(stack_t *self) {
     self->size = 0;
     self->capacity = 0;
     self->state = SAS_FREED;
-    self->checksum = 1;  // 0 would be the correct checksum for a null stack
+    self->structChecksum = 1;  // 0 would be the correct checksum for a null stack
+    self->dataChecksum = 1;  // Same as above
     self->rightCanary = 0;
 }
 
@@ -213,7 +222,8 @@ void stack_push(stack_t *self, stack_elem_t value) {
 
     self->data[self->size++] = value;
 
-    self->checksum = stack_hash(self);
+    self->structChecksum = stack_hashStruct(self);
+    self->dataChecksum = stack_hashData(self);
 
     ASSERT_OK();
 }
@@ -233,7 +243,8 @@ stack_elem_t stack_pop(stack_t *self) {
 
     stack_elem_t res = self->data[--(self->size)];
 
-    self->checksum = stack_hash(self);
+    self->structChecksum = stack_hashStruct(self);
+    self->dataChecksum = stack_hashData(self);
 
     ASSERT_OK();
 
@@ -250,7 +261,8 @@ void stack_resize(stack_t *self, size_t capacity) {
 
     self->data = newData;
 
-    self->checksum = stack_hash(self);
+    self->structChecksum = stack_hashStruct(self);
+    self->dataChecksum = stack_hashData(self);
 
     ASSERT_OK();
 }
@@ -271,7 +283,7 @@ int stack_isEmpty(stack_t *self) {
     return self->size == 0;
 }
 
-crc32_t stack_hash(stack_t *self) {
+/*crc32_t stack_hash(stack_t *self) {
     //ASSERT_OK(); // Inapplicable!
     assert(self != NULL);
     assert(self->data != NULL);
@@ -285,11 +297,45 @@ crc32_t stack_hash(stack_t *self) {
     HASH_FIELD(size);
     HASH_FIELD(capacity);
     HASH_FIELD(state);
-    HASH_FIELD(data);  // Hashes the pointer value, to avoid relocation. (Don't know why, though).
+    HASH_FIELD(data);  // Hashes the pointer value to avoid relocation. (Don't know why, though).
 
     #undef HASH_FIELD
 
     checksum = crc32_update(checksum, (const char *)self->data, self->capacity * sizeof(stack_elem_t));
+
+    //ASSERT_OK(); // Same as above!; Also not really necessary)
+
+    return checksum;
+}*/
+
+crc32_t stack_hashStruct(stack_t *self) {
+    //ASSERT_OK(); // Inapplicable!
+    assert(self != NULL);
+
+    crc32_t checksum = 0;
+
+    #define HASH_FIELD(field) \
+        checksum = crc32_update(checksum, (const char *)&self->field, sizeof(self->field));
+
+    HASH_FIELD(size);
+    HASH_FIELD(capacity);
+    HASH_FIELD(state);
+    HASH_FIELD(data);  // Hashes the pointer value to avoid relocation. (Don't know why, though).
+
+    #undef HASH_FIELD
+
+    //ASSERT_OK(); // Same as above!; Also not really necessary)
+
+    return checksum;
+}
+
+crc32_t stack_hashData(stack_t *self) {
+    //ASSERT_OK(); // Inapplicable!
+    assert(self != NULL);
+    assert(self->data != NULL);
+    assert(self->capacity > 0);
+
+    crc32_t checksum = crc32_compute((const char *)self->data, self->capacity * sizeof(stack_elem_t));
 
     //ASSERT_OK(); // Same as above!; Also not really necessary)
 
@@ -307,12 +353,13 @@ void stack_dump(stack_t *self) {
 
     printf("stack_t (%s) [0x%p] {\n", stack_describeValidity(validity), self);
     if (isPointerValid(self)) {
-        printf("  left canary  = 0x%016llX\n", self->leftCanary);
-        printf("  size         = %zu\n", self->size);
-        printf("  capacity     = %zu\n", self->capacity);
-        printf("  state        = %s\n", stack_describeAllocState(self->state));
-        printf("  checksum     = 0x%08X\n", self->checksum);
-        printf("  right canary = 0x%016llX\n", self->rightCanary);
+        printf("  left canary     = 0x%016llX\n", self->leftCanary);
+        printf("  size            = %zu\n", self->size);
+        printf("  capacity        = %zu\n", self->capacity);
+        printf("  state           = %s\n", stack_describeAllocState(self->state));
+        printf("  struct checksum = 0x%08X\n", self->structChecksum);
+        printf("  data checksum   = 0x%08X\n", self->dataChecksum);
+        printf("  right canary    = 0x%016llX\n", self->rightCanary);
 
         printf("  data [0x%p] {\n", self->data);
         if (isPointerValid(self->data)) {
@@ -382,7 +429,9 @@ stack_validity_e stack_validate(stack_t *self) {
         return STACK_BADCANARY;
     }
 
-    if (self->checksum != stack_hash(self)) {
+    if (self->structChecksum != stack_hashStruct(self) || \
+        self->dataChecksum   != stack_hashData(self)) {
+        // Order is important, because the first hash validates capacity, and the second relies on it
         return STACK_BADHASH;
     }
 
