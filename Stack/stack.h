@@ -23,7 +23,7 @@
  ? Change peek and pop to output pointer instead of rval?
  - Add error codes
  # Rework destructor SAS checks
- - Macro-based overloads
+ ? Macro-based overloads
  - Add release-time checks (+in constructors)
  - Make heavy debug checks conditionally compile
  - Make ASSERT_OK a functional-style marco
@@ -31,6 +31,8 @@
  - Canaries
  - Hashes
  # isPointerValid
+ # CRC32 lib
+ # Unit tests
  ...
     =========================
 */
@@ -97,7 +99,7 @@ const char *stack_describeValidity(stack_validity_e validity);
 int isPointerValid(void *ptr);
 
 #ifdef TEST
-void test_stack();
+void test_stack(stack_elem_t val1, stack_elem_t val2, stack_elem_t val3);
 #endif // TEST
 
 //--------------------------------------------------------------------------------
@@ -338,8 +340,39 @@ int isPointerValid(void *ptr) {
 }
 
 #ifdef TEST
-void test_stack() {
-    //
+void test_stack(stack_elem_t val1, stack_elem_t val2, stack_elem_t val3) {
+    stack_t stk = {};
+    stack_construct(&stk, 10);
+
+    TEST_ASSERT(stack_isEmpty(&stk));
+
+    stack_push(&stk, val1);
+    stack_push(&stk, val2);
+
+    TEST_ASSERT(!stack_isEmpty(&stk));
+    TEST_ASSERT(stk.size == 2);
+
+    TEST_ASSERT(stack_peek(&stk) == val2);
+    TEST_ASSERT_M(stack_peek(&stk) == val2, "Peek mustn\'t alter the stack");
+
+    TEST_ASSERT(stack_pop(&stk) == val2);
+    TEST_ASSERT(stack_pop(&stk) == val1);
+
+    TEST_ASSERT(stack_isEmpty(&stk));
+
+
+    stack_push(&stk, val3);
+    stack_push(&stk, val2);
+
+    stack_resize(&stk, 20);
+    TEST_ASSERT(!stack_isEmpty(&stk));
+    TEST_ASSERT(stk.size == 2);
+    TEST_ASSERT(stack_peek(&stk) == val2);
+
+    stack_clear(&stk);
+    TEST_ASSERT(stack_isEmpty(&stk));
+
+    stack_free(&stk);
 }
 #endif // TEST
 
