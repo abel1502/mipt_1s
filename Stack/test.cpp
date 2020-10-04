@@ -36,7 +36,7 @@ int main() {
     stack_push(&stk, 99.9);
     stack_dump(&stk);
 
-    stk.capacity =0x1FFFFFFFFL;
+    stk.capacity =0xFFFFFFFFFFFFL;
 
     stack_free(&stk);
 

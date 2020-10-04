@@ -363,16 +363,13 @@ void stack_dump(stack_t *self) {
 
         printf("  data [0x%p] {\n", self->data);
         if (isPointerValid(self->data)) {
-            size_t limit = self->size;
-            if (self->capacity < limit) {
-                limit = self->capacity;
-            }
+            size_t limit = self->capacity;
             if (100 < limit) {
                 limit = 100;
             }
 
-            for (size_t i = 0; i < self->size; ++i) {
-                printf("    [%2zu] = ", i);
+            for (size_t i = 0; i < limit; ++i) {
+                printf("  %c [%2zu] = ", i < self->size ? '*' : ' ', i);
 
                 #ifdef STACK_ELEM_PRINT
 
@@ -395,7 +392,7 @@ void stack_dump(stack_t *self) {
             }
 
             if (limit < self->size) {
-                printf("    ...");
+                printf("    ...\n");
             }
         } else {
             printf("    <corrupt>\n");
