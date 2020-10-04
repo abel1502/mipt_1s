@@ -53,7 +53,7 @@ static jmp_buf __cleanup_env;
 
 #define TEST_EXIT()         MACROFUNC(longjmp(__cleanup_env, 1);)
 
-#define TEST_MSG(msg, ...)  MACROFUNC(printf("[TEST] " msg "\n", ##__VA_ARGS__);)
+#define TEST_MSG(msg, ...)  MACROFUNC(printf("[TEST (%s#%d)] " msg "\n", __FILE__, __LINE__ ##__VA_ARGS__);)
 
 #define TEST_SETUP(stmt)    MACROFUNC(TEST_MSG("Setting up {%s}", #stmt); stmt)
 
