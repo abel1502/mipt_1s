@@ -1,15 +1,25 @@
 /**
+ * @file stack.h
  * A secure stack library
  *
- * To use, type-define stack_elem_t type and include this file.
+ * To use, you should/may define the following:
  *
- * You may also #define a STACK_ELEM_PRINT function with the signature:
- * (stack_elem_t) -> void
- * It shall be used during the debug dump
+ * - [typedef] (required) stack_elem_t @n
+ * The type of elements on which the stack works
  *
- * Example:
- *   typedef double stack_elem_t;
- *   #include "stack.h"
+ * - [define]  (optional) STACK_ELEM_PRINT @n
+ * Name of the helper function to print stack elements during debug dump.
+ * Signature: void STACK_ELEM_PRINT(stack_elem_t). If not defined, the dump prints raw bytes in hex.
+ *
+ * - [define]  (optional) STACK_VALIDATION_LEVEL @n
+ * A number from 0 to <TODO>, specifying, how much validation will be performed. Defaults to maximum.
+ * (@emoji :warning: Actually doesn't work yet)
+ *
+ * - ... <TODO>
+ *
+ * @warning Erroneous above-stated definitions may result in compilation or even runtime errors,
+ *          so make sure to check them properly. The library author does not take responsibility
+ *          for any errors caused by wrong definitions.
  *
  */
 

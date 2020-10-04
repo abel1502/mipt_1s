@@ -1,4 +1,5 @@
 /**
+ * @file test.h
  * This is (kind of) a framework for unit testing in C.
  *
  * Basic usage:

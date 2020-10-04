@@ -1,4 +1,5 @@
 /**
+ * @file checksum.h
  * A CRC32 checksum library
  */
 
