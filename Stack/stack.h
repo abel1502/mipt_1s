@@ -38,7 +38,7 @@
  - Make heavy debug checks conditionally compile
  - Make ASSERT_OK a functional-style marco
  ? Poison
- - Canaries
+ # Canaries
  - Hashes
  # isPointerValid
  # CRC32 lib
@@ -57,6 +57,9 @@
 
 //--------------------------------------------------------------------------------
 
+typedef unsigned long long canary_t;
+static const canary_t CANARY = ((canary_t)-1 << 32) | 0xDEADB1AD;  // DEADBIRD
+
 typedef struct stack_s stack_t;
 
 typedef enum {
@@ -66,16 +69,19 @@ typedef enum {
 } stack_allocState_e;
 
 struct stack_s {
+    canary_t leftCanary;
     stack_elem_t *data;
     size_t size;
     size_t capacity;
     stack_allocState_e state;
+    canary_t rightCanary;
 };
 
 typedef enum {
     STACK_VALID,
     STACK_BADPTR,
     STACK_BADSIZE,
+    STACK_BADCANARY,
     STACK_UAF
 } stack_validity_e;
 
@@ -105,6 +111,8 @@ void stack_dump(stack_t *self);
 stack_validity_e stack_validate(stack_t *self);
 
 const char *stack_describeValidity(stack_validity_e validity);
+
+const char *stack_describeAllocState(stack_allocState_e allocState);
 
 int isPointerValid(void *ptr);
 
@@ -144,10 +152,12 @@ stack_t *stack_construct(stack_t *self, size_t capacity) {
     assert(isPointerValid(self));
     assert(capacity > 0);
 
+    self->leftCanary = CANARY;
     self->capacity = capacity;
     self->size = 0;
     self->data = (stack_elem_t *)calloc(capacity, sizeof(stack_elem_t));
     self->state = SAS_USERSPACE;
+    self->rightCanary = CANARY;
 
     assert(self->data != NULL); // TODO
 
@@ -175,10 +185,12 @@ void stack_free(stack_t *self) {
 
     free(self->data);
 
+    self->leftCanary = 0;
     self->data = NULL;
     self->size = 0;
     self->capacity = 0;
     self->state = SAS_FREED;
+    self->rightCanary = 0;
 }
 
 void stack_push(stack_t *self, stack_elem_t value) {
@@ -249,15 +261,12 @@ void stack_dump(stack_t *self) {
 
     printf("stack_t (%s) [0x%p] {\n", stack_describeValidity(validity), self);
     if (isPointerValid(self)) {
-        printf("  size     = %zu\n", self->size);
-        printf("  capacity = %zu\n", self->capacity);
-        printf("  state    = %s\n", (self->state == SAS_USERSPACE) ? \
-                                    "userspace" : \
-                                    (self->state == SAS_HEAP) ? \
-                                    "heap" : \
-                                    (self->state == SAS_FREED) ? \
-                                    "freed" : \
-                                    "CORRUPT");
+        printf("  left canary  = 0x%016llX\n", self->leftCanary);
+        printf("  size         = %zu\n", self->size);
+        printf("  capacity     = %zu\n", self->capacity);
+        printf("  state        = %s\n", stack_describeAllocState(self->state));
+        printf("  right canary = 0x%016llX\n", self->rightCanary);
+
         printf("  data [0x%p] {\n", self->data);
         if (isPointerValid(self->data)) {
             size_t limit = self->size;
@@ -322,6 +331,10 @@ stack_validity_e stack_validate(stack_t *self) {
         return STACK_UAF;
     }
 
+    if (self->leftCanary != CANARY || self->rightCanary != CANARY) {
+        return STACK_BADCANARY;
+    }
+
     // TODO
 
     return STACK_VALID;
@@ -335,10 +348,25 @@ const char *stack_describeValidity(stack_validity_e validity) {
         return "BAD POINTER";
     case STACK_BADSIZE:
         return "BAD SIZE";
+    case STACK_BADCANARY:
+        return "BAD CANARY";
     case STACK_UAF:
         return "USE AFTER FREE";
     default:
         return "!CORRUPT VALIDITY!";
+    }
+}
+
+const char *stack_describeAllocState(stack_allocState_e allocState) {
+    switch (allocState) {
+    case SAS_USERSPACE:
+        return "userspace";
+    case SAS_HEAP:
+        return "heap";
+    case SAS_FREED:
+        return "freed";
+    default:
+        return "!CORRUPT ALLOCSTATE!";
     }
 }
 

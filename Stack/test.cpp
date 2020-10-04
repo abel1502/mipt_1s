@@ -1,9 +1,10 @@
-#define TEST
+//#define TEST
 #include "../libs/test.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 
 #include "checksum.h"
@@ -27,6 +28,17 @@ int main() {
         $g; TEST_MSG("Passed All."); $d;
         ,
     )
+
+    stack_t stk = {};
+    stack_construct(&stk, 10);
+
+    stack_push(&stk, NAN);
+    stack_push(&stk, 99.9);
+    stack_dump(&stk);
+
+    stk.leftCanary = 1;
+
+    stack_free(&stk);
 
     return EXIT_SUCCESS;
 }
