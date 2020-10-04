@@ -37,7 +37,7 @@
  - Add release-time checks (+in constructors)
  - Make heavy debug checks conditionally compile
  # Make ASSERT_OK a functional-style marco
- ? Poison
+ # Poison
  # Canaries
  - Data Canaries
  # Hashes
