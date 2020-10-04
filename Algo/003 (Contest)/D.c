@@ -69,7 +69,7 @@ struct deque_s {
 I feel too lazy to implement a proper abstract dequeue, so this one will:
  - lack error codes
  - lack peek methods
- - assume that item_t is small enough too copy rather than pass by pointer
+ - assume that item_t is small enough to copy rather than pass by pointer
 
 Hopefully this is fine
 
