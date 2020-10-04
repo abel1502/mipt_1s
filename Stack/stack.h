@@ -36,13 +36,14 @@
  ? Macro-based overloads
  - Add release-time checks (+in constructors)
  - Make heavy debug checks conditionally compile
- - Make ASSERT_OK a functional-style marco
+ # Make ASSERT_OK a functional-style marco
  ? Poison
  # Canaries
- - Hashes
+ # Hashes
  # isPointerValid
  # CRC32 lib
  # Unit tests
+ ? Rework stack_clear not to rely on stack_pop
  ...
     =========================
 */
@@ -54,6 +55,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+
+#include "checksum.h"
 
 //--------------------------------------------------------------------------------
 
@@ -73,6 +76,7 @@ struct stack_s {
     stack_elem_t *data;
     size_t size;
     size_t capacity;
+    crc32_t checksum;
     stack_allocState_e state;
     canary_t rightCanary;
 };
@@ -82,6 +86,7 @@ typedef enum {
     STACK_BADPTR,
     STACK_BADSIZE,
     STACK_BADCANARY,
+    STACK_BADHASH,
     STACK_UAF
 } stack_validity_e;
 
@@ -105,6 +110,8 @@ void stack_resize(stack_t *self, size_t capacity);
 void stack_clear(stack_t *self);
 
 int stack_isEmpty(stack_t *self);
+
+crc32_t stack_hash(stack_t *self);
 
 void stack_dump(stack_t *self);
 
@@ -156,10 +163,13 @@ stack_t *stack_construct(stack_t *self, size_t capacity) {
     self->capacity = capacity;
     self->size = 0;
     self->data = (stack_elem_t *)calloc(capacity, sizeof(stack_elem_t));
+    self->checksum = 0;
     self->state = SAS_USERSPACE;
     self->rightCanary = CANARY;
 
     assert(self->data != NULL); // TODO
+
+    self->checksum = stack_hash(self);
 
     ASSERT_OK();
 
@@ -190,6 +200,7 @@ void stack_free(stack_t *self) {
     self->size = 0;
     self->capacity = 0;
     self->state = SAS_FREED;
+    self->checksum = 1;  // 0 would be the correct checksum for a null stack
     self->rightCanary = 0;
 }
 
@@ -201,6 +212,8 @@ void stack_push(stack_t *self, stack_elem_t value) {
     }
 
     self->data[self->size++] = value;
+
+    self->checksum = stack_hash(self);
 
     ASSERT_OK();
 }
@@ -218,7 +231,13 @@ stack_elem_t stack_pop(stack_t *self) {
 
     assert(!stack_isEmpty(self));
 
-    return self->data[--(self->size)];
+    stack_elem_t res = self->data[--(self->size)];
+
+    self->checksum = stack_hash(self);
+
+    ASSERT_OK();
+
+    return res;
 }
 
 void stack_resize(stack_t *self, size_t capacity) {
@@ -230,6 +249,8 @@ void stack_resize(stack_t *self, size_t capacity) {
     assert(newData != NULL);
 
     self->data = newData;
+
+    self->checksum = stack_hash(self);
 
     ASSERT_OK();
 }
@@ -250,6 +271,31 @@ int stack_isEmpty(stack_t *self) {
     return self->size == 0;
 }
 
+crc32_t stack_hash(stack_t *self) {
+    //ASSERT_OK(); // Inapplicable!
+    assert(self != NULL);
+    assert(self->data != NULL);
+    assert(self->capacity > 0);
+
+    crc32_t checksum = 0;
+
+    #define HASH_FIELD(field) \
+        checksum = crc32_update(checksum, (const char *)&self->field, sizeof(self->field));
+
+    HASH_FIELD(size);
+    HASH_FIELD(capacity);
+    HASH_FIELD(state);
+    HASH_FIELD(data);  // Hashes the pointer value, to avoid relocation. (Don't know why, though).
+
+    #undef HASH_FIELD
+
+    checksum = crc32_update(checksum, (const char *)self->data, self->capacity * sizeof(stack_elem_t));
+
+    //ASSERT_OK(); // Same as above!; Also not really necessary)
+
+    return checksum;
+}
+
 void stack_dump(stack_t *self) {
     #if defined(STACK_ELEM_PRINT)
 
@@ -265,6 +311,7 @@ void stack_dump(stack_t *self) {
         printf("  size         = %zu\n", self->size);
         printf("  capacity     = %zu\n", self->capacity);
         printf("  state        = %s\n", stack_describeAllocState(self->state));
+        printf("  checksum     = 0x%08X\n", self->checksum);
         printf("  right canary = 0x%016llX\n", self->rightCanary);
 
         printf("  data [0x%p] {\n", self->data);
@@ -335,6 +382,10 @@ stack_validity_e stack_validate(stack_t *self) {
         return STACK_BADCANARY;
     }
 
+    if (self->checksum != stack_hash(self)) {
+        return STACK_BADHASH;
+    }
+
     // TODO
 
     return STACK_VALID;
@@ -350,6 +401,8 @@ const char *stack_describeValidity(stack_validity_e validity) {
         return "BAD SIZE";
     case STACK_BADCANARY:
         return "BAD CANARY";
+    case STACK_BADHASH:
+        return "BAD CHECKSUM";
     case STACK_UAF:
         return "USE AFTER FREE";
     default:
@@ -374,7 +427,7 @@ int isPointerValid(void *ptr) {
     return ptr >= (void *)4096 \
         && ptr <= (void *)(~((size_t)1) >> 2);
         // I know this feels crotchy, but it essentially says that
-        // the lowest and the highest addresses
+        // the lowest and the highest addresses are definitely bad
 }
 
 #ifdef TEST

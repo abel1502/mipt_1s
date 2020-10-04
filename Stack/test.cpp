@@ -36,9 +36,9 @@ int main() {
     stack_push(&stk, 99.9);
     stack_dump(&stk);
 
-    stk.leftCanary = 1;
-
     stack_free(&stk);
+
+    stack_push(&stk, 0.);
 
     return EXIT_SUCCESS;
 }
