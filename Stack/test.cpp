@@ -1,4 +1,4 @@
-//#define TEST
+#define TEST
 #include "../libs/test.h"
 
 #include <stdio.h>
@@ -14,6 +14,7 @@ static void printHelper(stack_elem_t elem) {
     printf("%lg", elem);
 }
 #define STACK_ELEM_PRINT printHelper
+#define STACK_VALIDATION_LEVEL 2
 #include "stack.h"
 // =============================
 
@@ -29,7 +30,7 @@ int main() {
     )
 
     stack_t stk = {};
-    stack_construct(&stk, 10);
+    assert(stack_construct(&stk, 10));
 
     assert(!stack_push(&stk, NAN));
     assert(!stack_push(&stk, 99.9));
