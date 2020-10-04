@@ -96,6 +96,10 @@ const char *stack_describeValidity(stack_validity_e validity);
 
 int isPointerValid(void *ptr);
 
+#ifdef TEST
+void test_stack();
+#endif // TEST
+
 //--------------------------------------------------------------------------------
 
 #ifndef MACROFUNC  // Same as in tests, but may not be included
@@ -332,6 +336,12 @@ int isPointerValid(void *ptr) {
         // I know this feels crotchy, but it essentially says that
         // the lowest and the highest addresses
 }
+
+#ifdef TEST
+void test_stack() {
+    //
+}
+#endif // TEST
 
 #undef ASSERT_OK
 
