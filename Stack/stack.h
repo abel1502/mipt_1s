@@ -45,9 +45,20 @@
  # CRC32 lib
  # Unit tests
  ? Rework stack_clear not to rely on stack_pop
- - Documentation
+ # Documentation
  # Separate defines on top that say which features to turn on and are based on STACK_VALIDATION_LEVEL
  ? Endif comments
+ - No FF in canary
+ - Rename userspace
+ - "Prerequisites" in docs
+ ? Disable alphabetic sort in doxygen
+ # Brackets around #if conds
+ - Rename ASSERT to REQUIRE
+ - Improved pointer validity check (find in TXLib)
+ ? Enum bool
+ - Handle size_t overflow (in resize)
+ - Maximal limit in dump - global const
+ ? Macros to replace #if (STACK_USE_***)
  ...
     =========================
 */
@@ -68,23 +79,23 @@
 #define STACK_VALIDATION_LEVEL 9
 #endif
 
-#if 0 > STACK_VALIDATION_LEVEL
+#if (0 > STACK_VALIDATION_LEVEL)
 #undef STACK_VALIDATION_LEVEL
 #define STACK_VALIDATION_LEVEL 0
 #endif
 
-#if STACK_VALIDATION_LEVEL > 2
+#if (STACK_VALIDATION_LEVEL > 2)
 #undef STACK_VALIDATION_LEVEL
 #define STACK_VALIDATION_LEVEL 2
 #endif
 
-#if STACK_VALIDATION_LEVEL >= 2
+#if (STACK_VALIDATION_LEVEL >= 2)
 #define STACK_USE_HASH 1
 #else
 #define STACK_USE_HASH 0
 #endif
 
-#if STACK_VALIDATION_LEVEL >= 1
+#if (STACK_VALIDATION_LEVEL >= 1)
 #define STACK_USE_POISON 1
 #define STACK_USE_CANARY 1
 #else
@@ -97,7 +108,7 @@
 #endif
 
 
-#if STACK_VALIDATION_LEVEL > 0
+#if (STACK_VALIDATION_LEVEL > 0)
 
 #define ASSERT_OK()  MACROFUNC(                                                          \
     if (stack_validate(self) != STACK_VALID) {                                           \
@@ -349,7 +360,7 @@ int stack_isPoison(const stack_elem_t *item);
  *
  * @return 1 if `ptr` is valid, 0 otherwise
  */
-int isPointerValid(const void *ptr);
+int isPointerValid(const void *ptr);  // TODO: txlib - better way
 
 #if STACK_USE_CANARY
 /**
@@ -485,7 +496,7 @@ stack_t *stack_construct(stack_t *self, size_t capacity) {
     self->state = SAS_USERSPACE;
 
     #if STACK_USE_CANARY
-    self->data = (stack_elem_t *)malloc(capacity * sizeof(stack_elem_t) + sizeof(canary_t) * 2);
+    self->data = (stack_elem_t *)calloc(1, capacity * sizeof(stack_elem_t) + sizeof(canary_t) * 2);
     #else
     self->data = (stack_elem_t *)calloc(capacity, sizeof(stack_elem_t));
     #endif
@@ -561,7 +572,9 @@ int stack_push(stack_t *self, stack_elem_t value) {
 
     if (self->size + 1 > self->capacity) {
         if (stack_resize(self, self->capacity * 2)) {
-            return 1;
+            ASSERT_OK();
+
+            return 1;  // TODO?: enum bool
         }
     }
 
@@ -585,6 +598,8 @@ int stack_peek(stack_t *self, stack_elem_t *value) {
     }
 
     *value = self->data[self->size - 1];
+
+    ASSERT_OK();
 
     return 0;
 }
@@ -618,7 +633,7 @@ int stack_pop(stack_t *self, stack_elem_t *value) {
 int stack_resize(stack_t *self, size_t capacity) {
     ASSERT_OK();
 
-    if (capacity <= self->size) {
+    if (capacity <= self->size) {  // TODO: Handle size_t overflow
         return 1;
     }
 
@@ -683,15 +698,15 @@ crc32_t stack_hashStruct(const stack_t *self) {
 
     crc32_t checksum = 0;
 
-    #define HASH_FIELD(field) \
+    #define HASH_FIELD_(field) \
         checksum = crc32_update(checksum, (const char *)&self->field, sizeof(self->field));
 
-    HASH_FIELD(size);
-    HASH_FIELD(capacity);
-    HASH_FIELD(state);
-    HASH_FIELD(data);  // Hashes the pointer value to avoid relocation. (Don't know why, though).
+    HASH_FIELD_(size);
+    HASH_FIELD_(capacity);
+    HASH_FIELD_(state);
+    HASH_FIELD_(data);  // Hashes the pointer value to avoid relocation. (Don't know why, though).
 
-    #undef HASH_FIELD
+    #undef HASH_FIELD_
 
     //ASSERT_OK(); // Same as above!; Also not really necessary)
 
@@ -713,7 +728,7 @@ crc32_t stack_hashData(const stack_t *self) {
 #endif
 
 void stack_dump(const stack_t *self) {
-    #if defined(STACK_ELEM_PRINT)
+    #ifdef STACK_ELEM_PRINT
 
     printf("[WARNING: STACK_ELEM_PRINT is specified, so the dump may fail through the user\'s fault.]\n");
 
@@ -747,7 +762,7 @@ void stack_dump(const stack_t *self) {
             #endif
 
             size_t limit = self->capacity;
-            if (100 < limit) {
+            if (100 < limit) { // TODO: Const
                 limit = 100;
             }
 
@@ -853,39 +868,33 @@ stack_validity_e stack_validate(const stack_t *self) {
     return STACK_VALID;
 }
 
+#define DESCRIBE_(value, descr)  case value: return "<" #value "> " descr;
 const char *stack_validity_describe(stack_validity_e self) {
     switch (self) {
-    case STACK_VALID:
-        return "ok";
-    case STACK_BADPTR:
-        return "BAD POINTER";
-    case STACK_BADSIZE:
-        return "BAD SIZE";
-    case STACK_BADCANARY:
-        return "BAD CANARY";
-    case STACK_BADHASH:
-        return "BAD CHECKSUM";
-    case STACK_BADPOISON:
-        return "POISON ABSCENT";
-    case STACK_UAF:
-        return "USE AFTER FREE";
-    default:
-        return "!CORRUPT VALIDITY!";
+        case STACK_VALID: return "ok";
+
+        DESCRIBE_(STACK_BADPTR,    "Bad pointer")
+        DESCRIBE_(STACK_BADSIZE,   "Bad size")
+        DESCRIBE_(STACK_BADCANARY, "Bad canary")
+        DESCRIBE_(STACK_BADHASH,   "Bad hash")
+        DESCRIBE_(STACK_BADPOISON, "Poison abscent")
+        DESCRIBE_(STACK_UAF,       "Use after free")
+
+
+        default: return "!CORRUPT VALIDITY!";
     }
 }
 
 const char *stack_allocState_describe(stack_allocState_e self) {
     switch (self) {
-    case SAS_USERSPACE:
-        return "userspace";
-    case SAS_HEAP:
-        return "heap";
-    case SAS_FREED:
-        return "freed";
-    default:
-        return "!CORRUPT ALLOCSTATE!";
+        DESCRIBE_(SAS_USERSPACE, "user space")
+        DESCRIBE_(SAS_HEAP, "heap")
+        DESCRIBE_(SAS_FREED, "freed")
+
+        default: return "!CORRUPT ALLOCSTATE!";
     }
 }
+#undef DESCRIBE_
 
 #if STACK_USE_POISON
 int stack_isPoison(const stack_elem_t *item) {
