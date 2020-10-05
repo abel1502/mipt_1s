@@ -2,6 +2,8 @@
  * @file stack.h
  * A secure stack library
  *
+ * ### Prerequisites
+ *
  * To use, you should/may define the following:
  *
  * - [typedef] (required) stack_elem_t @n
@@ -50,7 +52,7 @@
  ? Endif comments
  # No FF in canary
  - Rename userspace
- - "Prerequisites" in docs
+ # "Prerequisites" in docs
  ? Disable alphabetic sort in doxygen
  # Brackets around #if conds
  # Rename ASSERT to REQUIRE
