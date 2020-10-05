@@ -48,7 +48,7 @@
  # Documentation
  # Separate defines on top that say which features to turn on and are based on STACK_VALIDATION_LEVEL
  ? Endif comments
- - No FF in canary
+ # No FF in canary
  - Rename userspace
  - "Prerequisites" in docs
  ? Disable alphabetic sort in doxygen
@@ -142,7 +142,8 @@ static const unsigned char POISON = 0xAA;
 
 #if STACK_USE_CANARY
 typedef unsigned long long canary_t;
-static const canary_t CANARY = ((canary_t)-1 << 32) | 0xDEADB1AD;  // DEADBIRD
+//static const canary_t CANARY = ((canary_t)-1 << 32) | 0xDEADB1AD;  // DEADBIRD
+static const canary_t CANARY = ((canary_t)-1) & 0xBADC0DEDEADB1AD;  // BAD CODE DEAD BIRD
 #endif
 
 /**
