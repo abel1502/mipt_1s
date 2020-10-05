@@ -190,117 +190,169 @@ typedef enum {
 
 /**
  * Stack constructor (internal allocation)
+ *
+ * @param [in]  capacity  Initial capacity
  */
 stack_t *stack_new(size_t capacity);
 
 /**
  * Stack constructor (external allocation)
+ *
+ * @param [in/out] self      Stack instance
+ * @param [in]     capacity  Initial capacity
  */
 stack_t *stack_construct(stack_t *self, size_t capacity);
 
 /**
  * Stack destructor (internal allocation)
+ *
+ * @param [in/out] self  Stack instance
  */
 void stack_destroy(stack_t *self);
 
 /**
  * Stack destructor (external allocation)
+ *
+ * @param [in/out] self  Stack instance
  */
 void stack_free(stack_t *self);
 
 /**
  * Push `value` to the stack
+ *
+ * @param [in/out] self   Stack instance
+ * @param [in]     value  The value to push
  */
 int stack_push(stack_t *self, stack_elem_t value);
 
 /**
  * Retrieve TOS into `value`
+ *
+ * @param [in/out] self   Stack instance
+ * @param [out]    value  The destination for TOS
  */
 int stack_peek(stack_t *self, stack_elem_t *value);
 
 /**
  * Pop `value` from the stack
+ *
+ * @param [in/out] self   Stack instance
+ * @param [out]    value  NULL or destination pointer
  */
 int stack_pop(stack_t *self, stack_elem_t *value);
 
 /**
  * Resize the stack
+ *
+ * @param [in/out] self      Stack instance
+ * @param [in]     capacity  New desired capacity (>= size)
  */
 int stack_resize(stack_t *self, size_t capacity);
 
 /**
  * Clear the stack
+ *
+ * @param [in/out] self  Stack instance
  */
 void stack_clear(stack_t *self);
 
 /**
  * Is stack empty?
+ *
+ * @param [in/out] self  Stack instance
  */
-int stack_isEmpty(stack_t *self);
+int stack_isEmpty(const stack_t *self);
 
 #if STACK_USE_HASH
 /**
  * Compute the stack struct's checksum
+ *
+ * @param [in/out] self  Stack instance
  */
-crc32_t stack_hashStruct(stack_t *self);
+crc32_t stack_hashStruct(const stack_t *self);
 
 /**
  * Compute the stack data's checksum
+ *
+ * @param [in/out] self  Stack instance
  */
-crc32_t stack_hashData(stack_t *self);
+crc32_t stack_hashData(const stack_t *self);
 #endif
 
 /**
  * Dump the stack (for debug)
+ *
+ * @param [in/out] self  Stack instance
  */
-void stack_dump(stack_t *self);
+void stack_dump(const stack_t *self);
 
 /**
  * Validate the stack
+ *
+ * @param [in/out] self  Stack instance
  */
-stack_validity_e stack_validate(stack_t *self);
+stack_validity_e stack_validate(const stack_t *self);
 
 /**
  * Retrieve a readable description for stack_validity
+ *
+ * @param [in/out] self  Stack validity value
  */
 const char *stack_validity_describe(stack_validity_e self);
 
 /**
  * Retrieve a readable description for stack_allocState
+ *
+ * @param [in/out] self  Stack allocState value
  */
 const char *stack_allocState_describe(stack_allocState_e self);
 
 #if STACK_USE_POISON
 /**
  * Chack if `item` is poisoned
+ *
+ * @param [in]  item  The item to be checked
  */
-int stack_isPoison(stack_elem_t *item);
+int stack_isPoison(const stack_elem_t *item);
 #endif
 
 /**
  * Check if ptr is a valid pointer
+ *
+ * @param [in]  ptr  The pointer to be checked
  */
-int isPointerValid(void *ptr);
+int isPointerValid(const void *ptr);
 
 #if STACK_USE_CANARY
 /**
- * Address of stack's left canary
+ * Address of stack data's left canary
+ *
+ * @param [in] self  Stack instance
  */
-static canary_t *stack_leftDataCanary(stack_t *self);
+static canary_t *stack_leftDataCanary(const stack_t *self);
 
 /**
- * Address of stack's right canary
+ * Address of stack data's right canary
+ *
+ * @param [in/out] self  Stack instance
  */
-static canary_t *stack_rightDataCanary(stack_t *self);
+static canary_t *stack_rightDataCanary(const stack_t *self);
 #endif
 
 /**
  * Compute a CRC32 of `size` bytes of `data`
+ *
+ * @param [in]  data  The staring offset to be hashed
+ * @param [in]  size  The byte size of data to be hashed
  */
 crc32_t crc32_compute(const char *data, size_t size);
 
 /**
  * Update `initial` CRC32 with the hash of `size` bytes of `data`
+ *
+ * @param [in]  initial  The initial hash value
+ * @param [in]  data     The staring offset to be hashed
+ * @param [in]  size     The byte size of data to be hashed
  */
 crc32_t crc32_update(crc32_t initial, const char *data, size_t size);
 
@@ -582,14 +634,14 @@ void stack_clear(stack_t *self) {
     ASSERT_OK();
 }
 
-int stack_isEmpty(stack_t *self) {
+int stack_isEmpty(const stack_t *self) {
     ASSERT_OK();
 
     return self->size == 0;
 }
 
 #if STACK_USE_HASH
-crc32_t stack_hashStruct(stack_t *self) {
+crc32_t stack_hashStruct(const stack_t *self) {
     //ASSERT_OK(); // Inapplicable!
     ASSERT(isPointerValid(self));
 
@@ -610,7 +662,7 @@ crc32_t stack_hashStruct(stack_t *self) {
     return checksum;
 }
 
-crc32_t stack_hashData(stack_t *self) {
+crc32_t stack_hashData(const stack_t *self) {
     //ASSERT_OK(); // Inapplicable!
     ASSERT(isPointerValid(self));
     ASSERT(isPointerValid(self->data));
@@ -624,7 +676,7 @@ crc32_t stack_hashData(stack_t *self) {
 }
 #endif
 
-void stack_dump(stack_t *self) {
+void stack_dump(const stack_t *self) {
     #if defined(STACK_ELEM_PRINT)
 
     printf("[WARNING: STACK_ELEM_PRINT is specified, so the dump may fail through the user\'s fault.]\n");
@@ -720,7 +772,7 @@ void stack_dump(stack_t *self) {
     fflush(stderr);
 }
 
-stack_validity_e stack_validate(stack_t *self) {
+stack_validity_e stack_validate(const stack_t *self) {
     if (!isPointerValid(self) || !isPointerValid(self->data)) {
         return STACK_BADPTR;
     }
@@ -800,8 +852,8 @@ const char *stack_allocState_describe(stack_allocState_e self) {
 }
 
 #if STACK_USE_POISON
-int stack_isPoison(stack_elem_t *item) {
-    unsigned char *charItem = (unsigned char *)item;
+int stack_isPoison(const stack_elem_t *item) {
+    const unsigned char *charItem = (unsigned char *)item;
     for (size_t i = 0; i < sizeof(stack_elem_t); ++i) {
         if (charItem[i] != POISON) {
             return 0;
@@ -811,15 +863,15 @@ int stack_isPoison(stack_elem_t *item) {
 }
 #endif
 
-int isPointerValid(void *ptr) {
-    return ptr >= (void *)4096 \
+int isPointerValid(const void *ptr) {
+    return ptr >= (const void *)4096 \
         && ((size_t)ptr >> (sizeof(ptr) >= 8 ? 42 : 26)) == 0;
         // I know this feels crotchy, but it essentially says that
         // the lowest and the highest addresses are definitely bad
 }
 
 #if STACK_USE_CANARY
-static canary_t *stack_leftDataCanary(stack_t *self) {
+static canary_t *stack_leftDataCanary(const stack_t *self) {
     ASSERT(self != NULL);
     ASSERT(self->data != NULL);
 
@@ -827,7 +879,7 @@ static canary_t *stack_leftDataCanary(stack_t *self) {
 
 }
 
-static canary_t *stack_rightDataCanary(stack_t *self) {
+static canary_t *stack_rightDataCanary(const stack_t *self) {
     ASSERT(self != NULL);
     ASSERT(self->data != NULL);
 
