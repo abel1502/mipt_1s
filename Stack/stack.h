@@ -129,7 +129,7 @@
 static const unsigned char POISON = 0xAA;
 #endif
 
-#if STACK_VALIDATION_LEVEL >= 1
+#if STACK_USE_CANARY
 typedef unsigned long long canary_t;
 static const canary_t CANARY = ((canary_t)-1 << 32) | 0xDEADB1AD;  // DEADBIRD
 #endif
