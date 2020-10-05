@@ -134,96 +134,174 @@ typedef unsigned long long canary_t;
 static const canary_t CANARY = ((canary_t)-1 << 32) | 0xDEADB1AD;  // DEADBIRD
 #endif
 
+/**
+ * A type that holds a CRC32 checksum
+ */
 typedef uint32_t crc32_t;
 
 typedef struct stack_s stack_t;
 
+/**
+ * An enum describing the stack's allocation state
+ */
 typedef enum {
-    SAS_USERSPACE,
-    SAS_HEAP,
-    SAS_FREED
+    SAS_USERSPACE,  ///< Allocated by the user's code
+    SAS_HEAP,       ///< Allocated by the library's code on the heap
+    SAS_FREED       ///< Already destroyed
 } stack_allocState_e;
 
+/**
+ * A stack of `stack_item_t`'s
+ */
 struct stack_s {
     #if STACK_USE_CANARY
-    canary_t leftCanary;
+    canary_t leftCanary;       ///< Left canary
     #endif
 
-    stack_elem_t *data;
-    size_t size;
-    size_t capacity;
+    stack_elem_t *data;        ///< Actual stack elements on the heap
+    size_t size;               ///< Stack's current size
+    size_t capacity;           ///< Stack's maximal size
 
     #if STACK_USE_HASH
-    crc32_t structChecksum;
-    crc32_t dataChecksum;
+    crc32_t structChecksum;    ///< A hash of this struct
+    crc32_t dataChecksum;      ///< A hash of the stack's data
     #endif
 
-    stack_allocState_e state;
+    stack_allocState_e state;  ///< Stack allocation state
 
     #if STACK_USE_CANARY
-    canary_t rightCanary;
+    canary_t rightCanary;      ///< Right canary
     #endif
 };
 
+/**
+ * Stack validity info
+ */
 typedef enum {
-    STACK_VALID,
-    STACK_BADPTR,
-    STACK_BADSIZE,
-    STACK_BADCANARY,
-    STACK_BADHASH,
-    STACK_BADPOISON,
-    STACK_UAF
+    STACK_VALID,      ///< Valid
+    STACK_BADPTR,     ///< Some pointer is corrupt
+    STACK_BADSIZE,    ///< Size or capacity is corrupt
+    STACK_BADCANARY,  ///< A canary is corrupt
+    STACK_BADHASH,    ///< A hash is corrupt
+    STACK_BADPOISON,  ///< Poison is corrupt
+    STACK_UAF         ///< Use after free
 } stack_validity_e;
 
 
+/**
+ * Stack constructor (internal allocation)
+ */
 stack_t *stack_new(size_t capacity);
 
+/**
+ * Stack constructor (external allocation)
+ */
 stack_t *stack_construct(stack_t *self, size_t capacity);
 
+/**
+ * Stack destructor (internal allocation)
+ */
 void stack_destroy(stack_t *self);
 
+/**
+ * Stack destructor (external allocation)
+ */
 void stack_free(stack_t *self);
 
+/**
+ * Push `value` to the stack
+ */
 int stack_push(stack_t *self, stack_elem_t value);
 
+/**
+ * Retrieve TOS into `value`
+ */
 int stack_peek(stack_t *self, stack_elem_t *value);
 
+/**
+ * Pop `value` from the stack
+ */
 int stack_pop(stack_t *self, stack_elem_t *value);
 
+/**
+ * Resize the stack
+ */
 int stack_resize(stack_t *self, size_t capacity);
 
+/**
+ * Clear the stack
+ */
 void stack_clear(stack_t *self);
 
+/**
+ * Is stack empty?
+ */
 int stack_isEmpty(stack_t *self);
 
 #if STACK_USE_HASH
+/**
+ * Compute the stack struct's checksum
+ */
 crc32_t stack_hashStruct(stack_t *self);
 
+/**
+ * Compute the stack data's checksum
+ */
 crc32_t stack_hashData(stack_t *self);
 #endif
 
+/**
+ * Dump the stack (for debug)
+ */
 void stack_dump(stack_t *self);
 
+/**
+ * Validate the stack
+ */
 stack_validity_e stack_validate(stack_t *self);
 
+/**
+ * Retrieve a readable description for stack_validity
+ */
 const char *stack_validity_describe(stack_validity_e self);
 
+/**
+ * Retrieve a readable description for stack_allocState
+ */
 const char *stack_allocState_describe(stack_allocState_e self);
 
 #if STACK_USE_POISON
+/**
+ * Chack if `item` is poisoned
+ */
 int stack_isPoison(stack_elem_t *item);
 #endif
 
+/**
+ * Check if ptr is a valid pointer
+ */
 int isPointerValid(void *ptr);
 
 #if STACK_USE_CANARY
+/**
+ * Address of stack's left canary
+ */
 static canary_t *stack_leftDataCanary(stack_t *self);
 
+/**
+ * Address of stack's right canary
+ */
 static canary_t *stack_rightDataCanary(stack_t *self);
 #endif
 
+/**
+ * Compute a CRC32 of `size` bytes of `data`
+ */
 crc32_t crc32_compute(const char *data, size_t size);
 
+/**
+ * Update `initial` CRC32 with the hash of `size` bytes of `data`
+ */
 crc32_t crc32_update(crc32_t initial, const char *data, size_t size);
 
 #ifdef TEST
