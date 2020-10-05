@@ -59,7 +59,7 @@
  - Improved pointer validity check (find in TXLib)
  # Enum bool
  - Handle size_t overflow (in resize)
- - Maximal limit in dump - global const
+ # Maximal limit in dump - global const
  ? Macros to replace #if (STACK_USE_***)
  ...
     =========================
@@ -140,6 +140,8 @@
 #endif
 
 //--------------------------------------------------------------------------------
+
+static const size_t STACK_DUMP_LIMIT = 100;
 
 #ifndef __cplusplus
 enum bool { false, true };
@@ -772,8 +774,8 @@ void stack_dump(const stack_t *self) {
             #endif
 
             size_t limit = self->capacity;
-            if (100 < limit) { // TODO: Const
-                limit = 100;
+            if (STACK_DUMP_LIMIT < limit) {
+                limit = STACK_DUMP_LIMIT;
             }
 
             for (size_t i = 0; i < limit; ++i) {
