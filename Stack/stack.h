@@ -55,7 +55,7 @@
  # Brackets around #if conds
  # Rename ASSERT to REQUIRE
  - Improved pointer validity check (find in TXLib)
- ? Enum bool
+ # Enum bool
  - Handle size_t overflow (in resize)
  - Maximal limit in dump - global const
  ? Macros to replace #if (STACK_USE_***)
@@ -139,6 +139,10 @@
 
 //--------------------------------------------------------------------------------
 
+#ifndef __cplusplus
+enum bool { false, true };
+#endif
+
 #if STACK_USE_POISON
 static const unsigned char POISON = 0xAA;
 #endif
@@ -208,7 +212,7 @@ typedef enum {
  *
  * @param [in]  capacity  Initial capacity
  *
- * @return Stack instance
+ * @return Stack instance, NULL on error
  */
 stack_t *stack_new(size_t capacity);
 
@@ -218,7 +222,7 @@ stack_t *stack_new(size_t capacity);
  * @param [in/out] self      Stack instance
  * @param [in]     capacity  Initial capacity
  *
- * @return `self`
+ * @return `self`, NULL on error
  */
 stack_t *stack_construct(stack_t *self, size_t capacity);
 
@@ -242,9 +246,9 @@ void stack_free(stack_t *self);
  * @param [in/out] self   Stack instance
  * @param [in]     value  The value to push
  *
- * @return 0 on success, non-zero otherwise
+ * @return true on error, false otherwise
  */
-int stack_push(stack_t *self, stack_elem_t value);
+bool stack_push(stack_t *self, stack_elem_t value);
 
 /**
  * Retrieve TOS into `value`
@@ -252,9 +256,9 @@ int stack_push(stack_t *self, stack_elem_t value);
  * @param [in/out] self   Stack instance
  * @param [out]    value  The destination for TOS
  *
- * @return 0 on success, non-zero otherwise
+ * @return true on error, false otherwise
  */
-int stack_peek(stack_t *self, stack_elem_t *value);
+bool stack_peek(stack_t *self, stack_elem_t *value);
 
 /**
  * Pop `value` from the stack
@@ -262,9 +266,9 @@ int stack_peek(stack_t *self, stack_elem_t *value);
  * @param [in/out] self   Stack instance
  * @param [out]    value  NULL or destination pointer
  *
- * @return 0 on success, non-zero otherwise
+ * @return true on error, false otherwise
  */
-int stack_pop(stack_t *self, stack_elem_t *value);
+bool stack_pop(stack_t *self, stack_elem_t *value);
 
 /**
  * Resize the stack
@@ -272,9 +276,9 @@ int stack_pop(stack_t *self, stack_elem_t *value);
  * @param [in/out] self      Stack instance
  * @param [in]     capacity  New desired capacity (>= size)
  *
- * @return 0 on success, no-zero otherwise
+ * @return true on error, false otherwise
  */
-int stack_resize(stack_t *self, size_t capacity);
+bool stack_resize(stack_t *self, size_t capacity);
 
 /**
  * Clear the stack
@@ -288,9 +292,9 @@ void stack_clear(stack_t *self);
  *
  * @param [in]  self  Stack instance
  *
- * @return 1 if self is empty, 0 otherwise
+ * @return true if self is empty, false otherwise
  */
-int stack_isEmpty(const stack_t *self);
+bool stack_isEmpty(const stack_t *self);
 
 #if STACK_USE_HASH
 /**
@@ -352,9 +356,9 @@ const char *stack_allocState_describe(stack_allocState_e self);
  *
  * @param [in]  item  The item to be checked
  *
- * @return 1 if `item` is poison, 0 otherwise
+ * @return true if `item` is poison, false otherwise
  */
-int stack_isPoison(const stack_elem_t *item);
+bool stack_isPoison(const stack_elem_t *item);
 #endif
 
 /**
@@ -362,9 +366,9 @@ int stack_isPoison(const stack_elem_t *item);
  *
  * @param [in]  ptr  The pointer to be checked
  *
- * @return 1 if `ptr` is valid, 0 otherwise
+ * @return true if `ptr` is valid, false otherwise
  */
-int isPointerValid(const void *ptr);  // TODO: txlib - better way
+bool isPointerValid(const void *ptr);  // TODO: txlib - better way
 
 #if STACK_USE_CANARY
 /**
@@ -571,14 +575,14 @@ void stack_free(stack_t *self) {
     self->state = SAS_FREED;
 }
 
-int stack_push(stack_t *self, stack_elem_t value) {
+bool stack_push(stack_t *self, stack_elem_t value) {
     ASSERT_OK();
 
     if (self->size + 1 > self->capacity) {
         if (stack_resize(self, self->capacity * 2)) {
             ASSERT_OK();
 
-            return 1;  // TODO?: enum bool
+            return true;
         }
     }
 
@@ -591,28 +595,28 @@ int stack_push(stack_t *self, stack_elem_t value) {
 
     ASSERT_OK();
 
-    return 0;
+    return false;
 }
 
-int stack_peek(stack_t *self, stack_elem_t *value) {
+bool stack_peek(stack_t *self, stack_elem_t *value) {
     ASSERT_OK();
 
     if (stack_isEmpty(self)) {
-        return 1;
+        return true;
     }
 
     *value = self->data[self->size - 1];
 
     ASSERT_OK();
 
-    return 0;
+    return false;
 }
 
-int stack_pop(stack_t *self, stack_elem_t *value) {
+bool stack_pop(stack_t *self, stack_elem_t *value) {
     ASSERT_OK();
 
     if (stack_isEmpty(self)) {
-        return 1;
+        return true;
     }
 
     self->size--;
@@ -631,14 +635,14 @@ int stack_pop(stack_t *self, stack_elem_t *value) {
 
     ASSERT_OK();
 
-    return 0;
+    return false;
 }
 
-int stack_resize(stack_t *self, size_t capacity) {
+bool stack_resize(stack_t *self, size_t capacity) {
     ASSERT_OK();
 
     if (capacity <= self->size) {  // TODO: Handle size_t overflow
-        return 1;
+        return true;
     }
 
     #if STACK_USE_CANARY
@@ -647,7 +651,7 @@ int stack_resize(stack_t *self, size_t capacity) {
     stack_elem_t *newData = (stack_elem_t *)realloc(self->data, capacity * sizeof(stack_elem_t));
     #endif
     if (!isPointerValid(newData)) {
-        return 1;
+        return true;
     }
 
     #if STACK_USE_CANARY
@@ -676,7 +680,7 @@ int stack_resize(stack_t *self, size_t capacity) {
 
     ASSERT_OK();
 
-    return 0;
+    return false;
 }
 
 void stack_clear(stack_t *self) {
@@ -689,7 +693,7 @@ void stack_clear(stack_t *self) {
     ASSERT_OK();
 }
 
-int stack_isEmpty(const stack_t *self) {
+bool stack_isEmpty(const stack_t *self) {
     ASSERT_OK();
 
     return self->size == 0;
@@ -901,7 +905,7 @@ const char *stack_allocState_describe(stack_allocState_e self) {
 #undef DESCRIBE_
 
 #if STACK_USE_POISON
-int stack_isPoison(const stack_elem_t *item) {
+bool stack_isPoison(const stack_elem_t *item) {
     const unsigned char *charItem = (const unsigned char *)item;
     for (size_t i = 0; i < sizeof(stack_elem_t); ++i) {
         if (charItem[i] != POISON) {
@@ -912,7 +916,7 @@ int stack_isPoison(const stack_elem_t *item) {
 }
 #endif
 
-int isPointerValid(const void *ptr) {
+bool isPointerValid(const void *ptr) {
     return ptr >= (const void *)4096 \
         && ((size_t)ptr >> (sizeof(ptr) >= 8 ? 42 : 26)) == 0;
         // I know this feels crotchy, but it essentially says that
