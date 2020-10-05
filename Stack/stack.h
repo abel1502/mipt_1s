@@ -9,7 +9,7 @@
  *
  * - [define]  (optional) STACK_ELEM_PRINT @n
  * Name of the helper function to print stack elements during debug dump.
- * Signature: void STACK_ELEM_PRINT(stack_elem_t). If not defined, the dump prints raw bytes in hex.
+ * Signature: void STACK_ELEM_PRINT(stack_elem_t). The dump prints raw bytes in hex alongside, so this may be left undefined.
  *
  * - [define]  (optional) STACK_VALIDATION_LEVEL @n
  * A number from 0 to 2, specifying, how much validation will be performed. Defaults to maximum.
@@ -192,6 +192,8 @@ typedef enum {
  * Stack constructor (internal allocation)
  *
  * @param [in]  capacity  Initial capacity
+ *
+ * @return Stack instance
  */
 stack_t *stack_new(size_t capacity);
 
@@ -200,6 +202,8 @@ stack_t *stack_new(size_t capacity);
  *
  * @param [in/out] self      Stack instance
  * @param [in]     capacity  Initial capacity
+ *
+ * @return `self`
  */
 stack_t *stack_construct(stack_t *self, size_t capacity);
 
@@ -222,6 +226,8 @@ void stack_free(stack_t *self);
  *
  * @param [in/out] self   Stack instance
  * @param [in]     value  The value to push
+ *
+ * @return 0 on success, non-zero otherwise
  */
 int stack_push(stack_t *self, stack_elem_t value);
 
@@ -230,6 +236,8 @@ int stack_push(stack_t *self, stack_elem_t value);
  *
  * @param [in/out] self   Stack instance
  * @param [out]    value  The destination for TOS
+ *
+ * @return 0 on success, non-zero otherwise
  */
 int stack_peek(stack_t *self, stack_elem_t *value);
 
@@ -238,6 +246,8 @@ int stack_peek(stack_t *self, stack_elem_t *value);
  *
  * @param [in/out] self   Stack instance
  * @param [out]    value  NULL or destination pointer
+ *
+ * @return 0 on success, non-zero otherwise
  */
 int stack_pop(stack_t *self, stack_elem_t *value);
 
@@ -246,6 +256,8 @@ int stack_pop(stack_t *self, stack_elem_t *value);
  *
  * @param [in/out] self      Stack instance
  * @param [in]     capacity  New desired capacity (>= size)
+ *
+ * @return 0 on success, no-zero otherwise
  */
 int stack_resize(stack_t *self, size_t capacity);
 
@@ -259,7 +271,9 @@ void stack_clear(stack_t *self);
 /**
  * Is stack empty?
  *
- * @param [in/out] self  Stack instance
+ * @param [in]  self  Stack instance
+ *
+ * @return 1 if self is empty, 0 otherwise
  */
 int stack_isEmpty(const stack_t *self);
 
@@ -267,14 +281,18 @@ int stack_isEmpty(const stack_t *self);
 /**
  * Compute the stack struct's checksum
  *
- * @param [in/out] self  Stack instance
+ * @param [in]  self  Stack instance
+ *
+ * @return Checksum
  */
 crc32_t stack_hashStruct(const stack_t *self);
 
 /**
  * Compute the stack data's checksum
  *
- * @param [in/out] self  Stack instance
+ * @param [in]  self  Stack instance
+ *
+ * @return Checksum
  */
 crc32_t stack_hashData(const stack_t *self);
 #endif
@@ -282,28 +300,34 @@ crc32_t stack_hashData(const stack_t *self);
 /**
  * Dump the stack (for debug)
  *
- * @param [in/out] self  Stack instance
+ * @param [in]  self  Stack instance
  */
 void stack_dump(const stack_t *self);
 
 /**
  * Validate the stack
  *
- * @param [in/out] self  Stack instance
+ * @param [in]  self  Stack instance
+ *
+ * @return Stack's validity
  */
 stack_validity_e stack_validate(const stack_t *self);
 
 /**
  * Retrieve a readable description for stack_validity
  *
- * @param [in/out] self  Stack validity value
+ * @param [in]  self  Stack validity value
+ *
+ * @return Readable description
  */
 const char *stack_validity_describe(stack_validity_e self);
 
 /**
  * Retrieve a readable description for stack_allocState
  *
- * @param [in/out] self  Stack allocState value
+ * @param [in]  self  Stack allocState value
+ *
+ * @return Readable description
  */
 const char *stack_allocState_describe(stack_allocState_e self);
 
@@ -312,6 +336,8 @@ const char *stack_allocState_describe(stack_allocState_e self);
  * Chack if `item` is poisoned
  *
  * @param [in]  item  The item to be checked
+ *
+ * @return 1 if `item` is poison, 0 otherwise
  */
 int stack_isPoison(const stack_elem_t *item);
 #endif
@@ -320,6 +346,8 @@ int stack_isPoison(const stack_elem_t *item);
  * Check if ptr is a valid pointer
  *
  * @param [in]  ptr  The pointer to be checked
+ *
+ * @return 1 if `ptr` is valid, 0 otherwise
  */
 int isPointerValid(const void *ptr);
 
@@ -327,14 +355,18 @@ int isPointerValid(const void *ptr);
 /**
  * Address of stack data's left canary
  *
- * @param [in] self  Stack instance
+ * @param [in]  self  Stack instance
+ *
+ * @return Left canary address
  */
 static canary_t *stack_leftDataCanary(const stack_t *self);
 
 /**
  * Address of stack data's right canary
  *
- * @param [in/out] self  Stack instance
+ * @param [in]  self  Stack instance
+ *
+ * @return Right canary address
  */
 static canary_t *stack_rightDataCanary(const stack_t *self);
 #endif
@@ -344,6 +376,8 @@ static canary_t *stack_rightDataCanary(const stack_t *self);
  *
  * @param [in]  data  The staring offset to be hashed
  * @param [in]  size  The byte size of data to be hashed
+ *
+ * @return The resulting hash
  */
 crc32_t crc32_compute(const char *data, size_t size);
 
@@ -353,6 +387,8 @@ crc32_t crc32_compute(const char *data, size_t size);
  * @param [in]  initial  The initial hash value
  * @param [in]  data     The staring offset to be hashed
  * @param [in]  size     The byte size of data to be hashed
+ *
+ * @return The resulting hash
  */
 crc32_t crc32_update(crc32_t initial, const char *data, size_t size);
 
