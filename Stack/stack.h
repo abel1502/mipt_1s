@@ -889,7 +889,7 @@ const char *stack_allocState_describe(stack_allocState_e self) {
 
 #if STACK_USE_POISON
 int stack_isPoison(const stack_elem_t *item) {
-    const unsigned char *charItem = (unsigned char *)item;
+    const unsigned char *charItem = (const unsigned char *)item;
     for (size_t i = 0; i < sizeof(stack_elem_t); ++i) {
         if (charItem[i] != POISON) {
             return 0;
