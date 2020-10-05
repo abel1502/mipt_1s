@@ -53,7 +53,7 @@
  - "Prerequisites" in docs
  ? Disable alphabetic sort in doxygen
  # Brackets around #if conds
- - Rename ASSERT to REQUIRE
+ # Rename ASSERT to REQUIRE
  - Improved pointer validity check (find in TXLib)
  ? Enum bool
  - Handle size_t overflow (in resize)
@@ -89,6 +89,7 @@
 #define STACK_VALIDATION_LEVEL 2
 #endif
 
+
 #if (STACK_VALIDATION_LEVEL >= 2)
 #define STACK_USE_HASH 1
 #else
@@ -102,6 +103,8 @@
 #define STACK_USE_POISON 0
 #define STACK_USE_CANARY 0
 #endif
+
+//--------------------------------------------------------------------------------
 
 #ifndef MACROFUNC  // Same as in tests, but may not be included
 #define MACROFUNC(...) do {__VA_ARGS__} while (0)
@@ -120,7 +123,7 @@
     } )
 
 
-#define ASSERT(stmt)  MACROFUNC(                                                            \
+#define REQUIRE(stmt)  MACROFUNC(                                                            \
     if (!(stmt)) {                                                                          \
         fprintf(stderr, "\nAssertion (%s) failed in (%s#%d)\n", #stmt, __FILE__, __LINE__); \
         abort();                                                                            \
@@ -130,7 +133,7 @@
 
 #define ASSERT_OK()  MACROFUNC()
 
-#define ASSERT(stmt)  MACROFUNC()
+#define REQUIRE(stmt)  MACROFUNC()
 
 #endif
 
@@ -532,7 +535,7 @@ stack_t *stack_construct(stack_t *self, size_t capacity) {
 void stack_destroy(stack_t *self) {
     ASSERT_OK();
 
-    ASSERT(self->state == SAS_HEAP);
+    REQUIRE(self->state == SAS_HEAP);
 
     self->state = SAS_USERSPACE;
 
@@ -544,7 +547,7 @@ void stack_destroy(stack_t *self) {
 void stack_free(stack_t *self) {
     ASSERT_OK();
 
-    ASSERT(self->state == SAS_USERSPACE);
+    REQUIRE(self->state == SAS_USERSPACE);
 
     #if STACK_USE_CANARY
     free(stack_leftDataCanary(self));
@@ -695,7 +698,7 @@ int stack_isEmpty(const stack_t *self) {
 #if STACK_USE_HASH
 crc32_t stack_hashStruct(const stack_t *self) {
     //ASSERT_OK(); // Inapplicable!
-    ASSERT(isPointerValid(self));
+    REQUIRE(isPointerValid(self));
 
     crc32_t checksum = 0;
 
@@ -716,9 +719,9 @@ crc32_t stack_hashStruct(const stack_t *self) {
 
 crc32_t stack_hashData(const stack_t *self) {
     //ASSERT_OK(); // Inapplicable!
-    ASSERT(isPointerValid(self));
-    ASSERT(isPointerValid(self->data));
-    ASSERT(self->capacity > 0);
+    REQUIRE(isPointerValid(self));
+    REQUIRE(isPointerValid(self->data));
+    REQUIRE(self->capacity > 0);
 
     crc32_t checksum = crc32_compute((const char *)self->data, self->capacity * sizeof(stack_elem_t));
 
@@ -918,16 +921,16 @@ int isPointerValid(const void *ptr) {
 
 #if STACK_USE_CANARY
 static canary_t *stack_leftDataCanary(const stack_t *self) {
-    ASSERT(self != NULL);
-    ASSERT(self->data != NULL);
+    REQUIRE(self != NULL);
+    REQUIRE(self->data != NULL);
 
     return (canary_t *)self->data - 1;
 
 }
 
 static canary_t *stack_rightDataCanary(const stack_t *self) {
-    ASSERT(self != NULL);
-    ASSERT(self->data != NULL);
+    REQUIRE(self != NULL);
+    REQUIRE(self->data != NULL);
 
     return (canary_t *)(self->data + self->capacity);
 }
@@ -936,7 +939,7 @@ static canary_t *stack_rightDataCanary(const stack_t *self) {
 //================================================================================
 
 crc32_t crc32_update(crc32_t value, const char *data, size_t size) {
-    ASSERT(data != NULL);
+    REQUIRE(data != NULL);
 
     value ^= 0xFFFFFFFF;
 
@@ -950,7 +953,7 @@ crc32_t crc32_update(crc32_t value, const char *data, size_t size) {
 }
 
 crc32_t crc32_compute(const char *data, size_t size) {
-    ASSERT(data != NULL);
+    REQUIRE(data != NULL);
 
     return crc32_update(0, data, size);
 }
@@ -1015,7 +1018,7 @@ void test_stack(stack_elem_t val1, stack_elem_t val2, stack_elem_t val3) {
 #endif // TEST
 
 #undef ASSERT_OK
-#undef ASSERT
+#undef REQUIRE
 
 #undef STACK_USE_HASH
 #undef STACK_USE_POISON
