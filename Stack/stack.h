@@ -58,9 +58,10 @@
  # Rename ASSERT to REQUIRE
  - Improved pointer validity check (find in TXLib)
  # Enum bool
- - Handle size_t overflow (in resize)
+ # Handle size_t overflow (in resize)
  # Maximal limit in dump - global const
  ? Macros to replace #if (STACK_USE_***)
+ - Downward resize in pop
  ...
     =========================
 */
@@ -583,6 +584,8 @@ bool stack_push(stack_t *self, stack_elem_t value) {
     ASSERT_OK();
 
     if (self->size + 1 > self->capacity) {
+        REQUIRE(self->capacity * 2 > self->capacity);
+
         if (stack_resize(self, self->capacity * 2)) {
             ASSERT_OK();
 
@@ -645,7 +648,7 @@ bool stack_pop(stack_t *self, stack_elem_t *value) {
 bool stack_resize(stack_t *self, size_t capacity) {
     ASSERT_OK();
 
-    if (capacity <= self->size) {  // TODO: Handle size_t overflow
+    if (capacity <= self->size) {
         return true;
     }
 
