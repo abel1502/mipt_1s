@@ -51,7 +51,7 @@
  # Separate defines on top that say which features to turn on and are based on STACK_VALIDATION_LEVEL
  ? Endif comments
  # No FF in canary
- - Rename userspace
+ # Rename userspace
  # "Prerequisites" in docs
  ? Disable alphabetic sort in doxygen
  # Brackets around #if conds
@@ -166,7 +166,7 @@ typedef struct stack_s stack_t;
  * An enum describing the stack's allocation state
  */
 typedef enum {
-    SAS_USERSPACE,  ///< Allocated by the user's code
+    SAS_EXTERNAL,   ///< Allocated by the user's code
     SAS_HEAP,       ///< Allocated by the library's code on the heap
     SAS_FREED       ///< Already destroyed
 } stack_allocState_e;
@@ -503,7 +503,7 @@ stack_t *stack_construct(stack_t *self, size_t capacity) {
 
     self->capacity = capacity;
     self->size = 0;
-    self->state = SAS_USERSPACE;
+    self->state = SAS_EXTERNAL;
 
     #if STACK_USE_CANARY
     self->data = (stack_elem_t *)calloc(1, capacity * sizeof(stack_elem_t) + sizeof(canary_t) * 2);
@@ -543,7 +543,7 @@ void stack_destroy(stack_t *self) {
 
     REQUIRE(self->state == SAS_HEAP);
 
-    self->state = SAS_USERSPACE;
+    self->state = SAS_EXTERNAL;
 
     stack_free(self);
 
@@ -553,7 +553,7 @@ void stack_destroy(stack_t *self) {
 void stack_free(stack_t *self) {
     ASSERT_OK();
 
-    REQUIRE(self->state == SAS_USERSPACE);
+    REQUIRE(self->state == SAS_EXTERNAL);
 
     #if STACK_USE_CANARY
     free(stack_leftDataCanary(self));
@@ -897,7 +897,7 @@ const char *stack_validity_describe(stack_validity_e self) {
 
 const char *stack_allocState_describe(stack_allocState_e self) {
     switch (self) {
-        DESCRIBE_(SAS_USERSPACE, "user space")
+        DESCRIBE_(SAS_EXTERNAL, "external")
         DESCRIBE_(SAS_HEAP, "heap")
         DESCRIBE_(SAS_FREED, "freed")
 
