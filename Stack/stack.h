@@ -56,12 +56,13 @@
  ? Disable alphabetic sort in doxygen
  # Brackets around #if conds
  # Rename ASSERT to REQUIRE
- - Improved pointer validity check (find in TXLib)
+ # Improved pointer validity check (find in TXLib)
  # Enum bool
  # Handle size_t overflow (in resize)
  # Maximal limit in dump - global const
  ? Macros to replace #if (STACK_USE_***)
  - Downward resize in pop
+ - Another validation level to perform everything but data hashing
  ...
     =========================
 */
@@ -75,6 +76,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif // _WIN32
 
 //--------------------------------------------------------------------------------
 
@@ -923,12 +928,31 @@ bool stack_isPoison(const stack_elem_t *item) {
 }
 #endif
 
+#ifdef _WIN32
+// (c) Ded32, TXLib
+bool isPointerValid(const void *ptr) {
+    MEMORY_BASIC_INFORMATION mbi = {};
+    if (!VirtualQuery(ptr, &mbi, sizeof (mbi)))
+        return false;
+
+    if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS))
+        return false;  // Guard page -> bad ptr
+
+    DWORD readRights = PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY;
+
+    return (mbi.Protect & readRights) != 0;
+}
+#else
 bool isPointerValid(const void *ptr) {
     return ptr >= (const void *)4096 \
         && ((size_t)ptr >> (sizeof(ptr) >= 8 ? 42 : 26)) == 0;
         // I know this feels crotchy, but it essentially says that
         // the lowest and the highest addresses are definitely bad
 }
+#endif // _WIN32
+
+
+
 
 #if STACK_USE_CANARY
 static canary_t *stack_leftDataCanary(const stack_t *self) {

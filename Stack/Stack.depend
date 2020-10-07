@@ -17,11 +17,12 @@
 	<setjmp.h>
 	<signal.h>
 
-1601900757 d:\workspace\.mipt\s1\stack\stack.h
+1602063127 d:\workspace\.mipt\s1\stack\stack.h
 	<stdlib.h>
 	<stdio.h>
 	<string.h>
 	<stdint.h>
+	<windows.h>
 
 1601839833 d:\workspace\.mipt\s1\stack\checksum.h
 	<stdint.h>
