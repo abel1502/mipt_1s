@@ -1023,10 +1023,10 @@ bool isPointerValid(const void *ptr) {
 }
 #else
 bool isPointerValid(const void *ptr) {
-    return ptr >= (const void *)4096 \
-        && ((size_t)ptr >> (sizeof(ptr) >= 8 ? 42 : 26)) == 0;
-        // I know this feels crotchy, but it essentially says that
-        // the lowest and the highest addresses are definitely bad
+    return ptr >= (const void *)4096;
+        // && ((size_t)ptr >> (sizeof(ptr) >= 8 ? 42 : 26)) == 0;
+        // On Linux, sometimes the valid memory may occupy the highest possible addresses,
+        // so we can't afford this heuristic check
 }
 #endif // _WIN32
 
