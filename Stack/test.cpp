@@ -29,7 +29,11 @@ int main() {
         ,
     )
 
-    stack_t stk = {};
+    stack_t *stk = stack_new(8);
+
+    stack_destroy(stk);
+
+    /*stack_t stk = {};
     assert(stack_construct(&stk, 8));
 
     assert(!stack_push(&stk, NAN));
@@ -52,7 +56,7 @@ int main() {
 
     stk.capacity = 0xFFFFFFFFFFFFL;
 
-    stack_free(&stk);
+    stack_free(&stk);*/
 
     return EXIT_SUCCESS;
 }

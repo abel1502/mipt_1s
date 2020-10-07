@@ -504,6 +504,16 @@ stack_t *stack_new(size_t capacity) {
 
     self->state = SAS_HEAP;
 
+    #if STACK_USE_HASH_STRUCT
+    self->structChecksum = stack_hashStruct(self);
+    #endif
+
+    #if STACK_USE_HASH_DATA
+    self->dataChecksum = stack_hashData(self);
+    #endif
+
+    ASSERT_OK();
+
     return self;
 }
 
@@ -571,6 +581,14 @@ void stack_destroy(stack_t *self) {
     REQUIRE(self->state == SAS_HEAP);
 
     self->state = SAS_EXTERNAL;
+
+    #if STACK_USE_HASH_STRUCT
+    self->structChecksum = stack_hashStruct(self);
+    #endif
+
+    #if STACK_USE_HASH_DATA
+    self->dataChecksum = stack_hashData(self);
+    #endif
 
     stack_free(self);
 
@@ -692,7 +710,6 @@ bool stack_resize(stack_t *self, size_t capacity) {
     if (capacity <= self->size) {
         return true;
     }
-
 
     // After some thinking, I decided to abandon stack unpoisoning,
     // because right after the newly reallocated memory will be a malloc-header,
