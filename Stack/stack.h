@@ -987,8 +987,8 @@ const char *stack_validity_describe(stack_validity_e self) {
 const char *stack_allocState_describe(stack_allocState_e self) {
     switch (self) {
         DESCRIBE_(SAS_EXTERNAL, "external")
-        DESCRIBE_(SAS_HEAP, "heap")
-        DESCRIBE_(SAS_FREED, "freed")
+        DESCRIBE_(SAS_HEAP,     "heap")
+        DESCRIBE_(SAS_FREED,    "freed")
 
         default: return "!CORRUPT ALLOCSTATE!";
     }
