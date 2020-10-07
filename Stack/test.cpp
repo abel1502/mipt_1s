@@ -1,4 +1,4 @@
-#define TEST
+//#define TEST
 #include "../libs/test.h"
 
 #include <stdio.h>

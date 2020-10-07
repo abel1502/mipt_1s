@@ -141,7 +141,7 @@
 
 #define REQUIRE(stmt)  MACROFUNC(                                                            \
     if (!(stmt)) {                                                                          \
-        fprintf(stderr, "\nAssertion (%s) failed in (%s#%d)\n", #stmt, __FILE__, __LINE__); \
+        fprintf(stderr, "\nRequirement (%s) not met in (%s#%d)\n", #stmt, __FILE__, __LINE__); \
         abort();                                                                            \
     } )
 
