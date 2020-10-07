@@ -64,6 +64,7 @@
  # Downward resize in pop
  # Another validation level to perform everything but data hashing
  - Debug console
+ ? Hard cap on capacity
  ...
     =========================
 */
