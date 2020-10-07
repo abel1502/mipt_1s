@@ -668,6 +668,17 @@ bool stack_resize(stack_t *self, size_t capacity) {
     }
 
 
+    // After some thinking, I decided to abandon stack unpoisoning,
+    // because right after the newly reallocated memory will be a malloc-header,
+    // which is likely to be unequal to poison anyway
+    /*
+    #if STACK_USE_POISON
+    if (capacity < self->capacity) {
+        memset(self->data + capacity, 0x00, (self->capacity - capacity) * sizeof(stack_elem_t));
+    }
+    #endif // STACK_USE_POISON
+    */
+
     #if STACK_USE_CANARY
     stack_elem_t *newData = (stack_elem_t *)realloc(stack_leftDataCanary(self), capacity * sizeof(stack_elem_t) + 2 * sizeof(canary_t));
     #else
