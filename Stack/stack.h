@@ -62,7 +62,7 @@
  # Maximal limit in dump - global const
  ? Macros to replace #if (STACK_USE_***)
  # Downward resize in pop
- - Another validation level to perform everything but data hashing
+ # Another validation level to perform everything but data hashing
  - Debug console
  ...
     =========================
@@ -93,16 +93,22 @@
 #define STACK_VALIDATION_LEVEL 0
 #endif
 
-#if (STACK_VALIDATION_LEVEL > 2)
+#if (STACK_VALIDATION_LEVEL > 3)
 #undef STACK_VALIDATION_LEVEL
-#define STACK_VALIDATION_LEVEL 2
+#define STACK_VALIDATION_LEVEL 3
+#endif
+
+#if (STACK_VALIDATION_LEVEL >= 3)
+#define STACK_USE_HASH_DATA 1
+#else
+#define STACK_USE_HASH_DATA 0
 #endif
 
 
 #if (STACK_VALIDATION_LEVEL >= 2)
-#define STACK_USE_HASH 1
+#define STACK_USE_HASH_STRUCT 1
 #else
-#define STACK_USE_HASH 0
+#define STACK_USE_HASH_STRUCT 0
 #endif
 
 #if (STACK_VALIDATION_LEVEL >= 1)
@@ -193,8 +199,11 @@ struct stack_s {
     size_t size;               ///< Stack's current size
     size_t capacity;           ///< Stack's maximal size
 
-    #if STACK_USE_HASH
+    #if STACK_USE_HASH_STRUCT
     crc32_t structChecksum;    ///< A hash of this struct
+    #endif
+
+    #if STACK_USE_HASH_DATA
     crc32_t dataChecksum;      ///< A hash of the stack's data
     #endif
 
@@ -308,7 +317,7 @@ void stack_clear(stack_t *self);
  */
 bool stack_isEmpty(const stack_t *self);
 
-#if STACK_USE_HASH
+#if STACK_USE_HASH_STRUCT
 /**
  * Compute the stack struct's checksum
  *
@@ -317,7 +326,9 @@ bool stack_isEmpty(const stack_t *self);
  * @return Checksum
  */
 crc32_t stack_hashStruct(const stack_t *self);
+#endif
 
+#if STACK_USE_HASH_DATA
 /**
  * Compute the stack data's checksum
  *
@@ -506,8 +517,11 @@ stack_t *stack_construct(stack_t *self, size_t capacity) {
     self->rightCanary = CANARY;
     #endif
 
-    #if STACK_USE_HASH
+    #if STACK_USE_HASH_STRUCT
     self->structChecksum = 0;
+    #endif
+
+    #if STACK_USE_HASH_DATA
     self->dataChecksum = 0;
     #endif
 
@@ -538,8 +552,11 @@ stack_t *stack_construct(stack_t *self, size_t capacity) {
     *stack_rightDataCanary(self) = CANARY;
     #endif
 
-    #if STACK_USE_HASH
+    #if STACK_USE_HASH_STRUCT
     self->structChecksum = stack_hashStruct(self);
+    #endif
+
+    #if STACK_USE_HASH_DATA
     self->dataChecksum = stack_hashData(self);
     #endif
 
@@ -576,8 +593,11 @@ void stack_free(stack_t *self) {
     self->rightCanary = 0;
     #endif
 
-    #if STACK_USE_HASH
+    #if STACK_USE_HASH_STRUCT
     self->structChecksum = 1;  // 0 would be the correct checksum for a null stack
+    #endif
+
+    #if STACK_USE_HASH_DATA
     self->dataChecksum = 1;  // Same as above
     #endif
 
@@ -602,8 +622,11 @@ bool stack_push(stack_t *self, stack_elem_t value) {
 
     self->data[self->size++] = value;
 
-    #if STACK_USE_HASH
+    #if STACK_USE_HASH_STRUCT
     self->structChecksum = stack_hashStruct(self);
+    #endif
+
+    #if STACK_USE_HASH_DATA
     self->dataChecksum = stack_hashData(self);
     #endif
 
@@ -642,8 +665,11 @@ bool stack_pop(stack_t *self, stack_elem_t *value) {
     memset(self->data + self->size, POISON, sizeof(stack_elem_t));
     #endif
 
-    #if STACK_USE_HASH
+    #if STACK_USE_HASH_STRUCT
     self->structChecksum = stack_hashStruct(self);
+    #endif
+
+    #if STACK_USE_HASH_DATA
     self->dataChecksum = stack_hashData(self);
     #endif
 
@@ -707,8 +733,11 @@ bool stack_resize(stack_t *self, size_t capacity) {
     *stack_rightDataCanary(self) = CANARY;
     #endif
 
-    #if STACK_USE_HASH
+    #if STACK_USE_HASH_STRUCT
     self->structChecksum = stack_hashStruct(self);
+    #endif
+
+    #if STACK_USE_HASH_DATA
     self->dataChecksum = stack_hashData(self);
     #endif
 
@@ -733,7 +762,7 @@ bool stack_isEmpty(const stack_t *self) {
     return self->size == 0;
 }
 
-#if STACK_USE_HASH
+#if STACK_USE_HASH_STRUCT
 crc32_t stack_hashStruct(const stack_t *self) {
     //ASSERT_OK(); // Inapplicable!
     REQUIRE(isPointerValid(self));
@@ -754,7 +783,9 @@ crc32_t stack_hashStruct(const stack_t *self) {
 
     return checksum;
 }
+#endif
 
+#if STACK_USE_HASH_DATA
 crc32_t stack_hashData(const stack_t *self) {
     //ASSERT_OK(); // Inapplicable!
     REQUIRE(isPointerValid(self));
@@ -788,8 +819,11 @@ void stack_dump(const stack_t *self) {
         printf("  capacity        = %zu\n", self->capacity);
         printf("  state           = %s\n", stack_allocState_describe(self->state));
 
-        #if STACK_USE_HASH
+        #if STACK_USE_HASH_STRUCT
         printf("  struct checksum = 0x%08X\n", self->structChecksum);
+        #endif
+
+        #if STACK_USE_HASH_DATA
         printf("  data checksum   = 0x%08X\n", self->dataChecksum);
         #endif
 
@@ -884,10 +918,16 @@ stack_validity_e stack_validate(const stack_t *self) {
     }
     #endif
 
-    #if STACK_USE_HASH
-    if (self->structChecksum != stack_hashStruct(self) || \
-        self->dataChecksum   != stack_hashData(self)) {
-        // Order is important, because the first hash validates capacity, and the second relies on it
+    // Order is important, because the first hash validates capacity, and the second relies on it
+    #if STACK_USE_HASH_STRUCT
+    if (self->structChecksum != stack_hashStruct(self)) {
+        return STACK_BADHASH;
+    }
+    #endif
+
+    // -"-
+    #if STACK_USE_HASH_DATA
+    if (self->dataChecksum   != stack_hashData(self)) {
         return STACK_BADHASH;
     }
     #endif
@@ -1077,7 +1117,8 @@ void test_stack(stack_elem_t val1, stack_elem_t val2, stack_elem_t val3) {
 #undef ASSERT_OK
 #undef REQUIRE
 
-#undef STACK_USE_HASH
+#undef STACK_USE_HASH_STRUCT
+#undef STACK_USE_HASH_DATA
 #undef STACK_USE_POISON
 #undef STACK_USE_CANARY
 

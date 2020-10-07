@@ -1,4 +1,4 @@
-//#define TEST
+#define TEST
 #include "../libs/test.h"
 
 #include <stdio.h>
@@ -14,7 +14,7 @@ static void printHelper(stack_elem_t elem) {
     printf("%lg", elem);
 }
 #define STACK_ELEM_PRINT printHelper
-#define STACK_VALIDATION_LEVEL 2
+#define STACK_VALIDATION_LEVEL 3
 #include "stack.h"
 // =============================
 
@@ -37,7 +37,7 @@ int main() {
     stack_dump(&stk);
 
     for (size_t i = 0; i < 17; ++i) {
-        assert(!stack_push(&stk, i + 0.99));
+        assert(!stack_push(&stk, (double)i + 0.99));
         //printf("%zu\n", stk.capacity);
     }
 
