@@ -218,7 +218,7 @@ struct stack_s {
  * Stack validity info
  */
 typedef enum {
-    STACK_VALID,      ///< Valid
+    STACK_VALID = 0,  ///< Valid
     STACK_BADPTR,     ///< Some pointer is corrupt
     STACK_BADSIZE,    ///< Size or capacity is corrupt
     STACK_BADCANARY,  ///< A canary is corrupt
