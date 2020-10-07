@@ -30,10 +30,24 @@ int main() {
     )
 
     stack_t stk = {};
-    assert(stack_construct(&stk, 10));
+    assert(stack_construct(&stk, 8));
 
     assert(!stack_push(&stk, NAN));
     assert(!stack_push(&stk, 99.9));
+    stack_dump(&stk);
+
+    for (size_t i = 0; i < 17; ++i) {
+        assert(!stack_push(&stk, i + 0.99));
+        //printf("%zu\n", stk.capacity);
+    }
+
+    stack_dump(&stk);
+
+    for (size_t i = 0; i < 17; ++i) {
+        assert(!stack_pop(&stk, NULL));
+        //printf("%zu\n", stk.capacity);
+    }
+
     stack_dump(&stk);
 
     stk.capacity = 0xFFFFFFFFFFFFL;

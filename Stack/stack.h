@@ -61,8 +61,9 @@
  # Handle size_t overflow (in resize)
  # Maximal limit in dump - global const
  ? Macros to replace #if (STACK_USE_***)
- - Downward resize in pop
+ # Downward resize in pop
  - Another validation level to perform everything but data hashing
+ - Debug console
  ...
     =========================
 */
@@ -121,13 +122,14 @@
 
 #if (STACK_VALIDATION_LEVEL > 0)
 
-#define ASSERT_OK()  MACROFUNC(                                                          \
-    if (stack_validate(self) != STACK_VALID) {                                           \
-        fprintf(stderr, "==============[ !!! CRITICAL FAILURE !!! ]==============\n");   \
-        fprintf(stderr, "              (or not, but suck it anyway)              \n\n"); \
-        stack_dump(self);                                                                \
-        fprintf(stderr, "========================================================\n");   \
-        abort();                                                                         \
+#define ASSERT_OK()  MACROFUNC(                                                        \
+    if (stack_validate(self) != STACK_VALID) {                                         \
+        fprintf(stderr, "==============[ !!! CRITICAL FAILURE !!! ]==============\n"); \
+        fprintf(stderr, "              (or not, but suck it anyway)              \n"); \
+        fprintf(stderr, "[%s#%d]\n\n", __FILE__, __LINE__);                            \
+        stack_dump(self);                                                              \
+        fprintf(stderr, "========================================================\n"); \
+        abort();                                                                       \
     } )
 
 
@@ -645,6 +647,14 @@ bool stack_pop(stack_t *self, stack_elem_t *value) {
     self->dataChecksum = stack_hashData(self);
     #endif
 
+    if (self->size * 4 + 4 < self->capacity) {
+        if (stack_resize(self, self->capacity / 2)) {
+            ASSERT_OK();
+
+            return true;
+        }
+    }
+
     ASSERT_OK();
 
     return false;
@@ -656,6 +666,7 @@ bool stack_resize(stack_t *self, size_t capacity) {
     if (capacity <= self->size) {
         return true;
     }
+
 
     #if STACK_USE_CANARY
     stack_elem_t *newData = (stack_elem_t *)realloc(stack_leftDataCanary(self), capacity * sizeof(stack_elem_t) + 2 * sizeof(canary_t));
