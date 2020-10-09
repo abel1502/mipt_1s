@@ -64,7 +64,7 @@
  # Downward resize in pop
  # Another validation level to perform everything but data hashing
  - Debug console
- ? Hard cap on capacity
+ + Hard cap on capacity
  ...
     =========================
 */
@@ -139,7 +139,6 @@
         abort();                                                                       \
     } )
 
-
 #define REQUIRE(stmt)  MACROFUNC(                                                            \
     if (!(stmt)) {                                                                          \
         fprintf(stderr, "\nRequirement (%s) not met in (%s#%d)\n", #stmt, __FILE__, __LINE__); \
@@ -157,6 +156,7 @@
 //--------------------------------------------------------------------------------
 
 static const size_t STACK_DUMP_LIMIT = 100;
+static const size_t STACK_HARD_CAP = (((size_t)-1) >> 8) / sizeof(stack_elem_t);
 
 #ifndef __cplusplus
 enum bool { false, true };
@@ -519,7 +519,7 @@ stack_t *stack_new(size_t capacity) {
 }
 
 stack_t *stack_construct(stack_t *self, size_t capacity) {
-    if (!isPointerValid(self) || capacity == 0) {
+    if (!isPointerValid(self) || capacity == 0 || capacity >= STACK_HARD_CAP) {
         return NULL;
     }
 
@@ -630,7 +630,7 @@ bool stack_push(stack_t *self, stack_elem_t value) {
     ASSERT_OK();
 
     if (self->size + 1 > self->capacity) {
-        REQUIRE(self->capacity * 2 > self->capacity);
+        // REQUIRE(self->capacity * 2 > self->capacity);  // Not necessary anymore, because STACK_HARD_CAP ensures no overflows
 
         if (stack_resize(self, self->capacity * 2)) {
             ASSERT_OK();
@@ -708,7 +708,7 @@ bool stack_pop(stack_t *self, stack_elem_t *value) {
 bool stack_resize(stack_t *self, size_t capacity) {
     ASSERT_OK();
 
-    if (capacity <= self->size) {
+    if (capacity <= self->size || capacity >= STACK_HARD_CAP) {
         return true;
     }
 
@@ -793,7 +793,7 @@ crc32_t stack_hashStruct(const stack_t *self) {
     HASH_FIELD_(size);
     HASH_FIELD_(capacity);
     HASH_FIELD_(state);
-    HASH_FIELD_(data);  // Hashes the pointer value to avoid relocation. (Don't know why, though).
+    HASH_FIELD_(data);  // Hashes the pointer value to avoid relocation.
 
     #undef HASH_FIELD_
 
@@ -834,7 +834,7 @@ void stack_dump(const stack_t *self) {
         #endif
 
         printf("  size            = %zu\n", self->size);
-        printf("  capacity        = %zu\n", self->capacity);
+        printf("  capacity        = %zu (out of %zu)\n", self->capacity, STACK_HARD_CAP);
         printf("  state           = %s\n", stack_allocState_describe(self->state));
 
         #if STACK_USE_HASH_STRUCT
@@ -922,7 +922,8 @@ stack_validity_e stack_validate(const stack_t *self) {
         return STACK_BADPTR;
     }
 
-    if (self->capacity == 0 || self->size > self->capacity || !isPointerValid(self->data + self->capacity)) {
+    if (self->capacity == 0 || self->size > self->capacity || \
+        self->capacity >= STACK_HARD_CAP || !isPointerValid(self->data + self->capacity)) {
         return STACK_BADSIZE;
     }
 

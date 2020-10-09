@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1602085609 source:d:\workspace\.mipt\s1\stack\test.cpp
+1602228517 source:d:\workspace\.mipt\s1\stack\test.cpp
 	"../libs/test.h"
 	<stdio.h>
 	<stdlib.h>
@@ -17,7 +17,7 @@
 	<setjmp.h>
 	<signal.h>
 
-1602085659 d:\workspace\.mipt\s1\stack\stack.h
+1602228612 d:\workspace\.mipt\s1\stack\stack.h
 	<stdlib.h>
 	<stdio.h>
 	<string.h>
