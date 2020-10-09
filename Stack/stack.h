@@ -64,7 +64,7 @@
  # Downward resize in pop
  # Another validation level to perform everything but data hashing
  - Debug console
- + Hard cap on capacity
+ # Hard cap on capacity
  ...
     =========================
 */
@@ -392,7 +392,7 @@ bool stack_isPoison(const stack_elem_t *item);
  *
  * @return true if `ptr` is valid, false otherwise
  */
-bool isPointerValid(const void *ptr);  // TODO: txlib - better way
+bool isPointerValid(const void *ptr);
 
 #if STACK_USE_CANARY
 /**
@@ -1042,16 +1042,16 @@ bool isPointerValid(const void *ptr) {
 
 #if STACK_USE_CANARY
 static canary_t *stack_leftDataCanary(const stack_t *self) {
-    REQUIRE(self != NULL);
-    REQUIRE(self->data != NULL);
+    REQUIRE(isPointerValid(self));
+    REQUIRE(isPointerValid(self->data));
 
     return (canary_t *)self->data - 1;
 
 }
 
 static canary_t *stack_rightDataCanary(const stack_t *self) {
-    REQUIRE(self != NULL);
-    REQUIRE(self->data != NULL);
+    REQUIRE(isPointerValid(self));
+    REQUIRE(isPointerValid(self->data));
 
     return (canary_t *)(self->data + self->capacity);
 }
@@ -1060,7 +1060,7 @@ static canary_t *stack_rightDataCanary(const stack_t *self) {
 //================================================================================
 
 crc32_t crc32_update(crc32_t value, const char *data, size_t size) {
-    REQUIRE(data != NULL);
+    REQUIRE(isPointerValid(data));
 
     value ^= 0xFFFFFFFF;
 
@@ -1074,7 +1074,7 @@ crc32_t crc32_update(crc32_t value, const char *data, size_t size) {
 }
 
 crc32_t crc32_compute(const char *data, size_t size) {
-    REQUIRE(data != NULL);
+    REQUIRE(isPointerValid(data));
 
     return crc32_update(0, data, size);
 }
