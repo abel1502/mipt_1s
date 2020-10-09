@@ -1135,6 +1135,14 @@ void test_stack(stack_elem_t val1, stack_elem_t val2, stack_elem_t val3) {
     TEST_ASSERT(stack_isEmpty(&stk));
 
     stack_free(&stk);
+
+
+    stack_t *stk2 = stack_new(123);
+
+    TEST_ASSERT(stack_resize(stk2, 8) == 0);
+    TEST_ASSERT(stk2->capacity == 8);
+
+    stack_destroy(stk2);
 }
 #endif // TEST
 
