@@ -1,4 +1,3 @@
-//#define TEST
 #include "../libs/test.h"
 
 #include <stdio.h>
@@ -29,18 +28,18 @@ int main() {
         ,
     )
 
-    stack_t *stk = stack_new(8);
+    /*stack_t *stk = stack_new(8);
 
-    stack_destroy(stk);
+    stack_destroy(stk);*/
 
-    /*stack_t stk = {};
+    stack_t stk = {};
     assert(stack_construct(&stk, 8));
 
     assert(!stack_push(&stk, NAN));
     assert(!stack_push(&stk, 99.9));
     stack_dump(&stk);
 
-    for (size_t i = 0; i < 17; ++i) {
+    /*for (size_t i = 0; i < 17; ++i) {
         assert(!stack_push(&stk, (double)i + 0.99));
         //printf("%zu\n", stk.capacity);
     }
@@ -52,11 +51,12 @@ int main() {
         //printf("%zu\n", stk.capacity);
     }
 
-    stack_dump(&stk);
+    stack_dump(&stk);*/
 
     stk.capacity = 0xFFFFFFFFFFFFL;
+    //stk.capacity = 6;
 
-    stack_free(&stk);*/
+    stack_free(&stk);
 
     return EXIT_SUCCESS;
 }

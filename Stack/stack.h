@@ -1009,9 +1009,21 @@ bool stack_isPoison(const stack_elem_t *item) {
 }
 #endif
 
-#ifdef _WIN32
-// (c) Ded32, TXLib
 bool isPointerValid(const void *ptr) {
+    if (ptr < (const void *)4096) {
+        // || ((size_t)ptr >> (sizeof(ptr) >= 8 ? 42 : 26)) != 0;
+        // On Linux, sometimes the valid memory may occupy the highest possible addresses,
+        // so we can't afford this heuristic check
+
+        return false;
+    }
+
+    // I won't include a unix-specific check, because the only one I could find is extremely
+    // inefficient and requires a non-const pointer
+
+    #ifdef _WIN32
+
+    // (c) Ded32, TXLib
     MEMORY_BASIC_INFORMATION mbi = {};
     if (!VirtualQuery(ptr, &mbi, sizeof (mbi)))
         return false;
@@ -1022,16 +1034,9 @@ bool isPointerValid(const void *ptr) {
     DWORD readRights = PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY;
 
     return (mbi.Protect & readRights) != 0;
-}
-#else
-bool isPointerValid(const void *ptr) {
-    return ptr >= (const void *)4096;
-        // && ((size_t)ptr >> (sizeof(ptr) >= 8 ? 42 : 26)) == 0;
-        // On Linux, sometimes the valid memory may occupy the highest possible addresses,
-        // so we can't afford this heuristic check
-}
-#endif // _WIN32
 
+    #endif // _WIN32
+}
 
 
 
