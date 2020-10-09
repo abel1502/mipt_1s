@@ -140,10 +140,10 @@
         abort();                                                                       \
     } )
 
-#define REQUIRE(stmt)  MACROFUNC(                                                            \
-    if (!(stmt)) {                                                                          \
+#define REQUIRE(stmt)  MACROFUNC(                                                              \
+    if (!(stmt)) {                                                                             \
         fprintf(stderr, "\nRequirement (%s) not met in (%s#%d)\n", #stmt, __FILE__, __LINE__); \
-        abort();                                                                            \
+        abort();                                                                               \
     } )
 
 #else
