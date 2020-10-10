@@ -176,6 +176,8 @@ void logger_close(logger_t *self) {
 }
 
 void logger_blockStart(logger_t *self, block_class_t cls, ...) {  // TODO: attributes through va_args
+                                                                  // Actually, gotta include their amount as well...
+                                                                  // Maybe I'll stick to passing a struct
     REQUIRE(self != NULL);
     REQUIRE(self->file != NULL);
 
