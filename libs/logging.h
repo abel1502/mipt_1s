@@ -28,14 +28,12 @@
 
 //================================================================================
 
-const size_t LOGGER_MAX_BLOCKSTACK_DEPTH = 32;
-
-
 typedef struct logger_s logger_t;
 
 typedef struct block_stack_s_ block_stack_t_;
 
 typedef const char *block_class_t;
+
 
 struct block_stack_s_ {
     size_t size;
@@ -49,15 +47,30 @@ struct logger_s {
 
 //--------------------------------------------------------------------------------
 
+const size_t LOGGER_MAX_BLOCKSTACK_DEPTH = 64;
+
+
+const block_class_t LBC_ROOT = "log";
+const block_class_t LBC_VARDUMP = "var";
+const block_class_t LBC_PTRDUMP = "ptr";
+const block_class_t LBC_ARRDUMP = "arr";
+const block_class_t LBC_STRUCTDUMP = "struct";
+const block_class_t LBC_FIELDDUMP = "fld";
+const block_class_t LBC_COMMENT = "cmnt";
+const block_class_t LBC_ERROR = "err";
+const block_class_t LBC_WARNING = "warn";
+
+//--------------------------------------------------------------------------------
+
 logger_t *logger_open(logger_t *self, const char *fileName);
 
 void logger_flush(logger_t *self);
 
 void logger_close(logger_t *self);
 
-//void logger_blockStart(logger_t *self, block_class_t cls, ...);
+void logger_blockStart(logger_t *self, block_class_t cls, ...);
 
-//void logger_blockEnd(logger_t *self);
+void logger_blockEnd(logger_t *self);
 
 void logger_write_(logger_t *self, const char *value);
 
@@ -135,7 +148,7 @@ logger_t *logger_open(logger_t *self, const char *fileName) {
 
     block_stack_construct_(&self->blockStack);
 
-    //logger_blockStart(self, LBC_LOG);
+    logger_blockStart(self, LBC_ROOT);
 
     return self;
 }
@@ -151,7 +164,8 @@ void logger_close(logger_t *self) {
     REQUIRE(self != NULL);
     REQUIRE(self->file != NULL);
 
-    //logger_blockEnd(self);
+    logger_blockEnd(self);
+    logger_write_(self, "\n");
 
     if (self->file != stdout && self->file != stderr)
         fclose(self->file);
@@ -161,9 +175,24 @@ void logger_close(logger_t *self) {
     block_stack_free_(&self->blockStack);
 }
 
-//void logger_blockStart(logger_t *self, block_class_t cls, ...);
+void logger_blockStart(logger_t *self, block_class_t cls, ...) {  // TODO: attributes through va_args
+    REQUIRE(self != NULL);
+    REQUIRE(self->file != NULL);
 
-//void logger_blockEnd(logger_t *self);
+    block_stack_push_(&self->blockStack, cls);
+
+    logger_writef_(self, "<%s", cls);
+
+    logger_write_(self, ">");
+}
+
+void logger_blockEnd(logger_t *self) {
+    REQUIRE(self != NULL);
+    REQUIRE(self->file != NULL);
+    REQUIRE(self->blockStack.size > 0);
+
+    logger_writef_(self, "</%s>", block_stack_pop_(&self->blockStack));
+}
 
 void logger_write_(logger_t *self, const char *value) {
     REQUIRE(self != NULL);
