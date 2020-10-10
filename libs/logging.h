@@ -61,6 +61,8 @@ void logger_close(logger_t *self);
 
 void logger_write_(logger_t *self, const char *value);
 
+void logger_writef_(logger_t *self, const char *format, ...);
+
 void logger_log(logger_t *self, const char *value);
 
 void logger_logf(logger_t *self, const char *format, ...);
@@ -171,6 +173,31 @@ void logger_write_(logger_t *self, const char *value) {
     REQUIRE(fputs(value, self->file) != EOF);
 
     logger_flush(self);
+}
+
+void logger_writef_(logger_t *self, const char *format, ...) {
+    REQUIRE(self != NULL);
+    REQUIRE(self->file != NULL);
+    REQUIRE(format != NULL);
+
+    va_list args = {};
+    va_start(args, format);
+
+    int requiredSize = vsnprintf(NULL, 0, format, args);
+
+    va_end(args);
+
+    char *buf = (char *)calloc(requiredSize + 1, sizeof(char));
+
+    va_start(args, format);
+
+    vsprintf(buf, format, args);
+
+    va_end(args);
+
+    logger_write_(self, buf);
+
+    free(buf);
 }
 
 void logger_log(logger_t *self, const char *value) {
