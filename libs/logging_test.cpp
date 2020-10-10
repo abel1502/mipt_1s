@@ -7,7 +7,7 @@ int main() {
     logger_open(&logger, NULL);
 
     logger_log(&logger, "Test\n");
-    logger_log(&logger, "Did you know that 1 < 2?\n");
+    logger_log(&logger, "Did you know that '1' < \"2\"?\n");
 
     logger_close(&logger);
 

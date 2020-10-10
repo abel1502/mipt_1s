@@ -180,17 +180,27 @@ void logger_log(logger_t *self, const char *value) {
 
     int res = 0;
 
+    #define ESCAPE_CHAR_(symbol, name) case symbol: res |= fputs("&" #name ";", self->file); break;
+
     while (*value != '\0') {
-        if (*value == '<') {
-            res |= fputs("&lt;", self->file);
-        } else if (*value == '>') {
-            res |= fputs("&gt;", self->file);
-        } else {
+        switch (*value) {
+            ESCAPE_CHAR_('&',  amp)
+            ESCAPE_CHAR_('<',  lt)
+            ESCAPE_CHAR_('>',  gt)
+            ESCAPE_CHAR_('\'', apos)
+            ESCAPE_CHAR_('\"', quot)
+        case '\n':
+            res |= fputs("<br>", self->file);
+            break;
+        default:
             res |= fputc(*value, self->file);
+            break;
         }
 
         ++value;
     }
+
+    #undef ESCAPE_CHAR_
 
     REQUIRE(res > 0 /* File output failed */ );
 
