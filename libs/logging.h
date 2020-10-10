@@ -202,7 +202,7 @@ void logger_log(logger_t *self, const char *value) {
 
     #undef ESCAPE_CHAR_
 
-    REQUIRE(res > 0 /* File output failed */ );
+    REQUIRE(res >= 0 /* File output failed */ );
 
     logger_flush(self);
 }
