@@ -33,7 +33,9 @@
 #include <signal.h>
 
 
+#ifndef MACROFUNC
 #define MACROFUNC(...) do {__VA_ARGS__} while (0)
+#endif
 
 
 static jmp_buf __test_env;
