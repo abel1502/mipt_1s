@@ -1,0 +1,90 @@
+# depslib dependency file v1.0
+1602710406 source:d:\workspace\.mipt\s1\softproc\assembler.cpp
+	<stdio.h>
+	<stdlib.h>
+	<assert.h>
+	"constants.h"
+	"aef_file.h"
+
+1602749082 d:\workspace\.mipt\s1\softproc\aef_file.h
+	<stdint.h>
+	<stdio.h>
+	"../libs/checksum.h"
+	"version.h"
+
+1602710364 d:\workspace\.mipt\s1\libs\checksum.h
+	<stdint.h>
+	<string.h>
+
+1602705988 d:\workspace\.mipt\s1\softproc\version.h
+	<stdint.h>
+
+1602749094 d:\workspace\.mipt\s1\softproc\constants.h
+	"version.h"
+
+1602704042 d:\workspace\.mipt\s1\softproc\program.h
+	"constants.h"
+	"aef_file.h"
+	"../Stack/stack.h"
+
+1602668584 d:\workspace\.mipt\s1\stack\stack.h
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+	"../libs/checksum.h"
+	<windows.h>
+
+1602704190 source:d:\workspace\.mipt\s1\softproc\aef_file.c
+
+1602710297 source:d:\workspace\.mipt\s1\softproc\aef_file.cpp
+	<assert.h>
+	"aef_file.h"
+	"constants.h"
+
+1597268777 d:\workspace\.mipt\txlib\tx\txlib.h
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+	<time.h>
+	<math.h>
+	<float.h>
+	<vector>
+	<string>
+	<iostream>
+	<sstream>
+	<iomanip>
+	<conio.h>
+	<direct.h>
+	<windows.h>
+	<mmsystem.h>
+	<stdarg.h>
+	<io.h>
+	<fcntl.h>
+	<process.h>
+	<signal.h>
+	<setjmp.h>
+	<locale.h>
+	<limits.h>
+	<stdint.h>
+	<map>
+	<numeric>
+	<algorithm>
+	<exception>
+	<stdexcept>
+	<tlhelp32.h>
+	<shellapi.h>
+	<shlobj.h>
+	<cxxabi.h>
+	<unwind.h>
+	<stdarg.h>
+	<unistd.h>
+	<termios.h>
+	<new.h>
+	<shlobj.h>
+	<ntstatus.h>
+	<crtdbg.h>
+	<rtcapi.h>
+	<dbghelp.h>
+	<inttypes.h>
+	<SAPI.h>
+
