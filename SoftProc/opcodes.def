@@ -1,0 +1,22 @@
+0x00 : nop  (0)
+
+0x01 : push (1)
+0x02 : pop  (1)
+0x03 : pop0 (0)
+
+0x08 : add  (0)
+0x09 : sub  (0)
+0x0A : mul  (0)
+0x0B : div  (0)
+0x0C : sqr  (0)
+0x0D : sqrt (0)
+# 0x0E : pow  (0)
+
+# Arguments prove not only destination, but also type:
+# they can, essentially, say "in stack.df" -
+# and that would mean "read a double and put it on the stack
+0x18 : in   (1)
+0x19 : out  (1)
+
+
+0xF0 : end  (0)
