@@ -12,9 +12,9 @@
 0x0D : sqrt (0)
 # 0x0E : pow  (0)
 
-# Arguments prove not only destination, but also type:
+# Arguments provide not only destination, but also type:
 # they can, essentially, say "in stack.df" -
-# and that would mean "read a double and put it on the stack
+# and that would mean "read a double and put it on the stack"
 0x18 : in   (1)
 0x19 : out  (1)
 
