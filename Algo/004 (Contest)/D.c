@@ -82,7 +82,7 @@ void heap_top(heap_t *self, heap_item_t *value);
 
 void heap_pop(heap_t *self, heap_item_t *value);
 
-void heap_decreaseKey(heap_t *self, )
+void heap_decreaseKey(heap_t *self, size_t ind, heap_item_t delta);
 
 static void heap_swap(heap_t *self, size_t a, size_t b);
 
@@ -104,7 +104,7 @@ int main() {
 
     heap_t *heap = heap_new(q);
 
-    size_t *elemLookup = (size_t *)calloc(q, sizeof(heap_item_t));
+    size_t *elemLookup = (size_t *)calloc(q, sizeof(size_t));
 
     for (unsigned i = 0; i < q; ++i) {
         char cmd[MAX_CMD_LEN];
@@ -128,8 +128,11 @@ int main() {
         } else if (strcmp(cmd, "extractMin") == 0) {
             heap_pop(heap, NULL);
         } else if (strcmp(cmd, "decreaseKey") == 0) {
-            res = scanf("%i", &arg);
-            assert(res == 1);
+            unsigned ind = 0, delta = 0;
+            res = scanf("%u %u", &ind, &delta);
+            assert(res == 2);
+
+            heap_decreaseKey(heap, elemLookup[ind], delta);
         #ifdef ALGO_LOCAL
         } else if (strcmp(cmd, "dump") == 0) {
             heap_dump(heap);
