@@ -39,7 +39,7 @@ bool aef_mmap_read(aef_mmap_t *self, FILE *ifile) {
         return true;
     }
 
-    self->code = (char *)calloc(self->header.codeSize, sizeof(char));
+    self->code = (char *)calloc(self->header.codeSize, sizeof(self->code[0]));
 
     if (self->code == NULL) {
         return true;
@@ -47,7 +47,7 @@ bool aef_mmap_read(aef_mmap_t *self, FILE *ifile) {
 
     self->codeOnHeap = true;
 
-    res = fread(self->code, 1, self->header.codeSize, ifile);
+    res = fread(self->code, sizeof(self->code[0]), self->header.codeSize, ifile);
 
     if (res != self->header.codeSize) {
         return true;
@@ -77,7 +77,7 @@ bool aef_mmap_write(aef_mmap_t *self, FILE *ofile) {
         return true;
     }
 
-    res = fwrite(self->code, 1, self->header.codeSize, ofile);
+    res = fwrite(self->code, sizeof(self->code[0]), self->header.codeSize, ofile);
 
     if (res != self->header.codeSize) {
         return true;

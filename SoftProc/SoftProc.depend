@@ -1,12 +1,13 @@
 # depslib dependency file v1.0
-1602710406 source:d:\workspace\.mipt\s1\softproc\assembler.cpp
+1602749865 source:d:\workspace\.mipt\s1\softproc\assembler.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
 	"constants.h"
 	"aef_file.h"
+	"assembler.h"
 
-1602749082 d:\workspace\.mipt\s1\softproc\aef_file.h
+1602749836 d:\workspace\.mipt\s1\softproc\aef_file.h
 	<stdint.h>
 	<stdio.h>
 	"../libs/checksum.h"
@@ -36,7 +37,7 @@
 
 1602704190 source:d:\workspace\.mipt\s1\softproc\aef_file.c
 
-1602710297 source:d:\workspace\.mipt\s1\softproc\aef_file.cpp
+1602749819 source:d:\workspace\.mipt\s1\softproc\aef_file.cpp
 	<assert.h>
 	"aef_file.h"
 	"constants.h"
@@ -87,4 +88,11 @@
 	<dbghelp.h>
 	<inttypes.h>
 	<SAPI.h>
+
+1602746396 d:\workspace\.mipt\s1\softproc\assembler.h
+	"opcodes.h"
+	"aef_file.h"
+
+1602765778 d:\workspace\.mipt\s1\softproc\opcodes.h
+	<stdint.h>
 
