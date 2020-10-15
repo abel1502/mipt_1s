@@ -5,6 +5,8 @@
 #include "constants.h"
 #include "aef_file.h"
 
+#include "assembler.h"
+
 //#include "program.h"
 
 
