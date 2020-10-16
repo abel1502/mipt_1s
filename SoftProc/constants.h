@@ -9,6 +9,6 @@ const version_t AEF_VERSION = 0;
 // #pragma GCC diagnostic ignored "-Wmultichar"
 const uint32_t AEF_MAGIC = '\nFEA';  // Abel Executable Format
 
-const size_t GENERAL_REG_CNT = 8;
+const size_t GENERAL_REG_CNT = 4;
 
 #endif // CONSTANTS_H_GUARD

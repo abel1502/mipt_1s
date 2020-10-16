@@ -1,5 +1,6 @@
 import argparse
 from collections import deque
+from functools import reduce
 
 
 CCodeTpl = """
@@ -14,6 +15,38 @@ CCodeTpl = """
 
 #include <stdint.h>
 
+
+typedef union value_u {{
+    int64_t qw;
+    double df;
+
+    struct {{
+        float fl;
+        float fh;
+    }};
+
+    struct {{
+        union {{
+            int32_t dwl;
+
+            struct {{
+                union {{
+                    int16_t wl;
+
+                    struct {{
+                        char bl;
+                        char bh;
+                    }};
+                }};
+
+                int16_t wh;
+            }};
+        }};
+
+        int32_t dwh;
+    }};
+}} value_t;
+
 //typedef uint8_t opcode_t;
 typedef enum opcode_e {{
     {opcodes}
@@ -22,16 +55,34 @@ typedef enum opcode_e {{
 static_assert(sizeof(opcode_t) == 1);
 
 
-const char *OPNAMES[256] = {{
+static const char *OPNAMES[256] = {{
     {opnames}
 }};
 
-unsigned char OPARGS[256] = {{
+
+static const uint64_t OPARG_BITMASK {{
     {opargs}
 }};
 
 #endif // OPCODE_H_GUARD
 """.lstrip()
+
+"""
+static unsigned char OPARGS[256][4] = {{
+//static uint32_t OPARGS[256] = {{
+    {opargs}
+}};
+"""
+
+
+# Opcode structure:
+# [--------] ([--][----][--] arg)*
+# ^~~ Opcode's numeric code
+#            ^~~ Opcode arguments (fixed number for every instruction)
+#             ^~~ Location (immediate/stack/register)
+#                 ^~~ Type (double float, float low, float high, double word low, double word high, etc...)
+#                       ^~~ Register number, for "reg" type
+#                            ^~~ The argument itself
 
 
 verbosity = 0
@@ -40,6 +91,30 @@ verbosity = 0
 def log(*args, level=1, **kwargs):
     if level <= verbosity:
         print("[DBG]", *args, **kwargs)
+
+
+class AddressingMode(object):
+    locs = {"imm": 0b00, "stack": 0b01, "reg": 0b10}
+    types = {'df' : 0b0100, 
+             'fl' : 0b0010, 
+             'fh' : 0b0011, 
+             'qw' : 0b1110, 
+             'dwl': 0b1100, 
+             'dwh': 0b1101,
+             'wl' : 0b1010,
+             'wh' : 0b1011, 
+             'bl' : 0b1000, 
+             'bh' : 0b1001}
+    
+    def __init__(self, type, loc):
+        assert type in self.types
+        assert loc in self.locs
+        
+        self.type = type
+        self.loc = loc
+    
+    def encode(self):
+        return self.locs[self.loc] << 6 | self.types[self.type] << 2
 
 
 class OpcodeDefParser(object):
@@ -85,24 +160,57 @@ class OpcodeDefParser(object):
         except ValueError:
             opnum = int(opnum, 10)
         
-        opname, attrs = line.split("(", 1);
-        opname = opname.strip()
-        attrs = attrs.strip()
-        
-        assert attrs.endswith(")")
-        attrs = attrs[:-1]
-        
-        attrs = attrs.split(',')  # For the future
-        
-        assert len(attrs) == 1
-        
         assert opnum not in self.opcodes
-        self.opcodes[opnum] = (opname, attrs)
+        
+        opname, arg = line.split("(", 1);
+        opname = opname.strip()
+        arg = arg.strip()
+        
+        assert arg.endswith(")")
+        arg = arg[:-1]
+        
+        #args = args.split(';')  # For the future
+        #assert len(args) == 1
+        #for i in range(len(args)):
+        #    args[i] = self.parseArg(args[i])
+        
+        self.opcodes[opnum] = (opname, self.parseArg(arg))
+    
+    def parseArg(self, arg):
+        if arg.strip() == '':
+            return []
+        
+        types, locs = arg.split(':')
+        
+        types = types.strip().split(',')
+        locs = locs.strip().split(',')
+        
+        assert len(types) * len(locs) <= 4  # For simplicity, I guess
+        
+        argmodes = []
+        
+        for type in types:
+            for loc in locs:
+                argmodes.append(AddressingMode(type, loc))
+        
+        return argmodes
     
     def genCCode(self):
         opnames = ',\n    '.join(("{name}".format(name=f'"{self.opcodes[ind][0]}"' if ind in self.opcodes else "NULL") for ind in range(256)));
         
-        opargs  = ', '.join(("{argcnt}".format(argcnt=self.opcodes[ind][1][0] if ind in self.opcodes else "0") for ind in range(256)));
+        #opargs = ',\n    '.join(["{{{}}}".format(
+        #        ', '.join(["0b{argtype:08b}".format(argtype=self.opcodes[ind][1][typeind].encode()) if ind in self.opcodes else "" for typeind in range(len(self.opcodes[ind][1]))])
+        #    ) for ind in range(256)])
+        
+        opargs = []
+        
+        for ind in range(256):
+            if ind not in self.opcodes:
+                opargs.append('0x{:016x}'.format(0))
+                continue
+            opargs.append('0x{:016x}'.format(reduce(lambda x, y: x | y.encode() >> 2, self.opcodes[ind][1], 0)))
+        
+        opargs = ',\n    '.join(opargs)
         
         padLength = max(map(lambda x: len(self.opcodes[x][0]), self.opcodes))
         #opcodes = '\n'.join(("const opcode_t OP_{name} = 0x{ind:02x};".format(name=self.opcodes[ind][0].upper(), ind=ind) for ind in self.opcodes));

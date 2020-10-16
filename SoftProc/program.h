@@ -2,46 +2,14 @@
 #define PROCESSOR_H_GUARD
 
 #include "constants.h"
+#include "opcodes.h"
 #include "aef_file.h"
 
 
 typedef struct program_s program_t;
 
-typedef union value_u value_t;
-
 typedef struct flag_regs_s flag_regs_t;
 
-
-union value_u {
-    int64_t qw;
-    double df;
-
-    struct {
-        float fl;
-        float fh;
-    };
-
-    struct {
-        union {
-            int32_t dwl;
-
-            struct {
-                union {
-                    int16_t wl;
-
-                    struct {
-                        char bl;
-                        char bh;
-                    };
-                };
-
-                int16_t wh;
-            };
-        };
-
-        int32_t dwh;
-    };
-};
 
 /*struct flag_regs_s {
     char f0 : 1;
