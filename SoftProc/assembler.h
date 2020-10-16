@@ -17,11 +17,15 @@ struct code_s {
 
 code_t *code_init(code_t *self);
 
-code_size_t code_assembleLine(code_t *self, const char *line);
+bool code_writeRaw_(code_t *self, const char *data, code_size_t amount);
+
+bool code_assembleLine(code_t *self, const char *line);
 
 bool code_assembleFile(code_t *self, FILE *ifile);  // TODO: copy Onegin's abstractions
 
-bool code_write(code_t *self, FILE *ofile);
+bool code_compileToFile(code_t *self, FILE *ofile);
+
+bool code_resize(code_t *self, code_size_t capacity);
 
 void code_free(code_t *self);
 

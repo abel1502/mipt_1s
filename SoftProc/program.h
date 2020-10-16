@@ -45,7 +45,13 @@ struct program_s {
 };
 
 
+bool program_read(program_t *self, FILE *ifile);
 
+bool program_executeOpcode(program_t *self);
+
+bool program_execute(program_t *self);
+
+void program_free(program_t *self);
 
 
 #endif // PROCESSOR_H_GUARD
