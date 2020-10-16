@@ -210,6 +210,25 @@ class OpcodeDefParser(object):
         
         return argmodes
     
+    def genCList(self, title, items, oneLine=False, compact=False, pad=True):
+        assert isinstance(items, dict if compact else (list, tusple))
+        
+        data = []
+        
+        if compact:
+            padding = max(map(lambda x: len(str(x)), items))
+            
+            for key, value in items.items():
+                data.append("[{key}] = {value}".format(key=key.ljust(padding), value=value))
+        else:
+            for value in items:
+                data.append("{value}".format(value=value))
+        
+        sep = ", " if oneLine else ",\n    "
+        data = sep.join(data)
+        
+        return "{title} {{{initialPad}{data}{terminalPad}}};".format(title=title, initialPad=("\n    " if items and not oneLine else " " if items else ""), terminalPad=("\n" if items and not oneLine else " " if items else ""), data=data)
+    
     def genCCode(self):
         opnames = ',\n    '.join(("{name}".format(name=f'"{self.opcodes[ind][0]}"' if ind in self.opcodes else "NULL") for ind in range(256)))
         
@@ -242,6 +261,10 @@ class OpcodeDefParser(object):
 
 
 if __name__ == "__main__":
+    #parser = OpcodeDefParser()
+    #print(parser.genCList("static const char *OPNAMES[256] = ", {"OP_PUSH": "\"push\"", "OP_POP": "\"pop\""}, compact=True))
+    #exit()
+    
     argParser = argparse.ArgumentParser()
     argParser.add_argument('-i', '--ifile', help='Input .def file name', default="opcodes.def")
     argParser.add_argument('-o', '--ofile', help='Output .h file name', default="opcodes.h")
