@@ -12,19 +12,6 @@
 const code_size_t CODE_DEFAULT_CAPACITY = 0x20;
 const code_size_t CODE_MAX_CAPACITY = 0x7fff0000;
 
-/*const char *ARG_TYPES[] {
-    "qw",
-    "df",
-    "fl",
-    "fh",
-    "dwl",
-    "wl",
-    "bl",
-    "bh",
-    "wh",
-    "dwh"
-};*/  // TODO: Add during further development
-
 
 static bool readUntil_(const char **source, char *dest, char until, size_t limit);
 
@@ -118,7 +105,7 @@ bool code_assembleLine(code_t *self, const char *line) {
 
     unsigned char addrMode = 0;
 
-    #define ARGTYPE_CASE_(name, value) if (strcmp(argType, name) == 0) { addrMode |= value << 4; } else
+    #define ARGTYPE_CASE_(name, value)  if (strcmp(argType, name) == 0) { addrMode |= value << 4; } else
 
     ARGTYPE_CASE_("df",  ARGTYPE_DF)
     ARGTYPE_CASE_("fl",  ARGTYPE_FL)
@@ -163,12 +150,73 @@ bool code_assembleLine(code_t *self, const char *line) {
 
         code_writeRaw_(self, (const char *)&addrMode, 1);
 
-        switch ((addrMode >> 4) & 0x1111) {
-            // TODO
+        char opArg[sizeof(value_t)] = "";
+        code_size_t opArgSize = 0;
+
+        int lineDelta = 0;
+        int res = 0;
+
+        #define ARGTYPE_CASE_(type, format)                                  \
+                res = sscanf(line, format "%n", (type *)&opArg, &lineDelta); \
+                                                                             \
+                if (res != 1) {                                              \
+                    ERR("Corrupt immediate value: <%s>", line);              \
+                    return true;                                             \
+                }                                                            \
+                                                                             \
+                line += lineDelta;                                           \
+                opArgSize = sizeof(type);                                    \
+                                                                             \
+                break;
+
+        #define ARGTYPE_CASE_SIGN_(utype, stype, format)                           \
+                if (*line == 'u') {                                                \
+                    line++;                                                        \
+                    res = sscanf(line, format "u%n", (utype *)&opArg, &lineDelta); \
+                } else if (*line == 'i') {                                         \
+                    line++;                                                        \
+                    res = sscanf(line, format "d%n", (stype *)&opArg, &lineDelta); \
+                } else {                                                           \
+                    res = sscanf(line, format "d%n", (stype *)&opArg, &lineDelta); \
+                }                                                                  \
+                                                                                   \
+                if (res != 1) {                                                    \
+                    ERR("Corrupt immediate value: <%s>", line);                    \
+                    return true;                                                   \
+                }                                                                  \
+                                                                                   \
+                line += lineDelta;                                                 \
+                opArgSize = sizeof(utype);                                         \
+                                                                                   \
+                break;
+
+        switch ((addrMode >> 4) & 0b1111) {
+            // ARGTYPE_DF ARGTYPE_FL ARGTYPE_FH ARGTYPE_QW ARGTYPE_DWL ARGTYPE_DWH ARGTYPE_WL ARGTYPE_WH ARGTYPE_BL ARGTYPE_BH
+        case ARGTYPE_DF:
+            ARGTYPE_CASE_(double, "%lg")
+        case ARGTYPE_FL:
+        case ARGTYPE_FH:
+            ARGTYPE_CASE_(float, "%g")
+        case ARGTYPE_QW:
+            ARGTYPE_CASE_SIGN_(uint64_t, int64_t, "%ll")
+        case ARGTYPE_DWL:
+        case ARGTYPE_DWH:
+            ARGTYPE_CASE_SIGN_(uint32_t, int32_t, "%")
+        case ARGTYPE_WL:
+        case ARGTYPE_WH:
+            ARGTYPE_CASE_SIGN_(uint16_t, int16_t, "%h")
+        case ARGTYPE_BL:
+        case ARGTYPE_BH:
+            ARGTYPE_CASE_SIGN_(uint8_t, int8_t, "%hh")
         default:
             ERR("Cannot handle constants of <%s> type", argType);
             return true;
         }
+
+        #undef ARGTYPE_CASE_SIGN_
+        #undef ARGTYPE_CASE_
+
+        code_writeRaw_(self, opArg, opArgSize);
     }
 
     if (*line != '\0' && !isspace(*line)) {
