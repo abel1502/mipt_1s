@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdarg.h>
 
 #include "general.h"
 #include "assembler.h"
@@ -16,7 +17,7 @@ const code_size_t CODE_MAX_CAPACITY = 0x7fff0000;
 static bool readUntil_(const char **source, char *dest, char until, size_t limit);
 
 
-code_t *code_init(code_t *self) {
+code_t *code_init(code_t *self, bool doLog) {
     self->capacity = CODE_DEFAULT_CAPACITY;
 
     self->buf = (char *)calloc(self->capacity, sizeof(self->buf[0]));
@@ -26,6 +27,8 @@ code_t *code_init(code_t *self) {
     }
 
     self->size = 0;
+
+    self->doLog = doLog;
 
     return self;
 }
@@ -61,6 +64,8 @@ bool code_assembleLine(code_t *self, const char *line) {
 
     SKIP_SPACE_();
 
+    code_log(self, "[ASM] \"%s\"\n-> 0x%04x | ", line, self->size);
+
     int curOpcode = -1;
 
     for (int i = 0; i < 256; ++i) {
@@ -85,13 +90,20 @@ bool code_assembleLine(code_t *self, const char *line) {
 
     SKIP_SPACE_();
 
-    code_writeRaw_(self, (const char *)&op, 1);
+    code_log(self, "%02x ", op);
+
+    if (code_writeRaw_(self, (const char *)&op, 1)) {
+        ERR("Couldn't write to file");
+        return true;
+    }
 
     if (*line == '\0') {
         if (OPARG_BITMASK[op] != 0) {
             ERR("Expected an argument for op #%02x", op);
             return true;
         }
+
+        code_log(self, "\n\n");
 
         return false;
     }
@@ -127,6 +139,8 @@ bool code_assembleLine(code_t *self, const char *line) {
     if (*line == '\0' || *line == ' ' || strncmp(line, "stack", 5) == 0) {
         addrMode |= ARGLOC_STACK << 2;
 
+        code_log(self, "%02x ", addrMode);
+
         code_writeRaw_(self, (const char *)&addrMode, 1);
 
         while (*line != '\0' && !isspace(*line)) ++line;
@@ -142,13 +156,22 @@ bool code_assembleLine(code_t *self, const char *line) {
 
         addrMode |= (*line - 'a') & 0b11;
 
-        code_writeRaw_(self, (const char *)&addrMode, 1);
+        code_log(self, "%02x ", addrMode);
 
+        if (code_writeRaw_(self, (const char *)&addrMode, 1)) {
+            ERR("Couldn't write to file");
+            return true;
+        }
         line++;
     } else {
         addrMode |= ARGLOC_IMM << 2;
 
-        code_writeRaw_(self, (const char *)&addrMode, 1);
+        code_log(self, "%02x ", addrMode);
+
+        if (code_writeRaw_(self, (const char *)&addrMode, 1)) {
+            ERR("Couldn't write to file");
+            return true;
+        }
 
         char opArg[sizeof(value_t)] = "";
         code_size_t opArgSize = 0;
@@ -216,8 +239,17 @@ bool code_assembleLine(code_t *self, const char *line) {
         #undef ARGTYPE_CASE_SIGN_
         #undef ARGTYPE_CASE_
 
-        code_writeRaw_(self, opArg, opArgSize);
+        for (size_t i = 0; i < opArgSize; ++i) {
+            code_log(self, "%02x ", opArg[i]);
+        }
+
+        if (code_writeRaw_(self, opArg, opArgSize))  {
+            ERR("Couldn't write to file");
+            return true;
+        }
     }
+
+    code_log(self, "\n\n");
 
     if (*line != '\0' && !isspace(*line)) {
         ERR("Garbage after argument: <%s>", line);
@@ -244,6 +276,8 @@ bool code_compileToFile(code_t *self, FILE *ofile) {
 
     aef_mmap_t mmap = {};
     aef_mmap_init(&mmap, self->size, self->buf);
+
+    code_log(self, "[ASM] Total size: 0x%04x\n\n", self->size);
 
     if (aef_mmap_write(&mmap, ofile)) {
         ERR("Couldn't write compiled bytecode to file");
@@ -304,5 +338,23 @@ bool readUntil_(const char **source, char *dest, char until, size_t limit) {
     }
 
     return true;
+}
+
+
+void code_log(code_t *self, const char *fmt, ...) {
+    assert(self != NULL);
+    assert(fmt != NULL);
+
+    if (!self->doLog) {
+        return;
+    }
+
+    va_list args;
+
+    va_start(args, fmt);
+
+    vprintf(fmt, args);
+
+    va_end(args);
 }
 

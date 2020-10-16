@@ -9,7 +9,7 @@
 
 int main(int argc, char **argv) {
     code_t testCode = {};
-    code_init(&testCode);
+    code_init(&testCode, true);
 
     //code_assembleLine(&testCode, "push df:123");
     //code_assembleLine(&testCode, "push df:32");
