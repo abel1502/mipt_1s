@@ -133,8 +133,6 @@ bool code_assembleLine(code_t *self, const char *line) {
     } else if (*line == 'r') {
         addrMode |= ARGLOC_REG << 2;
 
-        code_writeRaw_(self, (const char *)&addrMode, 1);
-
         line++;
 
         if (!('a' <= *line && *line <= 'a' + GENERAL_REG_CNT)) {
@@ -143,6 +141,8 @@ bool code_assembleLine(code_t *self, const char *line) {
         }
 
         addrMode |= (*line - 'a') & 0b11;
+
+        code_writeRaw_(self, (const char *)&addrMode, 1);
 
         line++;
     } else {
