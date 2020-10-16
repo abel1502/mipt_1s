@@ -60,11 +60,13 @@ bool code_assembleLine(code_t *self, const char *line) {
     assert(self->buf != NULL);
     assert(line != NULL);
 
+    const char *origLine = line;
+
     #define SKIP_SPACE_() while (*line != '\0' && isspace(*line)) line++;
 
     SKIP_SPACE_();
 
-    code_log(self, "[ASM] \"%s\"\n-> 0x%04x | ", line, self->size);
+    code_log(self, "[ASM] | 0x%04x | ", self->size);
 
     int curOpcode = -1;
 
@@ -103,7 +105,7 @@ bool code_assembleLine(code_t *self, const char *line) {
             return true;
         }
 
-        code_log(self, "\n\n");
+        code_log(self, "                           |            | \"%s\"\n", origLine);
 
         return false;
     }
@@ -139,7 +141,7 @@ bool code_assembleLine(code_t *self, const char *line) {
     if (*line == '\0' || *line == ' ' || strncmp(line, "stack", 5) == 0) {
         addrMode |= ARGLOC_STACK << 2;
 
-        code_log(self, "%02x ", addrMode);
+        code_log(self, "%02x                         ", addrMode);
 
         code_writeRaw_(self, (const char *)&addrMode, 1);
 
@@ -156,7 +158,7 @@ bool code_assembleLine(code_t *self, const char *line) {
 
         addrMode |= (*line - 'a') & 0b11;
 
-        code_log(self, "%02x ", addrMode);
+        code_log(self, "%02x                         ", addrMode);
 
         if (code_writeRaw_(self, (const char *)&addrMode, 1)) {
             ERR("Couldn't write to file");
@@ -239,8 +241,12 @@ bool code_assembleLine(code_t *self, const char *line) {
         #undef ARGTYPE_CASE_SIGN_
         #undef ARGTYPE_CASE_
 
-        for (size_t i = 0; i < opArgSize; ++i) {
-            code_log(self, "%02x ", opArg[i]);
+        for (size_t i = 0; i < sizeof(value_t); ++i) {
+            if (i < self->size) {
+                code_log(self, "%02x ", opArg[i]);
+            } else {
+                code_log(self, "   ");
+            }
         }
 
         if (code_writeRaw_(self, opArg, opArgSize))  {
@@ -249,7 +255,7 @@ bool code_assembleLine(code_t *self, const char *line) {
         }
     }
 
-    code_log(self, "\n\n");
+    code_log(self, "| %u%u%u%u %u%u %u%u | \"%s\"\n", addrMode >> 7 & 1, addrMode >> 6 & 1, addrMode >> 5 & 1, addrMode >> 4 & 1, addrMode >> 3 & 1, addrMode >> 2 & 1, addrMode >> 1 & 1, addrMode >> 0 & 1, origLine);
 
     if (*line != '\0' && !isspace(*line)) {
         ERR("Garbage after argument: <%s>", line);

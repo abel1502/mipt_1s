@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
     //code_assembleLine(&testCode, "push df:32");
     assert(!code_assembleLine(&testCode, "in df:"));
     assert(!code_assembleLine(&testCode, "in df:"));
-    assert(!code_assembleLine(&testCode, "sub df:stack"));
+    assert(!code_assembleLine(&testCode, "sub df:"));
     assert(!code_assembleLine(&testCode, "push df:10"));
     assert(!code_assembleLine(&testCode, "out df:"));
     assert(!code_assembleLine(&testCode, "in df:rb"));
