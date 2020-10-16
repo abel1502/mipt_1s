@@ -24,26 +24,20 @@ typedef union value_u {{
         float fl;
         float fh;
     }};
+    
+    struct {{
+        uint32_t dwl;
+        uint32_t dwh;
+    }};
+    
+    struct {{
+        uint16_t wl;
+        uint16_t wh;
+    }};
 
     struct {{
-        union {{
-            int32_t dwl;
-
-            struct {{
-                union {{
-                    int16_t wl;
-
-                    struct {{
-                        char bl;
-                        char bh;
-                    }};
-                }};
-
-                int16_t wh;
-            }};
-        }};
-
-        int32_t dwh;
+        uint8_t bl;
+        uint8_t bh;
     }};
 }} value_t;
 
@@ -58,36 +52,28 @@ static_assert(sizeof(opcode_t) == 1);
 
 typedef enum argType_e {{
     {argTypes}
-}} __attribute__((__packed__)) addrType_t;
+}} __attribute__((__packed__)) argType_t;
 
-static_assert(sizeof(addrType_t) == 1);
+static_assert(sizeof(argType_t) == 1);
 
 
 typedef enum argLoc_e {{
     {argLocs}
-}} __attribute__((__packed__)) addrLoc_t;
+}} __attribute__((__packed__)) argLoc_t;
 
-static_assert(sizeof(addrLoc_t) == 1);
+static_assert(sizeof(argLoc_t) == 1);
 
 
-static const char *OPNAMES[256] = {{
-    {opnames}
-}};
+{opnames}
 
 
 static const uint64_t OPARG_BITMASK[256] {{
     {opargs}
 }};
 
+
 #endif // OPCODE_H_GUARD
 """.lstrip()
-
-"""
-static unsigned char OPARGS[256][4] = {{
-//static uint32_t OPARGS[256] = {{
-    {opargs}
-}};
-"""
 
 
 # Opcode structure:
@@ -211,12 +197,14 @@ class OpcodeDefParser(object):
         return argmodes
     
     def genCList(self, title, items, oneLine=False, compact=False, pad=True):
-        assert isinstance(items, dict if compact else (list, tusple))
+        assert not compact  # apparently, designated initializers don't work in c++ by the standard...
+        
+        assert isinstance(items, dict if compact else (list, tuple))
         
         data = []
         
         if compact:
-            padding = max(map(lambda x: len(str(x)), items))
+            padding = max(max(map(lambda x: len(str(x)), items)), pad)
             
             for key, value in items.items():
                 data.append("[{key}] = {value}".format(key=key.ljust(padding), value=value))
@@ -230,7 +218,11 @@ class OpcodeDefParser(object):
         return "{title} {{{initialPad}{data}{terminalPad}}};".format(title=title, initialPad=("\n    " if items and not oneLine else " " if items else ""), terminalPad=("\n" if items and not oneLine else " " if items else ""), data=data)
     
     def genCCode(self):
-        opnames = ',\n    '.join(("{name}".format(name=f'"{self.opcodes[ind][0]}"' if ind in self.opcodes else "NULL") for ind in range(256)))
+        #opnames = ',\n    '.join(("{name}".format(name=f'"{self.opcodes[ind][0]}"' if ind in self.opcodes else "NULL") for ind in range(256)))
+        
+        #opnames = self.genCList("static const char *OPNAMES[256] = ", dict([(f'0x{key:02x}', f'"{value[0]}"') for key, value in self.opcodes.items()]), compact=True)
+        #opnames = self.genCList("static const char *OPNAMES[256] = ", dict([(f'OP_{value[0].upper()}', f'"{value[0]}"') for value in self.opcodes.values()]), compact=True)
+        opnames = self.genCList("static const char *OPNAMES[256] = ", [(f'"{self.opcodes[ind][0]}"' if ind in self.opcodes else "NULL") for ind in range(256)], compact=False)
         
         #opargs = ',\n    '.join(["{{{}}}".format(
         #        ', '.join(["0b{argtype:08b}".format(argtype=self.opcodes[ind][1][typeind].encode()) if ind in self.opcodes else "" for typeind in range(len(self.opcodes[ind][1]))])
@@ -246,8 +238,7 @@ class OpcodeDefParser(object):
         
         opargs = ',\n    '.join(opargs)
         
-        # TODO: Paddings;
-        # in a c array initializer one can do "{ [3] = 999, }"
+        # TODO: Paddings
         
         padLength = max(map(lambda x: len(self.opcodes[x][0]), self.opcodes))
         #opcodes = '\n'.join(("const opcode_t OP_{name} = 0x{ind:02x};".format(name=self.opcodes[ind][0].upper(), ind=ind) for ind in self.opcodes))

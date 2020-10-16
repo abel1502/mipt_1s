@@ -18,26 +18,20 @@ typedef union value_u {
         float fl;
         float fh;
     };
+    
+    struct {
+        uint32_t dwl;
+        uint32_t dwh;
+    };
+    
+    struct {
+        uint16_t wl;
+        uint16_t wh;
+    };
 
     struct {
-        union {
-            int32_t dwl;
-
-            struct {
-                union {
-                    int16_t wl;
-
-                    struct {
-                        char bl;
-                        char bh;
-                    };
-                };
-
-                int16_t wh;
-            };
-        };
-
-        int32_t dwh;
+        uint8_t bl;
+        uint8_t bh;
     };
 } value_t;
 
@@ -73,21 +67,21 @@ typedef enum argType_e {
     ARGTYPE_WH = 0b1011,
     ARGTYPE_BL = 0b1000,
     ARGTYPE_BH = 0b1001
-} __attribute__((__packed__)) addrType_t;
+} __attribute__((__packed__)) argType_t;
 
-static_assert(sizeof(addrType_t) == 1);
+static_assert(sizeof(argType_t) == 1);
 
 
 typedef enum argLoc_e {
     ARGLOC_STACK = 0b00,
     ARGLOC_IMM = 0b01,
     ARGLOC_REG = 0b10
-} __attribute__((__packed__)) addrLoc_t;
+} __attribute__((__packed__)) argLoc_t;
 
-static_assert(sizeof(addrLoc_t) == 1);
+static_assert(sizeof(argLoc_t) == 1);
 
 
-static const char *OPNAMES[256] = {
+static const char *OPNAMES[256] =  {
     "nop",
     "push",
     "pop",
@@ -605,5 +599,6 @@ static const uint64_t OPARG_BITMASK[256] {
     0x0000000000000000,
     0x0000000000000000
 };
+
 
 #endif // OPCODE_H_GUARD
