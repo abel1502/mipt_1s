@@ -4,7 +4,7 @@
 #ifdef NDEBUG
 #define ERR(msg, ...)
 #else
-#define ERR(msg, ...) do {fprintf(stderr, "[ERROR in %s() on #%d] " msg "\n", __func__, __LINE__, ##__VA_ARGS__); perror(">");} while (0)
+#define ERR(msg, ...) do {fprintf(stderr, "[ERROR in %s() on #%d] " msg "\n", __func__, __LINE__, ##__VA_ARGS__); /*perror(">");*/} while (0)
 #endif
 
 #endif // GENERAL_H_GUARD
