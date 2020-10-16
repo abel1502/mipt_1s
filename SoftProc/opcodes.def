@@ -14,10 +14,10 @@
 # Arguments provide not only destination, but also type:
 # they can, essentially, say "in stack.df" -
 # and that would mean "read a double and put it on the stack"
-0x18 : in   (df:stack)
-0x19 : out  (df:stack)
-# 0x18 : in   (df:stack,reg)
-# 0x19 : out  (df:stack,reg)
+# 0x18 : in   (df:stack)
+# 0x19 : out  (df:stack)
+0x18 : in   (df:stack,reg)
+0x19 : out  (df:stack,reg)
 
 
 0xF0 : end  ()

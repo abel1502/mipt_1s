@@ -18,6 +18,9 @@ int main(int argc, char **argv) {
     assert(!code_assembleLine(&testCode, "sub df:stack"));
     assert(!code_assembleLine(&testCode, "push df:10"));
     assert(!code_assembleLine(&testCode, "out df:"));
+    assert(!code_assembleLine(&testCode, "in df:rb"));
+    assert(!code_assembleLine(&testCode, "pop df:rb"));
+    assert(!code_assembleLine(&testCode, "out df:"));
     assert(!code_assembleLine(&testCode, "end"));
 
     FILE *ofile = fopen("test.aef", "wb");
