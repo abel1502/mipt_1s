@@ -8,12 +8,22 @@
 
 
 int main(int argc, char **argv) {
-    printf("%zu\n", sizeof(OPARGS));
-
     code_t testCode = {};
     code_init(&testCode);
 
-    //
+    //code_assembleLine(&testCode, "push df:123");
+    //code_assembleLine(&testCode, "push df:32");
+    assert(!code_assembleLine(&testCode, "in df:"));
+    assert(!code_assembleLine(&testCode, "in df:"));
+    assert(!code_assembleLine(&testCode, "sub df:stack"));  // TODO: stack may be omitted
+    assert(!code_assembleLine(&testCode, "out df:stack"));
+    assert(!code_assembleLine(&testCode, "end"));
+
+    FILE *ofile = fopen("test.aef", "wb");
+
+    code_compileToFile(&testCode, ofile);
+
+    fclose(ofile);
 
     code_free(&testCode);
 

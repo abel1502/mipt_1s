@@ -41,6 +41,7 @@ typedef union value_u {
     };
 } value_t;
 
+
 //typedef uint8_t opcode_t;
 typedef enum opcode_e {
     OP_NOP  = 0x00,
@@ -59,6 +60,31 @@ typedef enum opcode_e {
 } __attribute__((__packed__)) opcode_t;
 
 static_assert(sizeof(opcode_t) == 1);
+
+
+typedef enum argType_e {
+    ARGTYPE_DF = 0b0100,
+    ARGTYPE_FL = 0b0010,
+    ARGTYPE_FH = 0b0011,
+    ARGTYPE_QW = 0b1110,
+    ARGTYPE_DWL = 0b1100,
+    ARGTYPE_DWH = 0b1101,
+    ARGTYPE_WL = 0b1010,
+    ARGTYPE_WH = 0b1011,
+    ARGTYPE_BL = 0b1000,
+    ARGTYPE_BH = 0b1001
+} __attribute__((__packed__)) addrType_t;
+
+static_assert(sizeof(addrType_t) == 1);
+
+
+typedef enum argLoc_e {
+    ARGLOC_STACK = 0b00,
+    ARGLOC_IMM = 0b01,
+    ARGLOC_REG = 0b10
+} __attribute__((__packed__)) addrLoc_t;
+
+static_assert(sizeof(addrLoc_t) == 1);
 
 
 static const char *OPNAMES[256] = {
@@ -321,23 +347,21 @@ static const char *OPNAMES[256] = {
 };
 
 
-static const uint64_t OPARG_BITMASK {
+static const uint64_t OPARG_BITMASK[256] {
     0x0000000000000000,
-    0x0000000000000024,
-    0x0000000000000024,
-    0x0000000000000000,
-    0x0000000000000000,
+    0x0000000000000013,
+    0x0000000000000012,
     0x0000000000000000,
     0x0000000000000000,
     0x0000000000000000,
-    0x0000000000000014,
-    0x0000000000000014,
-    0x0000000000000014,
-    0x0000000000000014,
-    0x0000000000000014,
-    0x0000000000000014,
     0x0000000000000000,
     0x0000000000000000,
+    0x0000000000000010,
+    0x0000000000000010,
+    0x0000000000000010,
+    0x0000000000000010,
+    0x0000000000000010,
+    0x0000000000000010,
     0x0000000000000000,
     0x0000000000000000,
     0x0000000000000000,
@@ -346,8 +370,10 @@ static const uint64_t OPARG_BITMASK {
     0x0000000000000000,
     0x0000000000000000,
     0x0000000000000000,
-    0x0000000000000014,
-    0x0000000000000014,
+    0x0000000000000000,
+    0x0000000000000000,
+    0x0000000000000010,
+    0x0000000000000010,
     0x0000000000000000,
     0x0000000000000000,
     0x0000000000000000,

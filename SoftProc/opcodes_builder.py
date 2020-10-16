@@ -47,6 +47,7 @@ typedef union value_u {{
     }};
 }} value_t;
 
+
 //typedef uint8_t opcode_t;
 typedef enum opcode_e {{
     {opcodes}
@@ -55,12 +56,26 @@ typedef enum opcode_e {{
 static_assert(sizeof(opcode_t) == 1);
 
 
+typedef enum argType_e {{
+    {argTypes}
+}} __attribute__((__packed__)) addrType_t;
+
+static_assert(sizeof(addrType_t) == 1);
+
+
+typedef enum argLoc_e {{
+    {argLocs}
+}} __attribute__((__packed__)) addrLoc_t;
+
+static_assert(sizeof(addrLoc_t) == 1);
+
+
 static const char *OPNAMES[256] = {{
     {opnames}
 }};
 
 
-static const uint64_t OPARG_BITMASK {{
+static const uint64_t OPARG_BITMASK[256] {{
     {opargs}
 }};
 
@@ -76,11 +91,11 @@ static unsigned char OPARGS[256][4] = {{
 
 
 # Opcode structure:
-# [--------] ([--][----][--] arg)*
+# [--------] ([----][--][--] arg)*
 # ^~~ Opcode's numeric code
 #            ^~~ Opcode arguments (fixed number for every instruction)
-#             ^~~ Location (immediate/stack/register)
-#                 ^~~ Type (double float, float low, float high, double word low, double word high, etc...)
+#             ^~~ Type (double float, float low, float high, double word low, double word high, etc...)
+#                   ^~~ Location (immediate/stack/register)\
 #                       ^~~ Register number, for "reg" type
 #                            ^~~ The argument itself
 
@@ -94,7 +109,7 @@ def log(*args, level=1, **kwargs):
 
 
 class AddressingMode(object):
-    locs = {"imm": 0b00, "stack": 0b01, "reg": 0b10}
+    locs = {"stack": 0b00, "imm": 0b01, "reg": 0b10}
     types = {'df' : 0b0100, 
              'fl' : 0b0010, 
              'fh' : 0b0011, 
@@ -114,7 +129,7 @@ class AddressingMode(object):
         self.loc = loc
     
     def encode(self):
-        return self.locs[self.loc] << 6 | self.types[self.type] << 2
+        return self.types[self.type] << 4 | self.locs[self.loc] << 2
 
 
 class OpcodeDefParser(object):
@@ -196,7 +211,7 @@ class OpcodeDefParser(object):
         return argmodes
     
     def genCCode(self):
-        opnames = ',\n    '.join(("{name}".format(name=f'"{self.opcodes[ind][0]}"' if ind in self.opcodes else "NULL") for ind in range(256)));
+        opnames = ',\n    '.join(("{name}".format(name=f'"{self.opcodes[ind][0]}"' if ind in self.opcodes else "NULL") for ind in range(256)))
         
         #opargs = ',\n    '.join(["{{{}}}".format(
         #        ', '.join(["0b{argtype:08b}".format(argtype=self.opcodes[ind][1][typeind].encode()) if ind in self.opcodes else "" for typeind in range(len(self.opcodes[ind][1]))])
@@ -212,12 +227,18 @@ class OpcodeDefParser(object):
         
         opargs = ',\n    '.join(opargs)
         
+        # TODO: Paddings;
+        # in a c array initializer one can do "{ [3] = 999, }"
+        
         padLength = max(map(lambda x: len(self.opcodes[x][0]), self.opcodes))
-        #opcodes = '\n'.join(("const opcode_t OP_{name} = 0x{ind:02x};".format(name=self.opcodes[ind][0].upper(), ind=ind) for ind in self.opcodes));
-        opcodes = ',\n    '.join(("OP_{name} = 0x{ind:02x}".format(name=self.opcodes[ind][0].upper().ljust(padLength), ind=ind) for ind in self.opcodes));
+        #opcodes = '\n'.join(("const opcode_t OP_{name} = 0x{ind:02x};".format(name=self.opcodes[ind][0].upper(), ind=ind) for ind in self.opcodes))
+        opcodes = ',\n    '.join(("OP_{name} = 0x{ind:02x}".format(name=self.opcodes[ind][0].upper().ljust(padLength), ind=ind) for ind in self.opcodes))
         
+        argTypes = ',\n    '.join(["ARGTYPE_{name} = 0b{value:04b}".format(name=name.upper(), value=value) for name, value in AddressingMode.types.items()])
         
-        return CCodeTpl.format(opnames=opnames, opargs=opargs, opcodes=opcodes);
+        argLocs = ',\n    '.join(["ARGLOC_{name} = 0b{value:02b}".format(name=name.upper(), value=value) for name, value in AddressingMode.locs.items()])
+        
+        return CCodeTpl.format(opnames=opnames, opargs=opargs, opcodes=opcodes, argTypes=argTypes, argLocs=argLocs);
 
 
 if __name__ == "__main__":
