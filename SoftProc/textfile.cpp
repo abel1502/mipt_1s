@@ -57,7 +57,7 @@ bool text_read(text_t *self, FILE *ifile) {
     }
 
     size_t offset = 0;
-    for (int lineInd = 0; lineInd < self->length; ++lineInd) {
+    for (unsigned int lineInd = 0; lineInd < self->length; ++lineInd) {
         if (line_read(&(self->index[lineInd]), self->buf, &offset)) {
             ERR("Can't parse line #%d", lineInd);
             return true;
@@ -74,7 +74,7 @@ bool text_write(text_t *self, FILE *ofile) {
     assert(self->index != NULL);
     assert(ofile != NULL);
 
-    for (int ind = 0; ind < self->length; ++ind) {
+    for (unsigned int ind = 0; ind < self->length; ++ind) {
         if (fputs((const char *)self->index[ind].val, ofile) == EOF) {
             ERR("Can\'t write line #%d", ind);
             return true;
