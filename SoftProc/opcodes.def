@@ -17,7 +17,7 @@
 # 0x18 : in   (df:stack)
 # 0x19 : out  (df:stack)
 0x18 : in   (df:stack,reg)
-0x19 : out  (df:stack,reg)
+0x19 : out  (df:stack,reg,imm)
 
 
 0xF0 : end  ()

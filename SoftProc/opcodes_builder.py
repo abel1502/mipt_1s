@@ -186,7 +186,7 @@ class OpcodeDefParser(object):
         types = types.strip().split(',')
         locs = locs.strip().split(',')
         
-        assert len(types) * len(locs) <= 4  # For simplicity, I guess
+        #assert len(types) * len(locs) <= 4  # For simplicity, I guess
         
         argmodes = []
         
