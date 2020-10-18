@@ -1,6 +1,7 @@
 #ifndef PROCESSOR_H_GUARD
 #define PROCESSOR_H_GUARD
 
+#include "general.h"
 #include "constants.h"
 #include "opcodes.h"
 #include "aef_file.h"

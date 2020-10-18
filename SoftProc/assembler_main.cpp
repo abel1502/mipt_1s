@@ -5,6 +5,7 @@
 #include "constants.h"
 #include "aef_file.h"
 #include "assembler.h"
+#include "general.h"
 
 
 int main(int argc, char **argv) {

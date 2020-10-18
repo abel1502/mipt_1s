@@ -6,6 +6,7 @@
 
 #include "../libs/checksum.h"
 #include "version.h"
+#include "general.h"
 
 
 typedef struct aef_file_header_s aef_file_header_t;
