@@ -7,7 +7,7 @@
 #include "program.h"
 
 
-const STACK_INITIAL_CAPACITY = 8;
+const size_t STACK_INITIAL_CAPACITY = 8;
 
 
 bool program_read(program_t *self, FILE *ifile) {
