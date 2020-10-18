@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
         return 3;
     }
 
-    printf("Assembling the input file.\n");
+    printf("Assembling the input file...\n");
 
     if (code_assembleFile(&code, ifile)) {
         fclose(ifile);
@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
         return 3;
     }
 
-    printf("Done, writing to the output file.\n");
+    printf("Done, writing to the output file...\n");
 
     if (code_compileToFile(&code, ofile)) {
         fclose(ifile);
