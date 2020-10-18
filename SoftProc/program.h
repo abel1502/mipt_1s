@@ -9,19 +9,19 @@
 
 typedef struct program_s program_t;
 
-/*typedef struct flag_regs_s flag_regs_t;
+typedef struct flag_regs_s flag_regs_t;
 
 
 struct flag_regs_s {
-    char f0 : 1;
-    char f1 : 1;
-    char f2 : 1;
-    char f3 : 1;
-    char f4 : 1;
-    char f5 : 1;
-    char f6 : 1;
-    char f7 : 1;
-};*/
+    bool flag_exit : 1;
+    bool f1 : 1;
+    bool f2 : 1;
+    bool f3 : 1;
+    bool f4 : 1;
+    bool f5 : 1;
+    bool f6 : 1;
+    bool f7 : 1;
+};
 
 
 // ==== [ Stack inclusion ] ====
@@ -41,7 +41,7 @@ struct program_s {
     aef_mmap_t mmap;
     stack_t stack;
     value_t registers[GENERAL_REG_CNT];
-    //flag_regs_t flags;
+    flag_regs_t flags;
     uint32_t ip;
 };
 

@@ -20,7 +20,11 @@ bool program_read(program_t *self, FILE *ifile) {
     }
 
     self->ip = 0;
-    self->registers = {};
+
+    // self->registers = {} didn't work
+    memset(self->registers, 0, sizeof(self->registers[0]) * GENERAL_REG_CNT);
+
+    self->flags = {};
 
     if (stack_construct(&self->stack, STACK_INITIAL_CAPACITY) == NULL) {
         ERR("Couldn't initialize program stack");
