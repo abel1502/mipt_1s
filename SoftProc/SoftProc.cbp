@@ -24,6 +24,7 @@
 				<Option parameters="-vv ./programs/test.aef" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-DSTACK_VALIDATION_LEVEL=1" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />

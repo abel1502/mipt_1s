@@ -30,7 +30,7 @@ static void printHelper(stack_elem_t elem) {
     printf("%lg", elem.df);
 }
 #define STACK_ELEM_PRINT printHelper
-#define STACK_VALIDATION_LEVEL 3
+//#define STACK_VALIDATION_LEVEL 3
 #include "../Stack/stack.h"
 // =============================
 
