@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-//#include <unistd.h>
 #include <getopt.h>
 
 #define CHECKSUM_NOIMPL
@@ -27,7 +26,7 @@ int main(int argc, char **argv) {
 
     int c = 0;
 
-    while ((c = getopt(argc, argv, "i:o:vh")) != -1) {
+    while ((c = getopt(argc, argv, "+i:o:vh")) != -1) {
         switch (c) {
         case 'h':
             showHelp(argv[0]);
