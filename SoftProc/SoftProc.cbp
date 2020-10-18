@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="test.aef" />
+				<Option parameters="-vv test.aef" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -21,6 +21,7 @@
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="-vv test.aef" />
 				<Compiler>
 					<Add option="-O2" />
 				</Compiler>
@@ -72,6 +73,9 @@
 			<Add option="-Wno-multichar" />
 			<Add option="-D__USE_MINGW_ANSI_STDIO" />
 		</Compiler>
+		<ExtraCommands>
+			<Add before="python ./opcodes_builder.py -i opcodes.def -o opcodes.h" />
+		</ExtraCommands>
 		<Unit filename="aef_file.cpp" />
 		<Unit filename="aef_file.h" />
 		<Unit filename="assembler.cpp">

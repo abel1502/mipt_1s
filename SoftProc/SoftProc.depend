@@ -29,7 +29,7 @@
 1603027022 d:\workspace\.mipt\s1\softproc\constants.h
 	"version.h"
 
-1603027811 d:\workspace\.mipt\s1\softproc\program.h
+1603030439 d:\workspace\.mipt\s1\softproc\program.h
 	"general.h"
 	"constants.h"
 	"opcodes.h"
@@ -100,7 +100,7 @@
 1603017959 d:\workspace\.mipt\s1\softproc\assembler.h
 	"aef_file.h"
 
-1603025818 d:\workspace\.mipt\s1\softproc\opcodes.h
+1603034662 d:\workspace\.mipt\s1\softproc\opcodes.h
 	<stdint.h>
 
 1603025393 source:d:\workspace\.mipt\s1\softproc\assembler_main.cpp
@@ -131,7 +131,7 @@
 	<errno.h>
 	"general.h"
 
-1603029752 source:d:\workspace\.mipt\s1\softproc\processor_main.cpp
+1603033421 source:d:\workspace\.mipt\s1\softproc\processor_main.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -141,7 +141,7 @@
 	"program.h"
 	"general.h"
 
-1603029684 source:d:\workspace\.mipt\s1\softproc\program.cpp
+1603034491 source:d:\workspace\.mipt\s1\softproc\program.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>

@@ -76,7 +76,7 @@ bool code_assembleLine(code_t *self, const char *line) {
         return false;  // Empty lines are ok
     }
 
-    code_log(self, "[ASM] | 0x%04x | ", self->size);
+    code_log(self, "[ASM] | 0x%04x | ", self->size);  // TODO?: 0x%08x
 
     int curOpcode = -1;
 
@@ -318,7 +318,7 @@ bool code_compileToFile(code_t *self, FILE *ofile) {
     aef_mmap_t mmap = {};
     aef_mmap_init(&mmap, self->size, self->buf);
 
-    code_log(self, "[ASM] Total size: 0x%04x\n\n", self->size);
+    code_log(self, "[ASM] Total size: 0x%04x\n\n", self->size);  // TODO?: 0x%08x
 
     if (aef_mmap_write(&mmap, ofile)) {
         ERR("Couldn't write compiled bytecode to file");
