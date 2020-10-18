@@ -175,3 +175,30 @@ static inline bool readBytes_(program_t *self, uint32_t size, void *dest) {
     return false;
 }
 
+void program_dump(program_t *self) {
+    printf("program_t [0x%p] {\n", self);
+    if (self != NULL) {
+        printf("  ip     = %u (out of %zu)\n", self->ip, self->mmap.header.codeSize);
+        printf("  flags  = %x\n", *(unsigned int *)&self->flags);
+
+        printf("  registers [0x%p] {\n", self->registers);
+        if (self->registers != NULL) {
+            for (unsigned char i = 0; i < GENERAL_REG_CNT; ++i) {
+                printf("    r%c = 0x%016llX (%lg)\n", 'a' + i, self->registers[i].qw, self->registers[i].df);
+            }
+        } else {
+            printf("    <corrupt>\n");
+        }
+        printf("  }\n");
+
+        stack_dumpPadded(&self->stack, "  ");
+    } else {
+        printf("  <corrupt>\n");
+    }
+
+    printf("}\n\n");
+
+    fflush(stdout);
+    fflush(stderr);
+}
+

@@ -26,13 +26,11 @@ struct flag_regs_s {
 
 // ==== [ Stack inclusion ] ====
 typedef value_t stack_elem_t;
-/*
 static void printHelper(stack_elem_t elem) {
-    printf("%lg", elem);
+    printf("%lg", elem.df);
 }
 #define STACK_ELEM_PRINT printHelper
 #define STACK_VALIDATION_LEVEL 3
-*/
 #include "../Stack/stack.h"
 // =============================
 
@@ -53,6 +51,8 @@ bool program_executeOpcode(program_t *self);
 bool program_execute(program_t *self);
 
 void program_free(program_t *self);
+
+void program_dump(program_t *self);
 
 
 #endif // PROCESSOR_H_GUARD
