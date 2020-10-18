@@ -1,10 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+//#include <unistd.h>
+#include <getopt.h>
 
 // To avoid redundant redeclarations
 #define STACK_NOIMPL
 #define CHECKSUM_NOIMPL
+
+#include "constants.h"
+#include "aef_file.h"
+#include "program.h"
+#include "general.h"
 
 
 void showBanner();
@@ -37,13 +44,22 @@ int main(int argc, char **argv) {
         }
     }
 
-    //
-
-    if (optind < argc) {
-        printf("Unexpected positional argument%s.\n", (argc - optind == 1 ? "" : "s"));
+    if (optind + 1 != argc) {
+        printf("Unexpected number of positional arguments.\n");
         showHelp(argv[0]);
         return 1;
     }
+
+    ifile = fopen(argv[optind], "rb");
+    if (ifile == NULL) {
+        ERR("Couldn't open %s to read", argv[optind]);
+        return 2;
+    }
+    optind++;
+
+    // TODO
+
+    fclose(ifile);
 
     return 0;
 }
