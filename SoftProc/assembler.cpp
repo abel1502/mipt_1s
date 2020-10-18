@@ -111,7 +111,7 @@ bool code_assembleLine(code_t *self, const char *line) {
 
     if (EOL_) {
         if (OPARG_BITMASK[op] != 0) {
-            ERR("Expected an argument for op #%02x", op);
+            ERR("Expected an argument for op 0x%02x", op);
             return true;
         }
 
