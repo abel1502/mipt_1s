@@ -91,6 +91,7 @@ int main(int argc, char **argv) {
     printf("Assembling the input file...\n");
 
     if (code_assembleFile(&code, ifile)) {
+        code_free(&code);
         fclose(ifile);
         fclose(ofile);
 
@@ -101,6 +102,7 @@ int main(int argc, char **argv) {
     printf("Done, writing to the output file...\n");
 
     if (code_compileToFile(&code, ofile)) {
+        code_free(&code);
         fclose(ifile);
         fclose(ofile);
 
@@ -110,7 +112,7 @@ int main(int argc, char **argv) {
 
     printf("Done.\n");
 
-
+    code_free(&code);
     fclose(ifile);
     fclose(ofile);
 
