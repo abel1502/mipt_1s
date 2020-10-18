@@ -391,7 +391,7 @@ bool stack_isPoison(const stack_elem_t *item);
  */
 bool isPointerValid(const void *ptr);
 
-#if STACK_USE_CANARY
+#if STACK_USE_CANARY && !defined(STACK_NOIMPL)
 /**
  * Address of stack data's left canary
  *
@@ -416,6 +416,8 @@ void test_stack(stack_elem_t val1, stack_elem_t val2, stack_elem_t val3);
 #endif
 
 //--------------------------------------------------------------------------------
+
+#ifndef STACK_NOIMPL
 
 stack_t *stack_new(size_t capacity) {
     stack_t *self = (stack_t *)calloc(1, sizeof(stack_t));
@@ -889,8 +891,6 @@ stack_validity_e stack_validate(const stack_t *self) {
     }
     #endif
 
-    // TODO
-
     return STACK_VALID;
 }
 
@@ -1031,6 +1031,8 @@ void test_stack(stack_elem_t val1, stack_elem_t val2, stack_elem_t val3) {
     stack_destroy(stk2);
 }
 #endif // TEST
+
+#endif // STACK_NOIMPL
 
 #undef ASSERT_OK
 #undef REQUIRE
