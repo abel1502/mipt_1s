@@ -70,6 +70,10 @@ bool code_assembleLine(code_t *self, const char *line) {
 
     SKIP_SPACE_();
 
+    if (EOL_) {
+        return false;  // Empty lines are ok
+    }
+
     code_log(self, "[ASM] | 0x%04x | ", self->size);
 
     int curOpcode = -1;
