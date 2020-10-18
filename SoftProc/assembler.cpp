@@ -64,7 +64,9 @@ bool code_assembleLine(code_t *self, const char *line) {
 
     const char *origLine = line;
 
-    #define SKIP_SPACE_() while (*line != '\0' && isspace(*line)) line++;
+    #define EOL_ (*line == '\0' || *line == ';')
+
+    #define SKIP_SPACE_() while (!EOL_ && isspace(*line)) line++;
 
     SKIP_SPACE_();
 
@@ -101,7 +103,7 @@ bool code_assembleLine(code_t *self, const char *line) {
         return true;
     }
 
-    if (*line == '\0') {
+    if (EOL_) {
         if (OPARG_BITMASK[op] != 0) {
             ERR("Expected an argument for op #%02x", op);
             return true;
@@ -140,14 +142,14 @@ bool code_assembleLine(code_t *self, const char *line) {
 
     #undef ARGTYPE_CASE_
 
-    if (*line == '\0' || *line == ' ' || strncmp(line, "stack", 5) == 0) {
+    if (EOL_ || isspace(*line) || strncmp(line, "stack", 5) == 0) {
         addrMode |= ARGLOC_STACK << 2;
 
         code_log(self, "%02x                         ", addrMode);
 
         code_writeRaw_(self, (const char *)&addrMode, 1);
 
-        while (*line != '\0' && !isspace(*line)) ++line;
+        while (!EOL_ && !isspace(*line)) ++line;
     } else if (*line == 'r') {
         addrMode |= ARGLOC_REG << 2;
 
@@ -214,6 +216,11 @@ bool code_assembleLine(code_t *self, const char *line) {
                                                                                    \
                 break;
 
+        if (EOL_) {
+            ERR("Expected an argument value");
+            return true;
+        }
+
         switch ((addrMode >> 4) & 0b1111) {
             // ARGTYPE_DF ARGTYPE_FL ARGTYPE_FH ARGTYPE_QW ARGTYPE_DWL ARGTYPE_DWH ARGTYPE_WL ARGTYPE_WH ARGTYPE_BL ARGTYPE_BH
         case ARGTYPE_DF:
@@ -256,20 +263,21 @@ bool code_assembleLine(code_t *self, const char *line) {
 
     code_log(self, "| %u%u%u%u %u%u %u%u | \"%s\"\n", addrMode >> 7 & 1, addrMode >> 6 & 1, addrMode >> 5 & 1, addrMode >> 4 & 1, addrMode >> 3 & 1, addrMode >> 2 & 1, addrMode >> 1 & 1, addrMode >> 0 & 1, origLine);
 
-    if (*line != '\0' && !isspace(*line)) {
+    if (!EOL_ && !isspace(*line)) {
         ERR("Garbage after argument: <%s>", line);
         return true;
     }
 
     SKIP_SPACE_();
 
-    if (*line != '\0') {
+    if (!EOL_) {
         ERR("Garbage at the end of line: <%s>", line);
         return true;
     }
 
     return false;
 
+    #undef EOL_
     #undef SKIP_SPACE_
 }
 
@@ -349,9 +357,9 @@ void code_free(code_t *self) {
 bool readUntil_(const char **source, char *dest, char until, size_t limit) {
     assert(source != NULL);
     assert(dest != NULL);
-    assert(until != '\0');
+    // Warning: if until is an EOL character ('\0' or ';'), this will return true since EOL will be reached
 
-    for (size_t i = 0; i < limit && **source != '\0'; ++i) {
+    for (size_t i = 0; i < limit && **source != '\0' && **source != ';'; ++i) {
         *dest = **source;
 
         if (*dest == until) {
