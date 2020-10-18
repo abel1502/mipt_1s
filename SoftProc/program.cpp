@@ -34,8 +34,28 @@ bool program_read(program_t *self, FILE *ifile) {
     return false;
 }
 
-bool program_executeOpcode(program_t *self);
+bool program_executeOpcode(program_t *self) {
+    return false;
+}
 
-bool program_execute(program_t *self);
+bool program_execute(program_t *self) {
+    assert(self != NULL);
 
-void program_free(program_t *self);
+    while (!self->flags.flag_exit) {
+        if (program_executeOpcode(self)) {
+            ERR("Error during execution of opcode at 0x%x", self->ip);
+            if (self->ip == self->mmap.header.codeSize) {
+                ERR("(Most likely your program is missing an <end> opcode in the end)");
+            }
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void program_free(program_t *self) {
+    assert(self != NULL);
+
+    stack_free(&self->stack);
+}
