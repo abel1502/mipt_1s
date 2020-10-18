@@ -68,11 +68,11 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    if (optind < argc) {
+    if (optind != argc) {
         fclose(ifile);
         fclose(ofile);
 
-        printf("Unexpected positional argument%s.\n", (argc - optind == 1 ? "" : "s"));
+        printf("Unexpected number of positional arguments.\n");
         showHelp(argv[0]);
         return 1;
     }
