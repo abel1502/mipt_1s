@@ -1,9 +1,47 @@
+; SolveSquare discriminant calculator, test version in AAF
+
+
+; Input
+
+; While this would work, it feels somewhat cheaty to me
+; in df:ra
+; in df:rb
+; in df:rc
+
 in df:
 in df:
-sub df:
-push df:10
-out df:
-in df:rb
+in df:
+
+pop df:rc
+pop df:rb
+pop df:ra
+
+
+; Calculations
+
+; Same deal: works, but  feels too cheaty for assemby)
+; push df:rb
+; sqr df:
+
+; b^2
 push df:rb
+push df:rb
+mul df:
+
+; 4*a*c
+push df:4
+push df:ra
+push df:rc
+mul df:
+mul df:
+
+; D = b^2-4*a*c
+sub df:
+pop df:rd
+
+
+; Output
+push df:rd
 out df:
+
 end
