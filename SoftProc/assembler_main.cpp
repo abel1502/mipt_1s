@@ -13,19 +13,25 @@ int main(int argc, char **argv) {
 
     //code_assembleLine(&testCode, "push df:123");
     //code_assembleLine(&testCode, "push df:32");
-    assert(!code_assembleLine(&testCode, "in df:"));
+    /*assert(!code_assembleLine(&testCode, "in df:"));
     assert(!code_assembleLine(&testCode, "in df:"));
     assert(!code_assembleLine(&testCode, "sub df:"));
     assert(!code_assembleLine(&testCode, "push df:10"));
     assert(!code_assembleLine(&testCode, "out df:"));
     assert(!code_assembleLine(&testCode, "in df:rb"));
-    assert(!code_assembleLine(&testCode, "pop df:rb"));
+    assert(!code_assembleLine(&testCode, "push df:rb"));
     assert(!code_assembleLine(&testCode, "out df:"));
-    assert(!code_assembleLine(&testCode, "end"));
+    assert(!code_assembleLine(&testCode, "end"));*/
+
+    FILE *ifile = fopen("test.aaf", "r");
+
+    assert(!code_assembleFile(&testCode, ifile));
+
+    fclose(ifile);
 
     FILE *ofile = fopen("test.aef", "wb");
 
-    code_compileToFile(&testCode, ofile);
+    assert(!code_compileToFile(&testCode, ofile));
 
     fclose(ofile);
 

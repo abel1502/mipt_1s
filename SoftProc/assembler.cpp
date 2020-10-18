@@ -8,6 +8,7 @@
 #include "general.h"
 #include "assembler.h"
 #include "constants.h"
+#include "textfile.h"
 
 
 const code_size_t CODE_DEFAULT_CAPACITY = 0x20;
@@ -274,7 +275,29 @@ bool code_assembleLine(code_t *self, const char *line) {
     #undef SKIP_SPACE_
 }
 
-bool code_assembleFile(code_t *self, FILE *ifile);  // TODO: copy Onegin's abstractions
+bool code_assembleFile(code_t *self, FILE *ifile) {
+    assert(self != NULL);
+    assert(ifile != NULL);
+
+    text_t itext = {};
+
+    if (text_read(&itext, ifile)) {
+        ERR("Can't read ifile text");
+        return true;
+    }
+
+    for (unsigned int i = 0; i < itext.length; ++i) {
+        if (code_assembleLine(self, (const char *)itext.index[i].val)) {  // TODO: Rework assembleLine to work with line_t
+            ERR("Couldn't assemble line #%u", i);  // TODO?: i + 1
+            return true;
+        }
+    }
+
+
+    text_free(&itext);
+
+    return false;
+}
 
 bool code_compileToFile(code_t *self, FILE *ofile) {
     assert(self != NULL);
