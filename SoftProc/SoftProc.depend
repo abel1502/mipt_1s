@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1603012936 source:d:\workspace\.mipt\s1\softproc\assembler.cpp
+1603020985 source:d:\workspace\.mipt\s1\softproc\assembler.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -10,12 +10,14 @@
 	"assembler.h"
 	"constants.h"
 	"textfile.h"
+	"opcodes.h"
 
-1602780744 d:\workspace\.mipt\s1\softproc\aef_file.h
+1603024960 d:\workspace\.mipt\s1\softproc\aef_file.h
 	<stdint.h>
 	<stdio.h>
 	"../libs/checksum.h"
 	"version.h"
+	"general.h"
 
 1602710364 d:\workspace\.mipt\s1\libs\checksum.h
 	<stdint.h>
@@ -93,30 +95,37 @@
 	<inttypes.h>
 	<SAPI.h>
 
-1602872644 d:\workspace\.mipt\s1\softproc\assembler.h
-	"opcodes.h"
+1603017959 d:\workspace\.mipt\s1\softproc\assembler.h
 	"aef_file.h"
 
 1602878073 d:\workspace\.mipt\s1\softproc\opcodes.h
 	<stdint.h>
 
-1603013008 source:d:\workspace\.mipt\s1\softproc\assembler_main.cpp
+1603020778 source:d:\workspace\.mipt\s1\softproc\assembler_main.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
+	<getopt.h>
 	"constants.h"
 	"aef_file.h"
 	"assembler.h"
+	"general.h"
 
-1603012405 d:\workspace\.mipt\s1\softproc\general.h
+1603020527 d:\workspace\.mipt\s1\softproc\general.h
 
-1603012486 source:d:\workspace\.mipt\s1\softproc\textfile.cpp
+1603017111 source:d:\workspace\.mipt\s1\softproc\textfile.cpp
 	<stdlib.h>
 	<assert.h>
 	<sys/stat.h>
 	"textfile.h"
 
-1603012310 d:\workspace\.mipt\s1\softproc\textfile.h
+1603017085 d:\workspace\.mipt\s1\softproc\textfile.h
 	<stdio.h>
+	"general.h"
+
+1603020559 source:d:\workspace\.mipt\s1\softproc\general.cpp
+	<stdio.h>
+	<stdarg.h>
+	<errno.h>
 	"general.h"
 

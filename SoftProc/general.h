@@ -1,14 +1,16 @@
 #ifndef GENERAL_H_GUARD
 #define GENERAL_H_GUARD
 
-#ifdef NDEBUG
-#define ERR(msg, ...)
-#else
-#define ERR(msg, ...) do {fprintf(stderr, "[ERROR in %s() on #%d] " msg "\n", __func__, __LINE__, ##__VA_ARGS__); /*perror(">");*/} while (0)
-#endif
 
 #ifndef __cplusplus
 typedef enum { false, true } bool;
 #endif
+
+
+#define ERR(msg, ...) err_(__func__, __LINE__, msg, ##__VA_ARGS__)
+
+
+void err_(const char *funcName, int lineNo, const char *msg, ...);
+
 
 #endif // GENERAL_H_GUARD
