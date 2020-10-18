@@ -234,7 +234,7 @@ class OpcodeDefParser(object):
             if ind not in self.opcodes:
                 opargs.append('0x{:016x}'.format(0))
                 continue
-            opargs.append('0x{:016x}'.format(reduce(lambda x, y: x | y.encode() >> 2, self.opcodes[ind][1], 0)))
+            opargs.append('0x{:016x}'.format(reduce(lambda x, y: x | 1 << (y.encode() >> 2), self.opcodes[ind][1], 0)))
         
         opargs = ',\n    '.join(opargs)
         
