@@ -1,7 +1,6 @@
 #ifndef ASSEMBLER_H_GUARD
 #define ASSEMBLER_H_GUARD
 
-#include "opcodes.h"
 #include "aef_file.h"
 
 
@@ -22,7 +21,7 @@ bool code_writeRaw_(code_t *self, const char *data, code_size_t amount);
 
 bool code_assembleLine(code_t *self, const char *line);
 
-bool code_assembleFile(code_t *self, FILE *ifile);  // TODO: copy Onegin's abstractions
+bool code_assembleFile(code_t *self, FILE *ifile);
 
 bool code_compileToFile(code_t *self, FILE *ofile);
 

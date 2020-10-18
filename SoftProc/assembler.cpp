@@ -9,6 +9,7 @@
 #include "assembler.h"
 #include "constants.h"
 #include "textfile.h"
+#include "opcodes.h"
 
 
 const code_size_t CODE_DEFAULT_CAPACITY = 0x20;
