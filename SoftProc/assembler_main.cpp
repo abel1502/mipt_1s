@@ -58,7 +58,8 @@ int main(int argc, char **argv) {
             showHelp(argv[0]);
             return 1;  // TODO?: set opterr = 0 and produce error messages myself
         default:
-            assert(false /* This is never supposed to be reached */);
+            ERR("Shouldn't be reachable");
+            abort();
         }
     }
 

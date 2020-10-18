@@ -40,7 +40,8 @@ int main(int argc, char **argv) {
             showHelp(argv[0]);
             return 1;
         default:
-            assert(false /* This is never supposed to be reached */);
+            ERR("Shouldn't be reachable");
+            abort();
         }
     }
 
