@@ -9,10 +9,10 @@
 
 typedef struct program_s program_t;
 
-typedef struct flag_regs_s flag_regs_t;
+/*typedef struct flag_regs_s flag_regs_t;
 
 
-/*struct flag_regs_s {
+struct flag_regs_s {
     char f0 : 1;
     char f1 : 1;
     char f2 : 1;
