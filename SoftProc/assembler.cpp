@@ -5,6 +5,8 @@
 #include <ctype.h>
 #include <stdarg.h>
 
+#define CHECKSUM_NOIMPL
+
 #include "general.h"
 #include "assembler.h"
 #include "constants.h"

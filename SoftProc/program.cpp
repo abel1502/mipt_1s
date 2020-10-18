@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#define CHECKSUM_NOIMPL
+
 #include "program.h"
 
 

@@ -4,6 +4,8 @@
 //#include <unistd.h>
 #include <getopt.h>
 
+#define CHECKSUM_NOIMPL
+
 #include "constants.h"
 #include "aef_file.h"
 #include "assembler.h"

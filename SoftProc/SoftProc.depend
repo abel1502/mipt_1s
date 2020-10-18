@@ -19,22 +19,24 @@
 	"version.h"
 	"general.h"
 
-1602710364 d:\workspace\.mipt\s1\libs\checksum.h
+1603029642 d:\workspace\.mipt\s1\libs\checksum.h
 	<stdint.h>
 	<string.h>
 
 1602705988 d:\workspace\.mipt\s1\softproc\version.h
 	<stdint.h>
 
-1602871588 d:\workspace\.mipt\s1\softproc\constants.h
+1603027022 d:\workspace\.mipt\s1\softproc\constants.h
 	"version.h"
 
-1602704042 d:\workspace\.mipt\s1\softproc\program.h
+1603027811 d:\workspace\.mipt\s1\softproc\program.h
+	"general.h"
 	"constants.h"
+	"opcodes.h"
 	"aef_file.h"
 	"../Stack/stack.h"
 
-1602668584 d:\workspace\.mipt\s1\stack\stack.h
+1603029493 d:\workspace\.mipt\s1\stack\stack.h
 	<stdlib.h>
 	<stdio.h>
 	<string.h>
@@ -98,10 +100,10 @@
 1603017959 d:\workspace\.mipt\s1\softproc\assembler.h
 	"aef_file.h"
 
-1602878073 d:\workspace\.mipt\s1\softproc\opcodes.h
+1603025818 d:\workspace\.mipt\s1\softproc\opcodes.h
 	<stdint.h>
 
-1603020778 source:d:\workspace\.mipt\s1\softproc\assembler_main.cpp
+1603025393 source:d:\workspace\.mipt\s1\softproc\assembler_main.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -128,4 +130,20 @@
 	<stdarg.h>
 	<errno.h>
 	"general.h"
+
+1603029752 source:d:\workspace\.mipt\s1\softproc\processor_main.cpp
+	<stdio.h>
+	<stdlib.h>
+	<assert.h>
+	<getopt.h>
+	"constants.h"
+	"aef_file.h"
+	"program.h"
+	"general.h"
+
+1603029684 source:d:\workspace\.mipt\s1\softproc\program.cpp
+	<stdio.h>
+	<stdlib.h>
+	<assert.h>
+	"program.h"
 

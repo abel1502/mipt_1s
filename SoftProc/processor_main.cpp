@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <assert.h>
 
+// To avoid redundant redeclarations
+#define STACK_NOIMPL
+#define CHECKSUM_NOIMPL
+
 
 void showBanner();
 
