@@ -161,7 +161,7 @@ static const size_t STACK_DUMP_LIMIT = 100;
 static const size_t STACK_HARD_CAP = (((size_t)-1) >> 8) / sizeof(stack_elem_t);
 
 #ifndef __cplusplus
-enum bool { false, true };
+typedef enum { false, true } bool;
 #endif
 
 #if STACK_USE_POISON
