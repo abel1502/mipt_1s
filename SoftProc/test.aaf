@@ -16,6 +16,8 @@ pop df:rc
 pop df:rb
 pop df:ra
 
+; dump
+
 
 ; Calculations
 
@@ -28,6 +30,8 @@ push df:rb
 push df:rb
 mul df:
 
+; dump
+
 ; 4*a*c
 push df:4
 push df:ra
@@ -35,13 +39,19 @@ push df:rc
 mul df:
 mul df:
 
+; dump
+
 ; D = b^2-4*a*c
 sub df:
 pop df:rd
+
+; dump
 
 
 ; Output
 push df:rd
 out df:
+
+; dump
 
 end

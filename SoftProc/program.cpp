@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 
 #define CHECKSUM_NOIMPL
 
@@ -126,9 +127,119 @@ bool program_executeOpcode(program_t *self) {
     }
     printf("\n");*/
 
-    return false;
+    #define TMP_ONLYDOUBLE_  if (curArgType != ARGTYPE_DF) { goto notimpl_label; }
+
+    #define POP_(dest)  if (stack_pop(&self->stack, (dest))) { ERR("Cannot pop from stack"); return true; }
+    #define PUSH_(val)  if (stack_push(&self->stack, (val))) { ERR("Cannot push to stack"); return true; }
+
+    value_t tos0 = {}, tos1 = {}, res = {};
+
+    switch (curOp) {
+    case OP_NOP:
+        break;
+    case OP_PUSH:
+        if (curArgLoc == ARGLOC_REG) {
+            curArg = self->registers[curArg.bl];
+        }
+        PUSH_(curArg);
+        break;
+    case OP_POP:
+        POP_(&self->registers[curArg.bl]);
+        break;
+    case OP_POPV:
+        POP_(NULL);
+        break;
+    case OP_ADD: TMP_ONLYDOUBLE_
+        POP_(&tos0);
+        POP_(&tos1);
+        res.df = tos1.df + tos0.df;
+        PUSH_(res);
+        break;
+    case OP_SUB: TMP_ONLYDOUBLE_
+        POP_(&tos0);
+        POP_(&tos1);
+        res.df = tos1.df - tos0.df;
+        PUSH_(res);
+        break;
+    case OP_MUL: TMP_ONLYDOUBLE_
+        POP_(&tos0);
+        POP_(&tos1);
+        res.df = tos1.df * tos0.df;
+        PUSH_(res);
+        break;
+    case OP_DIV: TMP_ONLYDOUBLE_
+        POP_(&tos0);
+        POP_(&tos1);
+        res.df = tos1.df / tos0.df;  // Zero division produces inf
+        PUSH_(res);
+        break;
+    case OP_SQR:
+        POP_(&tos0);
+        res.df = tos0.df * tos0.df;
+        PUSH_(res);
+        break;
+    case OP_SQRT:
+        POP_(&tos0);
+        res.df = sqrt(tos0.df);
+        PUSH_(res);
+        break;
+    case OP_IN: TMP_ONLYDOUBLE_
+        printf("(df) > ");
+        switch (curArgLoc) {
+        case ARGLOC_STACK:
+            scanf("%lg", &res.df);
+            PUSH_(res);
+            break;
+        case ARGLOC_REG:
+            scanf("%lg", &self->registers[curArg.bl].df);
+            break;
+        default:
+            ERR("Shouldn't be reachable");
+            abort();
+        }
+
+        break;
+    case OP_OUT: TMP_ONLYDOUBLE_
+        printf("(df) ");
+        switch (curArgLoc) {
+        case ARGLOC_STACK:
+            POP_(&tos0);
+            printf("%lg\n", tos0.df);
+            break;
+        case ARGLOC_REG:
+            printf("%lg\n", self->registers[curArg.bl].df);
+            break;
+        case ARGLOC_IMM:
+            printf("%lg\n", curArg.df);
+            break;
+        default:
+            ERR("Shouldn't be reachable");
+            abort();
+        }
+
+        break;
+    case OP_END:
+        self->flags.flag_exit = true;
+        break;
+    case OP_DUMP:
+        program_dump(self);
+        break;
+    default:
+        ERR("Unknown opcode 0x%02x", curOp);  // TODO: opcode names?
+        return true;
+    notimpl_label:
+        ERR("Sorry, opcode 0x%02x not yet implemented", curOp);
+        return true;
+    }
+
+    #undef POP_
+    #undef PUSH_
+
+    #undef TMP_ONLYDOUBLE_
 
     #undef READ_BYTE_
+
+    return false;
 }
 
 bool program_execute(program_t *self) {
@@ -136,7 +247,7 @@ bool program_execute(program_t *self) {
 
     while (!self->flags.flag_exit) {
         if (program_executeOpcode(self)) {
-            ERR("Error during execution of opcode at 0x%x", self->ip);
+            ERR("Error during execution of opcode at 0x%08x", self->ip);
             if (self->ip == self->mmap.header.codeSize) {
                 ERR("(Most likely your program is missing an <end> opcode in the end)");
             }
