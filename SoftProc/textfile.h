@@ -6,7 +6,7 @@
 #include "general.h"
 
 
-const unsigned char MAX_LINE = 80;
+const unsigned char MAX_LINE = 255;
 
 /**
  * A type for a Cyrillic-compatible letter
