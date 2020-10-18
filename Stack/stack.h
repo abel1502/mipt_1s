@@ -345,6 +345,13 @@ crc32_t stack_hashData(const stack_t *self);
 void stack_dump(const stack_t *self);
 
 /**
+ * Dump the stack with a padding
+ *
+ * @param [in]  self  Stack instance
+ */
+void stack_dumpPadded(const stack_t *self, const char *padding);
+
+/**
  * Validate the stack
  *
  * @param [in]  self  Stack instance
@@ -746,40 +753,44 @@ crc32_t stack_hashData(const stack_t *self) {
 #endif
 
 void stack_dump(const stack_t *self) {
+    stack_dumpPadded(self, "");
+}
+
+void stack_dumpPadded(const stack_t *self, const char *padding) {
     #ifdef STACK_ELEM_PRINT
 
-    printf("[WARNING: STACK_ELEM_PRINT is specified, so the dump may fail through the user\'s fault.]\n");
+    printf("%s[WARNING: STACK_ELEM_PRINT is specified, so the dump may fail through the user\'s fault.]\n", padding);
 
     #endif
 
     stack_validity_e validity = stack_validate(self);
 
-    printf("stack_t (%s) [0x%p] {\n", stack_validity_describe(validity), self);
+    printf("%sstack_t (%s) [0x%p] {\n", padding, stack_validity_describe(validity), self);
     if (isPointerValid(self)) {
         #if STACK_USE_CANARY
-        printf("  left canary     = 0x%016llX\n", self->leftCanary);
+        printf("%s  left canary     = 0x%016llX\n", padding, self->leftCanary);
         #endif
 
-        printf("  size            = %zu\n", self->size);
-        printf("  capacity        = %zu (out of %zu)\n", self->capacity, STACK_HARD_CAP);
-        printf("  state           = %s\n", stack_allocState_describe(self->state));
+        printf("%s  size            = %zu\n", padding, self->size);
+        printf("%s  capacity        = %zu (out of %zu)\n", padding, self->capacity, STACK_HARD_CAP);
+        printf("%s  state           = %s\n", padding, stack_allocState_describe(self->state));
 
         #if STACK_USE_HASH_STRUCT
-        printf("  struct checksum = 0x%08X\n", self->structChecksum);
+        printf("%s  struct checksum = 0x%08X\n", padding, self->structChecksum);
         #endif
 
         #if STACK_USE_HASH_DATA
-        printf("  data checksum   = 0x%08X\n", self->dataChecksum);
+        printf("%s  data checksum   = 0x%08X\n", padding, self->dataChecksum);
         #endif
 
         #if STACK_USE_CANARY
-        printf("  right canary    = 0x%016llX\n", self->rightCanary);
+        printf("%s  right canary    = 0x%016llX\n", padding, self->rightCanary);
         #endif
 
-        printf("  data [0x%p] {\n", self->data);
+        printf("%s  data [0x%p] {\n", padding, self->data);
         if (isPointerValid(self->data)) {
             #if STACK_USE_CANARY
-            printf("    l. canary     = 0x%016llX\n", *stack_leftDataCanary(self));
+            printf("%s    l. canary     = 0x%016llX\n", padding, *stack_leftDataCanary(self));
             #endif
 
             size_t limit = self->capacity;
@@ -802,7 +813,7 @@ void stack_dump(const stack_t *self) {
                     lineMarker = ' ';
                 }
 
-                printf("  %c [%2zu] = ", lineMarker, i);
+                printf("%s  %c [%2zu] = ", padding, lineMarker, i);
 
                 printf("0x");
                 for (size_t j = 0; j < sizeof(stack_elem_t); ++j) {
@@ -823,22 +834,22 @@ void stack_dump(const stack_t *self) {
             }
 
             if (limit < self->capacity) {
-                printf("    ...\n");
+                printf("%s    ...\n", padding);
             } else {
                 #if STACK_USE_CANARY
-                printf("    r. canary     = 0x%016llX\n", *stack_rightDataCanary(self));
+                printf("%s    r. canary     = 0x%016llX\n", padding, *stack_rightDataCanary(self));
                 #endif
             }
         } else {
-            printf("    <corrupt>\n");
+            printf("%s    <corrupt>\n", padding);
         }
 
-        printf("  }\n");
+        printf("%s  }\n", padding);
     } else {
-        printf("  <corrupt>\n");
+        printf("%s  <corrupt>\n", padding);
     }
 
-    printf("}\n\n");
+    printf("%s}\n\n", padding);
 
     fflush(stdout);
     fflush(stderr);
