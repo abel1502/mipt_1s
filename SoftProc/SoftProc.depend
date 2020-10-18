@@ -100,7 +100,7 @@
 1603017959 d:\workspace\.mipt\s1\softproc\assembler.h
 	"aef_file.h"
 
-1603038645 d:\workspace\.mipt\s1\softproc\opcodes.h
+1603042872 d:\workspace\.mipt\s1\softproc\opcodes.h
 	<stdint.h>
 
 1603033282 source:d:\workspace\.mipt\s1\softproc\assembler_main.cpp

@@ -289,8 +289,8 @@ static inline bool readBytes_(program_t *self, uint32_t size, void *dest) {
 void program_dump(program_t *self) {
     printf("program_t [0x%p] {\n", self);
     if (self != NULL) {
-        printf("  ip     = %u (out of %zu)\n", self->ip, self->mmap.header.codeSize);
-        printf("  flags  = %x\n", *(unsigned int *)&self->flags);
+        printf("  ip     = %u (out of %u)\n", self->ip, self->mmap.header.codeSize);
+        printf("  flags  = 0b%d%d%d%d%d%d%d%d\n", self->flags.flag_exit, self->flags.f1, self->flags.f2, self->flags.f3, self->flags.f4, self->flags.f5, self->flags.f6, self->flags.f7);
 
         printf("  registers [0x%p] {\n", self->registers);
         if (self->registers != NULL) {
