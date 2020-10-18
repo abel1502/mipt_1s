@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1603020985 source:d:\workspace\.mipt\s1\softproc\assembler.cpp
+1603031946 source:d:\workspace\.mipt\s1\softproc\assembler.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -29,14 +29,14 @@
 1603027022 d:\workspace\.mipt\s1\softproc\constants.h
 	"version.h"
 
-1603030439 d:\workspace\.mipt\s1\softproc\program.h
+1603038159 d:\workspace\.mipt\s1\softproc\program.h
 	"general.h"
 	"constants.h"
 	"opcodes.h"
 	"aef_file.h"
 	"../Stack/stack.h"
 
-1603029493 d:\workspace\.mipt\s1\stack\stack.h
+1603037657 d:\workspace\.mipt\s1\stack\stack.h
 	<stdlib.h>
 	<stdio.h>
 	<string.h>
@@ -100,10 +100,10 @@
 1603017959 d:\workspace\.mipt\s1\softproc\assembler.h
 	"aef_file.h"
 
-1603034662 d:\workspace\.mipt\s1\softproc\opcodes.h
+1603038645 d:\workspace\.mipt\s1\softproc\opcodes.h
 	<stdint.h>
 
-1603025393 source:d:\workspace\.mipt\s1\softproc\assembler_main.cpp
+1603033282 source:d:\workspace\.mipt\s1\softproc\assembler_main.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -131,7 +131,7 @@
 	<errno.h>
 	"general.h"
 
-1603033421 source:d:\workspace\.mipt\s1\softproc\processor_main.cpp
+1603036211 source:d:\workspace\.mipt\s1\softproc\processor_main.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -141,9 +141,10 @@
 	"program.h"
 	"general.h"
 
-1603034491 source:d:\workspace\.mipt\s1\softproc\program.cpp
+1603038596 source:d:\workspace\.mipt\s1\softproc\program.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
+	<math.h>
 	"program.h"
 

@@ -49,9 +49,9 @@ bool program_executeOpcode(program_t *self) {
         return true;
     }
 
-    uint8_t curOp = 0;
+    opcode_t curOp = (opcode_t)0;
 
-    if (readByte_(self, &curOp)) {
+    if (readByte_(self, (uint8_t *)&curOp)) {
         ERR("Reached end of code unexpectedly");
         return true;
     }
