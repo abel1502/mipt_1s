@@ -3,34 +3,18 @@
 
 ; Input
 
-; While this would work, it feels somewhat cheaty to me
-; in df:ra
-; in df:rb
-; in df:rc
-
-in df:
-in df:
-in df:
-
-pop df:rc
-pop df:rb
-pop df:ra
+in df:ra
+in df:rb
+in df:rc
 
 ; dump
 
 
 ; Calculations
 
-; Same deal: works, but  feels too cheaty for assemby)
-; push df:rb
-; sqr df:
-
 ; b^2
 push df:rb
-push df:rb
-mul df:
-
-; dump
+sqr df:
 
 ; 4*a*c
 push df:4
@@ -38,8 +22,6 @@ push df:ra
 push df:rc
 mul df:
 mul df:
-
-; dump
 
 ; D = b^2-4*a*c
 sub df:

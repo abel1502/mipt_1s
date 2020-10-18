@@ -1,0 +1,16 @@
+; Test program
+
+out df:123.456
+
+in df:
+pop df:ra
+
+push df:ra
+push df:1
+add df:stack  ; We may omit the 'stack' if we want, but don't have to
+push df:ra
+div df:
+
+out df:
+
+end
