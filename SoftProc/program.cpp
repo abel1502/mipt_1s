@@ -84,7 +84,7 @@ bool program_executeOpcode(program_t *self) {
         case ARGLOC_STACK:
             break;
         case ARGLOC_REG:
-            curArg.bl = curAddrMode & 0x11;
+            curArg.bl = curAddrMode & 0b11;
             break;
         case ARGLOC_IMM:
             #define ARGTYPE_CASE_(typeCap, typeLow) \
