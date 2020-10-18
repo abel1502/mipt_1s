@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1602874070 source:d:\workspace\.mipt\s1\softproc\assembler.cpp
+1603012936 source:d:\workspace\.mipt\s1\softproc\assembler.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -9,6 +9,7 @@
 	"general.h"
 	"assembler.h"
 	"constants.h"
+	"textfile.h"
 
 1602780744 d:\workspace\.mipt\s1\softproc\aef_file.h
 	<stdint.h>
@@ -96,10 +97,10 @@
 	"opcodes.h"
 	"aef_file.h"
 
-1602874412 d:\workspace\.mipt\s1\softproc\opcodes.h
+1602878073 d:\workspace\.mipt\s1\softproc\opcodes.h
 	<stdint.h>
 
-1602873426 source:d:\workspace\.mipt\s1\softproc\assembler_main.cpp
+1603013008 source:d:\workspace\.mipt\s1\softproc\assembler_main.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -107,5 +108,15 @@
 	"aef_file.h"
 	"assembler.h"
 
-1602859148 d:\workspace\.mipt\s1\softproc\general.h
+1603012405 d:\workspace\.mipt\s1\softproc\general.h
+
+1603012486 source:d:\workspace\.mipt\s1\softproc\textfile.cpp
+	<stdlib.h>
+	<assert.h>
+	<sys/stat.h>
+	"textfile.h"
+
+1603012310 d:\workspace\.mipt\s1\softproc\textfile.h
+	<stdio.h>
+	"general.h"
 

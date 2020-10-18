@@ -6,8 +6,8 @@
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="Debug">
-				<Option output="bin/Debug/SoftProc" prefix_auto="1" extension_auto="1" />
+			<Target title="Debug Processor">
+				<Option output="bin/Debug/processor" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -15,8 +15,29 @@
 					<Add option="-g" />
 				</Compiler>
 			</Target>
-			<Target title="Release">
-				<Option output="bin/Release/SoftProc" prefix_auto="1" extension_auto="1" />
+			<Target title="Release Processor">
+				<Option output="bin/Release/processor" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Debug Assembler">
+				<Option output="bin/Debug/assembler" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release Assembler">
+				<Option output="bin/Release/assembler" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -31,8 +52,50 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
+			<Add option="-D__USE_MINGW_ANSI_STDIO" />
 		</Compiler>
-		<Unit filename="main.cpp" />
+		<Unit filename="aef_file.cpp" />
+		<Unit filename="aef_file.h" />
+		<Unit filename="assembler.cpp">
+			<Option target="Debug Assembler" />
+			<Option target="Release Assembler" />
+		</Unit>
+		<Unit filename="assembler.h">
+			<Option target="Debug Assembler" />
+			<Option target="Release Assembler" />
+		</Unit>
+		<Unit filename="assembler_main.cpp">
+			<Option target="Debug Assembler" />
+			<Option target="Release Assembler" />
+		</Unit>
+		<Unit filename="constants.h" />
+		<Unit filename="general.h">
+			<Option target="Debug Processor" />
+			<Option target="Debug Assembler" />
+			<Option target="Release Assembler" />
+		</Unit>
+		<Unit filename="opcodes.h" />
+		<Unit filename="processor_main.cpp">
+			<Option target="Debug Processor" />
+			<Option target="Release Processor" />
+		</Unit>
+		<Unit filename="program.cpp">
+			<Option target="Debug Processor" />
+			<Option target="Release Processor" />
+		</Unit>
+		<Unit filename="program.h">
+			<Option target="Debug Processor" />
+			<Option target="Release Processor" />
+		</Unit>
+		<Unit filename="textfile.cpp">
+			<Option target="Debug Assembler" />
+			<Option target="Release Assembler" />
+		</Unit>
+		<Unit filename="textfile.h">
+			<Option target="Debug Assembler" />
+			<Option target="Release Assembler" />
+		</Unit>
+		<Unit filename="version.h" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>
