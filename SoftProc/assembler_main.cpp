@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+//#include <unistd.h>
+#include <getopt.h>
 
 #include "constants.h"
 #include "aef_file.h"
@@ -8,47 +10,140 @@
 #include "general.h"
 
 
+void showBanner();
+
+void showHelp(char *binName);
+
+
+
 int main(int argc, char **argv) {
-    code_t testCode = {};
+    showBanner();
+
+    FILE *ifile = NULL;
+    FILE *ofile = NULL;
+    extern int verbosity;
+
+    int c = 0;
+
+    while ((c = getopt(argc, argv, "i:o:vh")) != -1) {
+        switch (c) {
+        case 'h':
+            showHelp(argv[0]);
+            return 1;  // TODO: Encapsulate as enum
+        case 'i':
+            ifile = fopen(optarg, "r");
+
+            if (ifile == NULL) {
+                ERR("Couldn't open %s to read", optarg);
+                return 2;
+            }
+
+            break;
+        case 'o':
+            ofile = fopen(optarg, "wb");
+
+            if (ofile == NULL) {
+                ERR("Couldn't open %s to write", optarg);
+                return 2;
+            }
+
+            break;
+        case 'v':
+            verbosity++;
+            break;
+        case '?':
+            printf("Unknown option: -%c.\n", optopt);
+            showHelp(argv[0]);
+            return 1;  // TODO?: set opterr = 0 and produce error messages myself
+        default:
+            assert(false /* This is never supposed to be reached */);
+        }
+    }
+
+    if (ifile == NULL || ofile == NULL) {
+        printf("You must specify ifile and ofile to use this program.\n");
+        showHelp(argv[0]);
+        return 1;
+    }
+
+    if (optind < argc) {
+        fclose(ifile);
+        fclose(ofile);
+
+        printf("Unexpected positional argument%s.\n", (argc - optind == 1 ? "" : "s"));
+        showHelp(argv[0]);
+        return 1;
+    }
+
+
+    code_t code = {};
+    if (code_init(&code, verbosity >= 2) == NULL) {
+        fclose(ifile);
+        fclose(ofile);
+
+        printf("Failed to initialize code buffer\n");
+        return 3;
+    }
+
+    printf("Assembling the input file.\n");
+
+    if (code_assembleFile(&code, ifile)) {
+        fclose(ifile);
+        fclose(ofile);
+
+        printf("Failed to assemble the input file.\n");
+        return 3;
+    }
+
+    printf("Done, writing to the output file.\n");
+
+    if (code_compileToFile(&code, ofile)) {
+        fclose(ifile);
+        fclose(ofile);
+
+        printf("Failed to write to the output file.\n");
+        return 3;
+    }
+
+    printf("Done.\n");
+
+
+    fclose(ifile);
+    fclose(ofile);
+
+    /*code_t testCode = {};
     code_init(&testCode, true);
 
-    //code_assembleLine(&testCode, "push df:123");
-    //code_assembleLine(&testCode, "push df:32");
-    /*assert(!code_assembleLine(&testCode, "in df:"));
-    assert(!code_assembleLine(&testCode, "in df:"));
-    assert(!code_assembleLine(&testCode, "sub df:"));
-    assert(!code_assembleLine(&testCode, "push df:10"));
-    assert(!code_assembleLine(&testCode, "out df:"));
-    assert(!code_assembleLine(&testCode, "in df:rb"));
-    assert(!code_assembleLine(&testCode, "push df:rb"));
-    assert(!code_assembleLine(&testCode, "out df:"));
-    assert(!code_assembleLine(&testCode, "end"));*/
-
     FILE *ifile = fopen("test.aaf", "r");
-
     assert(!code_assembleFile(&testCode, ifile));
-
     fclose(ifile);
 
     FILE *ofile = fopen("test.aef", "wb");
-
     assert(!code_compileToFile(&testCode, ofile));
-
     fclose(ofile);
 
-    code_free(&testCode);
-
-    /*aef_mmap_t mmap = {};
-    assert(aef_mmap_init(&mmap, 8, (char *)"\x12\x34\x56\x78\x9A\xBC\xDE\xF0") != NULL);
-
-    FILE *ofile = fopen("test.aef", "wb");
-
-    assert(!aef_mmap_write(&mmap, ofile));
-
-    fclose(ofile);
-
-    aef_mmap_free(&mmap);*/
+    code_free(&testCode);*/
 
     return 0;
+}
+
+
+void showBanner() {
+    printf("####################################\n");
+    printf("#                                  #\n");
+    printf("#  Abel Assembly Format Assembler  #\n");
+    printf("#          (c) Abel, 2020          #\n");
+    printf("#                                  #\n");
+    printf("####################################\n\n");
+
+    printf("This program assembles an .aaf file into an .aef program.\n\n");
+}
+
+void showHelp(char *binName) {
+    printf("Usage: %s [-h] -i ifile -o ofile [-v]\n", binName);
+    printf("  -h         Show this help message and exit\n");
+    printf("  -i ifile   The input .aaf file name\n");
+    printf("  -o ofile   The output .aef file name\n");
+    printf("  -v         Increase verbosity level\n\n");
 }
 
