@@ -50,7 +50,8 @@ typedef enum opcode_e {
     OP_SQRT = 0x0d,
     OP_IN   = 0x18,
     OP_OUT  = 0x19,
-    OP_END  = 0xf0
+    OP_END  = 0xf0,
+    OP_DUMP = 0xf1
 } __attribute__((__packed__)) opcode_t;
 
 static_assert(sizeof(opcode_t) == 1);
@@ -323,7 +324,7 @@ static const char *OPNAMES[256] =  {
     NULL,
     NULL,
     "end",
-    NULL,
+    "dump",
     NULL,
     NULL,
     NULL,
