@@ -3,7 +3,7 @@
 
 #include "version.h"
 
-const version_t AEF_VERSION = 1;
+const version_t AEF_VERSION = 2;
 
 // (Due to an 8-year-old bug in gcc, the following pragma does not work.
 // #pragma GCC diagnostic ignored "-Wmultichar"
