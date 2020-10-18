@@ -58,7 +58,30 @@ int main(int argc, char **argv) {
     }
     optind++;
 
-    // TODO
+    program_t program = {};
+
+    printf("Reading the program file...\n");
+
+    if (program_read(&program, ifile)) {
+        fclose(ifile);
+
+        printf("Failed to read the program file.\n");
+        return 3;
+    }
+
+    printf("Done, executing...\n");
+
+    if (program_execute(&program)) {
+        program_free(&program);
+        fclose(ifile);
+
+        printf("Failed to execute the program.\n");
+        return 3;
+    }
+
+    printf("Done.\n");
+
+    program_free(&program);
 
     fclose(ifile);
 
@@ -78,7 +101,7 @@ void showBanner() {
 }
 
 void showHelp(char *binName) {
-    printf("Usage: %s ifile [-h] [-v]\n", binName);
+    printf("Usage: %s [-h] [-v] ifile\n", binName);
     printf("  ifile      The input .aef program name\n");
     printf("  -h         Show this help message and exit\n");
     printf("  -v         Increase verbosity level\n\n");
