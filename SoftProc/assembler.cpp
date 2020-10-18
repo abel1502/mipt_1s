@@ -196,12 +196,9 @@ bool code_assembleLine(code_t *self, const char *line) {
                 break;
 
         #define ARGTYPE_CASE_SIGN_(utype, stype, format)                           \
-                if (*line == 'u') {                                                \
+                if (*line == '+' || *line == '-') {                                \
                     line++;                                                        \
                     res = sscanf(line, format "u%n", (utype *)&opArg, &lineDelta); \
-                } else if (*line == 'i') {                                         \
-                    line++;                                                        \
-                    res = sscanf(line, format "d%n", (stype *)&opArg, &lineDelta); \
                 } else {                                                           \
                     res = sscanf(line, format "d%n", (stype *)&opArg, &lineDelta); \
                 }                                                                  \
