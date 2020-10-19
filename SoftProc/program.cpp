@@ -40,70 +40,63 @@ bool program_read(program_t *self, FILE *ifile) {
     return false;
 }
 
-bool program_executeOpcode(program_t *self) {
+bool program_parseOpcode(program_t *self, opcode_info_t *opcode) {
     assert(self != NULL);
-
-    //printf("[PRC] 0x%08x |\n", self->ip);
+    assert(opcode != NULL);
 
     if (self->ip >= self->mmap.header.codeSize) {
         ERR("Instruction pointer out of bounds");
         return true;
     }
 
-    opcode_t curOp = (opcode_t)0;
+    opcode->addr = self->ip;
 
-    if (readByte_(self, (uint8_t *)&curOp)) {
+    if (readByte_(self, (uint8_t *)&opcode->op)) {
         ERR("Reached end of code unexpectedly");
         return true;
     }
 
-    bool hasArg = OPARG_BITMASK[curOp] != 0;
+    opcode->hasArg = (OPARG_BITMASK[opcode->op] != 0);
 
     uint8_t curAddrMode = 0;
 
-    argLoc_t curArgLoc = (argLoc_t)0;
-    argType_t curArgType = (argType_t)0;
-
-    value_t curArg = {};
-
-    if (hasArg) {
+    if (opcode->hasArg) {
         if (readByte_(self, &curAddrMode)) {
             ERR("Reached end of code unexpectedly");
             return true;
         }
 
-        if (!(OPARG_BITMASK[curOp] & 1 << (curAddrMode >> 2))) {
-            //ERR("0x%016llx 0x%02x", OPARG_BITMASK[curOp], curAddrMode >> 2);
-            ERR("Illegal address mode 0x%02x for opcode 0x%02x at 0x%08x", curAddrMode, curOp, self->ip - 2);
+        if (!(OPARG_BITMASK[opcode->op] & 1 << (curAddrMode >> 2))) {
+            ERR("Illegal address mode 0x%02x for opcode 0x%02x at 0x%08x", curAddrMode, opcode->op, opcode->addr);
             return true;
         }
 
-        curArgLoc = (argLoc_t)(curAddrMode >> 2 & 0b11);
-        curArgType = (argType_t)(curAddrMode >> 4 & 0b1111);
+        opcode->argLoc = (argLoc_t)(curAddrMode >> 2 & 0b11);
+        opcode->argType = (argType_t)(curAddrMode >> 4 & 0b1111);
 
-        switch (curArgLoc) {
+        switch (opcode->argLoc) {
         case ARGLOC_STACK:
             break;
         case ARGLOC_REG:
-            curArg.bl = curAddrMode & 0b11;
+            opcode->arg.bl = curAddrMode & 0b11;
             break;
         case ARGLOC_IMM:
             #define ARGTYPE_CASE_(typeCap, typeLow) \
                 case ARGTYPE_##typeCap: \
-                    readBytes_(self, sizeof(curArg.typeLow), &curArg.typeLow); \
+                    readBytes_(self, sizeof(opcode->arg.typeLow), &opcode->arg.typeLow); \
                     break;
 
-            switch (curArgType) {
-                ARGTYPE_CASE_(DF, df);
-                ARGTYPE_CASE_(FL, fl);
-                ARGTYPE_CASE_(FH, fh);
-                ARGTYPE_CASE_(QW, qw);
-                ARGTYPE_CASE_(DWL, dwl);
-                ARGTYPE_CASE_(DWH, dwh);
-                ARGTYPE_CASE_(WL, wl);
-                ARGTYPE_CASE_(WH, wh);
-                ARGTYPE_CASE_(BL, bl);
-                ARGTYPE_CASE_(BH, bh);
+            switch (opcode->argType) {
+                ARGTYPE_CASE_(DF, df)
+                ARGTYPE_CASE_(FL, fl)
+                ARGTYPE_CASE_(FH, fh)
+                ARGTYPE_CASE_(QW, qw)
+                ARGTYPE_CASE_(DWL, dwl)
+                ARGTYPE_CASE_(DWH, dwh)
+                ARGTYPE_CASE_(WL, wl)
+                ARGTYPE_CASE_(WH, wh)
+                ARGTYPE_CASE_(BL, bl)
+                ARGTYPE_CASE_(BH, bh)
             default:
                 ERR("Shouldn't be reachable");
                 abort();
@@ -118,6 +111,18 @@ bool program_executeOpcode(program_t *self) {
         }
     }
 
+    return false;
+}
+
+bool program_executeOpcode(program_t *self) {
+    assert(self != NULL);
+
+    //printf("[PRC] 0x%08x |\n", self->ip);
+
+    opcode_info_t curOp = {};
+
+    program_parseOpcode(self, &curOp);
+
     /*printf("[PRC] %02x (0x%016llx) ", curOp, OPARG_BITMASK[curOp]);
     if (hasArg) {
         printf("%02x %016llx ", curAddrMode, curArg.qw);
@@ -127,24 +132,24 @@ bool program_executeOpcode(program_t *self) {
     }
     printf("\n");*/
 
-    #define TMP_ONLYDOUBLE_  if (curArgType != ARGTYPE_DF) { goto notimpl_label; }
+    #define TMP_ONLYDOUBLE_  if (curOp.argType != ARGTYPE_DF) { goto notimpl_label; }
 
     #define POP_(dest)  if (stack_pop(&self->stack, (dest))) { ERR("Cannot pop from stack"); return true; }
     #define PUSH_(val)  if (stack_push(&self->stack, (val))) { ERR("Cannot push to stack"); return true; }
 
     value_t tos0 = {}, tos1 = {}, res = {};
 
-    switch (curOp) {
+    switch (curOp.op) {
     case OP_NOP:
         break;
     case OP_PUSH:
-        if (curArgLoc == ARGLOC_REG) {
-            curArg = self->registers[curArg.bl];
+        if (curOp.argLoc == ARGLOC_REG) {
+            curOp.arg = self->registers[curOp.arg.bl];
         }
-        PUSH_(curArg);
+        PUSH_(curOp.arg);
         break;
     case OP_POP:
-        POP_(&self->registers[curArg.bl]);
+        POP_(&self->registers[curOp.arg.bl]);
         break;
     case OP_POPV:
         POP_(NULL);
@@ -185,14 +190,15 @@ bool program_executeOpcode(program_t *self) {
         break;
     case OP_IN: TMP_ONLYDOUBLE_
         printf("(df) > ");
-        switch (curArgLoc) {
+        switch (curOp.argLoc) {
         case ARGLOC_STACK:
             scanf("%lg", &res.df);
             PUSH_(res);
             break;
         case ARGLOC_REG:
-            scanf("%lg", &self->registers[curArg.bl].df);
+            scanf("%lg", &self->registers[curOp.arg.bl].df);
             break;
+        case ARGLOC_IMM:
         default:
             ERR("Shouldn't be reachable");
             abort();
@@ -201,16 +207,16 @@ bool program_executeOpcode(program_t *self) {
         break;
     case OP_OUT: TMP_ONLYDOUBLE_
         printf("(df) ");
-        switch (curArgLoc) {
+        switch (curOp.argLoc) {
         case ARGLOC_STACK:
             POP_(&tos0);
             printf("%lg\n", tos0.df);
             break;
         case ARGLOC_REG:
-            printf("%lg\n", self->registers[curArg.bl].df);
+            printf("%lg\n", self->registers[curOp.arg.bl].df);
             break;
         case ARGLOC_IMM:
-            printf("%lg\n", curArg.df);
+            printf("%lg\n", curOp.arg.df);
             break;
         default:
             ERR("Shouldn't be reachable");
@@ -225,10 +231,10 @@ bool program_executeOpcode(program_t *self) {
         program_dump(self);
         break;
     default:
-        ERR("Unknown opcode 0x%02x", curOp);  // TODO: opcode names?
+        ERR("Unknown opcode 0x%02x", curOp.op);  // TODO: opcode names?
         return true;
     notimpl_label:
-        ERR("Sorry, opcode 0x%02x not yet implemented", curOp);
+        ERR("Sorry, opcode 0x%02x not yet implemented", curOp.op);
         return true;
     }
 
@@ -236,8 +242,6 @@ bool program_executeOpcode(program_t *self) {
     #undef PUSH_
 
     #undef TMP_ONLYDOUBLE_
-
-    #undef READ_BYTE_
 
     return false;
 }
@@ -251,6 +255,105 @@ bool program_execute(program_t *self) {
             if (self->ip == self->mmap.header.codeSize) {
                 ERR("(Most likely your program is missing an <end> opcode in the end)");
             }
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool program_disassembleOpcode(program_t *self) {
+    assert(self != NULL);
+
+    printf("[DIS] 0x%08x | ", self->ip);
+
+    opcode_info_t curOp = {};
+
+    program_parseOpcode(self, &curOp);
+
+    if (OPNAMES[curOp.op] == NULL) {
+        printf("<corrupt>\n");
+        return true;
+    }
+
+    printf("%s ", OPNAMES[curOp.op]);
+
+    if (curOp.hasArg) {
+        #define ARGTYPE_CASE_(typeCap, typeLow) \
+            case ARGTYPE_##typeCap: \
+                printf(#typeLow ":"); \
+                break;
+
+        switch (curOp.argType) {
+            ARGTYPE_CASE_(DF, df)
+            ARGTYPE_CASE_(FL, fl)
+            ARGTYPE_CASE_(FH, fh)
+            ARGTYPE_CASE_(QW, qw)
+            ARGTYPE_CASE_(DWL, dwl)
+            ARGTYPE_CASE_(DWH, dwh)
+            ARGTYPE_CASE_(WL, wl)
+            ARGTYPE_CASE_(WH, wh)
+            ARGTYPE_CASE_(BL, bl)
+            ARGTYPE_CASE_(BH, bh)
+        default:
+            ERR("Shouldn't be reachable");
+            abort();
+        }
+
+        #undef ARGTYPE_CASE_
+
+        switch (curOp.argLoc) {
+        case ARGLOC_STACK:
+            printf("stack");
+            break;
+        case ARGLOC_REG:
+            printf("r%c", 'a' + curOp.arg.bl);
+            break;
+        case ARGLOC_IMM:
+            #define ARGTYPE_CASE_(typeCap, typeLow, fmt) \
+                case ARGTYPE_##typeCap:                  \
+                    printf(fmt, curOp.arg.typeLow);      \
+                    break;
+
+            switch (curOp.argType) {
+                ARGTYPE_CASE_(DF, df, "%lg")
+                ARGTYPE_CASE_(FL, fl, "%g")
+                ARGTYPE_CASE_(FH, fh, "%g")
+                ARGTYPE_CASE_(QW, qw, "%llu")
+                ARGTYPE_CASE_(DWL, dwl, "%u")
+                ARGTYPE_CASE_(DWH, dwh, "%u")
+                ARGTYPE_CASE_(WL, wl, "%hu")
+                ARGTYPE_CASE_(WH, wh, "%hu")
+                ARGTYPE_CASE_(BL, bl, "%hhu")
+                ARGTYPE_CASE_(BH, bh, "%hhu")
+            default:
+                ERR("Shouldn't be reachable");
+                abort();
+            }
+
+            #undef ARGTYPE_CASE_
+
+            break;
+        default:
+            ERR("Shouldn't be reachable");
+            abort();
+        }
+    }
+
+    printf("\n");
+
+
+
+    return false;
+}
+
+bool program_disassemble(program_t *self) {
+    assert(self != NULL);
+
+    while (self->ip < self->mmap.header.codeSize) {
+        if (program_disassembleOpcode(self)) {
+            ERR("Error during disassembly of opcode at 0x%08x", self->ip);
+
             return true;
         }
     }

@@ -9,6 +9,8 @@
 
 typedef struct program_s program_t;
 
+typedef struct opcode_info_s opcode_info_t;
+
 typedef struct flag_regs_s flag_regs_t;
 
 
@@ -43,12 +45,27 @@ struct program_s {
     uint32_t ip;
 };
 
+struct opcode_info_s {
+    uint32_t addr;
+    opcode_t op;
+    argLoc_t argLoc;
+    argType_t argType;
+    bool hasArg;
+    value_t arg;
+};
+
 
 bool program_read(program_t *self, FILE *ifile);
+
+bool program_parseOpcode(program_t *self, opcode_info_t *opcode);
 
 bool program_executeOpcode(program_t *self);
 
 bool program_execute(program_t *self);
+
+bool program_disassembleOpcode(program_t *self);
+
+bool program_disassemble(program_t *self);
 
 void program_free(program_t *self);
 
