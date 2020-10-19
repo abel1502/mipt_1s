@@ -234,7 +234,7 @@ bool program_executeOpcode(program_t *self) {
         ERR("Unknown opcode 0x%02x", curOp.op);  // TODO: opcode names?
         return true;
     notimpl_label:
-        ERR("Sorry, opcode 0x%02x not yet implemented", curOp.op);
+        ERR("Sorry, opcode 0x%02x (argType 0b%d%d%d%d, argLoc 0b%d%d) not yet implemented", curOp.op, curOp.argType >> 3 & 1, curOp.argType >> 2 & 1, curOp.argType >> 1 & 1, curOp.argType >> 0 & 1, curOp.argLoc >> 1 & 1, curOp.argLoc >> 0 & 1);
         return true;
     }
 
