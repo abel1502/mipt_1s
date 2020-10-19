@@ -28,10 +28,12 @@ struct flag_regs_s {
 
 // ==== [ Stack inclusion ] ====
 typedef value_t stack_elem_t;
+#ifndef STACK_NOIMPL
 static void printHelper(stack_elem_t elem) {
     printf("%lg", elem.df);
 }
 #define STACK_ELEM_PRINT printHelper
+#endif
 //#define STACK_VALIDATION_LEVEL 3
 #include "../Stack/stack.h"
 // =============================
