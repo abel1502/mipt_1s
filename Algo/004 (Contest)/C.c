@@ -76,11 +76,19 @@ int main() {
 }
 
 
+/*
+  Calculates the k'th element in the sorted array.
+
+  Works the same as quicksort, except only repeats for one part instead of both.
+  (It only chooses the part where the desired k'th element resides, since the order
+  of the elements within the other one doesn't really matter.) Because of this
+  it works in linear time instead of n log n.
+*/
 item_t kth_elem(item_t *arr, unsigned num, unsigned k) {
     assert(arr != NULL);
     assert(k < num);
 
-    unsigned left = 0, right = num - 1;
+    unsigned left = 0, right = num - 1;  // Borders of the segment we're 'sorting'
 
     while (left < right) {
         item_t arrMax = 0, arrMin = (item_t)-1;
@@ -95,13 +103,16 @@ item_t kth_elem(item_t *arr, unsigned num, unsigned k) {
             }
         }
 
+        // We find the min and max within this segment since I need them to exclude one case in which my
+        // ingenious idea wouldn't work, but we may also use them to provide an exit cond.
+
         if (left == k) {  // This is our exit condition
             return arrMin;
         } else if (right == k) {
             return arrMax;
         }
 
-        // A special crotch to exclude the cases where the oddified double partition will be too big
+        // A special crotch to exclude the cases where the oddified double pivot will be too big
         if (arrMax == arrMin)
             return arrMax;
 
@@ -119,6 +130,7 @@ item_t kth_elem(item_t *arr, unsigned num, unsigned k) {
         system("pause");
         #endif
 
+        // We're only intrested in the segment containing the k'th element
         if (middle < k) {
             left = middle + 1;
         } else {
@@ -129,6 +141,12 @@ item_t kth_elem(item_t *arr, unsigned num, unsigned k) {
     return arr[left];
 }
 
+/*
+  Essentially a quicksort partition, but insted of pivot it uses an odd 'double pivot'
+  (which is equivalent to half-integral pivot) to make sure the array contains no elements equal to the pivot.
+  Maybe we don't need it, but I've implemented this just to be sure my program won't enter an infinite loop
+  with elements equal to the pivot in the array.
+*/
 unsigned partition(item_t *arr, unsigned left, unsigned right, item_t doublePivot) {
     assert(arr != NULL);
     assert((doublePivot & 1) == 1);  // We require an odd double pivot to exclude the possibility of a match between the pivot and some element
