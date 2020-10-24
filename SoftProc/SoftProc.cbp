@@ -77,10 +77,6 @@
 			<Add option="-Wno-multichar" />
 			<Add option="-D__USE_MINGW_ANSI_STDIO" />
 		</Compiler>
-		<ExtraCommands>
-			<Add before="python ./opcodes_builder.py -i opcodes.def -o opcodes.h" />
-			<Mode after="always" />
-		</ExtraCommands>
 		<Unit filename="aef_file.cpp" />
 		<Unit filename="aef_file.h" />
 		<Unit filename="assembler.cpp">
@@ -102,7 +98,8 @@
 			<Option target="Debug Assembler" />
 			<Option target="Release Assembler" />
 		</Unit>
-		<Unit filename="opcodes.h" />
+		<Unit filename="opcode.h" />
+		<Unit filename="opcode_defs.h" />
 		<Unit filename="processor_main.cpp">
 			<Option target="Debug Processor" />
 			<Option target="Release Processor" />

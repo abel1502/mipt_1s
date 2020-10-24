@@ -17,7 +17,7 @@ struct code_s {
 
 code_t *code_init(code_t *self, bool doLog);
 
-bool code_writeRaw_(code_t *self, const char *data, code_size_t amount);
+bool code_writeRaw_(code_t *self, const void *data, code_size_t amount);
 
 bool code_assembleLine(code_t *self, const char *line);
 

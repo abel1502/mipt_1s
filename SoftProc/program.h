@@ -3,7 +3,7 @@
 
 #include "general.h"
 #include "constants.h"
-#include "opcodes.h"
+#include "opcode.h"
 #include "aef_file.h"
 
 
@@ -16,7 +16,7 @@ typedef struct flag_regs_s flag_regs_t;
 
 struct flag_regs_s {
     bool flag_exit : 1;
-    bool f1 : 1;
+    bool flag_monday : 1;
     bool f2 : 1;
     bool f3 : 1;
     bool f4 : 1;
@@ -50,24 +50,23 @@ struct program_s {
 struct opcode_info_s {
     uint32_t addr;
     opcode_t op;
-    argLoc_t argLoc;
-    argType_t argType;
-    bool hasArg;
+    addrMode_t addrMode;
+    uint8_t reg;
     value_t arg;
 };
 
 
 bool program_read(program_t *self, FILE *ifile);
 
-bool program_parseOpcode(program_t *self, opcode_info_t *opcode);
+/*bool program_parseOpcode(program_t *self, opcode_info_t *opcode);*/
 
 bool program_executeOpcode(program_t *self);
 
 bool program_execute(program_t *self);
 
-bool program_disassembleOpcode(program_t *self);
+/*bool program_disassembleOpcode(program_t *self);
 
-bool program_disassemble(program_t *self);
+bool program_disassemble(program_t *self);*/
 
 void program_free(program_t *self);
 

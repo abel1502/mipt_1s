@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1603045989 source:d:\workspace\.mipt\s1\softproc\assembler.cpp
+1603542559 source:d:\workspace\.mipt\s1\softproc\assembler.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -10,7 +10,8 @@
 	"assembler.h"
 	"constants.h"
 	"textfile.h"
-	"opcodes.h"
+	"opcode.h"
+	"opcode_defs.h"
 
 1603024960 d:\workspace\.mipt\s1\softproc\aef_file.h
 	<stdint.h>
@@ -26,13 +27,13 @@
 1602705988 d:\workspace\.mipt\s1\softproc\version.h
 	<stdint.h>
 
-1603027022 d:\workspace\.mipt\s1\softproc\constants.h
+1603484501 d:\workspace\.mipt\s1\softproc\constants.h
 	"version.h"
 
-1603101117 d:\workspace\.mipt\s1\softproc\program.h
+1603551405 d:\workspace\.mipt\s1\softproc\program.h
 	"general.h"
 	"constants.h"
-	"opcodes.h"
+	"opcode.h"
 	"aef_file.h"
 	"../Stack/stack.h"
 
@@ -97,13 +98,13 @@
 	<inttypes.h>
 	<SAPI.h>
 
-1603017959 d:\workspace\.mipt\s1\softproc\assembler.h
+1603484676 d:\workspace\.mipt\s1\softproc\assembler.h
 	"aef_file.h"
 
 1603104173 d:\workspace\.mipt\s1\softproc\opcodes.h
 	<stdint.h>
 
-1603033282 source:d:\workspace\.mipt\s1\softproc\assembler_main.cpp
+1603046288 source:d:\workspace\.mipt\s1\softproc\assembler_main.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -113,7 +114,7 @@
 	"assembler.h"
 	"general.h"
 
-1603020527 d:\workspace\.mipt\s1\softproc\general.h
+1603552144 d:\workspace\.mipt\s1\softproc\general.h
 
 1603017111 source:d:\workspace\.mipt\s1\softproc\textfile.cpp
 	<stdlib.h>
@@ -131,7 +132,7 @@
 	<errno.h>
 	"general.h"
 
-1603099408 source:d:\workspace\.mipt\s1\softproc\processor_main.cpp
+1603548716 source:d:\workspace\.mipt\s1\softproc\processor_main.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -141,10 +142,17 @@
 	"program.h"
 	"general.h"
 
-1603104039 source:d:\workspace\.mipt\s1\softproc\program.cpp
+1603552365 source:d:\workspace\.mipt\s1\softproc\program.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
 	<math.h>
 	"program.h"
+	"opcode_defs.h"
+
+1603541562 d:\workspace\.mipt\s1\softproc\opcode.h
+	<stdint.h>
+	"opcode_defs.h"
+
+1603552812 d:\workspace\.mipt\s1\softproc\opcode_defs.h
 

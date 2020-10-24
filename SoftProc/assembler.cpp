@@ -11,7 +11,7 @@
 #include "assembler.h"
 #include "constants.h"
 #include "textfile.h"
-#include "opcodes.h"
+#include "opcode.h"
 
 
 const code_size_t CODE_DEFAULT_CAPACITY = 0x20;
@@ -19,6 +19,12 @@ const code_size_t CODE_MAX_CAPACITY = 0x7fff0000;
 
 
 static bool readUntil_(const char **source, char *dest, char until, size_t limit);
+
+static inline void skipSpace_(const char **line);
+
+static inline bool isEOL_(const char *line);
+
+static bool readConst_(const char **line, void *valueBuf, uint8_t argType);
 
 
 code_t *code_init(code_t *self, bool doLog) {
@@ -37,7 +43,7 @@ code_t *code_init(code_t *self, bool doLog) {
     return self;
 }
 
-bool code_writeRaw_(code_t *self, const char *data, code_size_t amount) {
+bool code_writeRaw_(code_t *self, const void *data, code_size_t amount) {
     assert(self != NULL);
     assert(self->buf != NULL);
     assert(data != NULL);
@@ -66,56 +72,58 @@ bool code_assembleLine(code_t *self, const char *line) {
 
     const char *origLine = line;
 
-    #define EOL_ (*line == '\0' || *line == ';')
+    skipSpace_(&line);
 
-    #define SKIP_SPACE_() while (!EOL_ && isspace(*line)) line++;
-
-    SKIP_SPACE_();
-
-    if (EOL_) {
+    if (isEOL_(line)) {
         return false;  // Empty lines are ok
     }
 
     code_log(self, "[ASM] | 0x%04x | ", self->size);  // TODO?: 0x%08x
 
-    int curOpcode = -1;
+    opcode_t op = OP_NOP;
+    int curNameLen = 0;
 
-    for (int i = 0; i < 256; ++i) {
-        if (OPNAMES[i] == NULL) {
-            continue;
-        }
+    unsigned curArgCnt = 0;
+    uint16_t curArgTypeMask = 0;
+    uint8_t curArgLocMask = 0;
 
-        if (strncmp(line, OPNAMES[i], strlen(OPNAMES[i])) == 0) {
-            curOpcode = i;
-            break;
-        }
-    }
+    do {
+        #define DEF_OP(NUM, NAME_CAP, NAME_LOW, ARG_CNT, ARG_TYPE_MASK, ARG_LOC_MASK, CODE) \
+            curNameLen = 0; \
+            sscanf(line, #NAME_LOW "%n", &curNameLen); \
+            if (curNameLen == strlen(#NAME_LOW) && (isspace(*(line + curNameLen)) || isEOL_(line + curNameLen))) { \
+                op = OP_##NAME_CAP; \
+                line += curNameLen; \
+                curArgCnt = ARG_CNT; \
+                curArgTypeMask = ARG_TYPE_MASK; \
+                curArgLocMask = ARG_LOC_MASK; \
+                break; \
+            }
 
-    if (curOpcode == -1) {
+        #include "opcode_defs.h"
+
+        #undef DEF_OP
+
         ERR("Unknown opcode <%s>", line);
         return true;
-    }
+    } while (false);
 
-    unsigned char op = curOpcode;
-
-    line += strlen(OPNAMES[op]);
-
-    SKIP_SPACE_();
+    skipSpace_(&line);
 
     code_log(self, "%02x ", op);
 
-    if (code_writeRaw_(self, (const char *)&op, 1)) {
+    if (code_writeRaw_(self, &op, sizeof(op))) {
         ERR("Couldn't write to file");
         return true;
     }
 
-    if (EOL_) {
-        if (OPARG_BITMASK[op] != 0) {
+    if (isEOL_(line)) {
+        if (curArgCnt > 0) {
             ERR("Expected an argument for op 0x%02x", op);
             return true;
         }
 
-        code_log(self, "                           |            | \"%s\"\n", origLine);
+        code_log(self, "                           |          | \"%s\"\n", origLine);
 
         return false;
     }
@@ -127,9 +135,9 @@ bool code_assembleLine(code_t *self, const char *line) {
         return true;
     }
 
-    unsigned char addrMode = 0;
+    addrMode_t addrMode = {};
 
-    #define ARGTYPE_CASE_(name, value)  if (strcmp(argType, name) == 0) { addrMode |= value << 4; } else
+    #define ARGTYPE_CASE_(name, value)  if (strcmp(argType, name) == 0) { addrMode.type = value; } else
 
     ARGTYPE_CASE_("df",  ARGTYPE_DF)
     ARGTYPE_CASE_("fl",  ARGTYPE_FL)
@@ -148,16 +156,40 @@ bool code_assembleLine(code_t *self, const char *line) {
 
     #undef ARGTYPE_CASE_
 
-    if (EOL_ || isspace(*line) || strncmp(line, "stack", 5) == 0) {
-        addrMode |= ARGLOC_STACK << 2;
+    if (!(curArgTypeMask & 1 << addrMode.type)) {
+        ERR("Inappropriate argument type 0x%02x for op 0x%02x", addrMode.type, op);
+        return true;
+    }
+
+    #define WRITE_ADDRMODE_() \
+        if (!(curArgLocMask & (1 << addrMode.loc))) { \
+            ERR("Inappropriate argument loc 0x%02x for op 0x%02x", addrMode.loc, op); \
+            return true; \
+        } \
+        if (code_writeRaw_(self, &addrMode, sizeof(addrMode))) { \
+            ERR("Couldn't write to file"); \
+            return true; \
+        }
+
+    if (*line == '[') {
+        //addrMode.locMem = 1;
+        addrMode.loc |= ARGLOC_MEM;
+        line++;
+    }
+
+    if (isEOL_(line) || isspace(*line) || (strncmp(line, "stack", 5) == 0 && (line += 5 /* Crotchy, but we kind of need this */))) {
+        //addrMode.locReg = 0;
+        //addrMode.locImm = 0;
 
         code_log(self, "%02x                         ", addrMode);
 
-        code_writeRaw_(self, (const char *)&addrMode, 1);
+        WRITE_ADDRMODE_();
 
-        while (!EOL_ && !isspace(*line)) ++line;
-    } else if (*line == 'r') {
-        addrMode |= ARGLOC_REG << 2;
+        //while (!isEOL_(line) && !isspace(*line)) ++line;
+    } else if (*line == 'r') {  // TODO: labels too
+        //addrMode.locReg = 1;
+        //addrMode.locImm = 0;
+        addrMode.loc |= ARGLOC_REG;
 
         line++;
 
@@ -166,125 +198,105 @@ bool code_assembleLine(code_t *self, const char *line) {
             return true;
         }
 
-        addrMode |= (*line - 'a') & 0b11;
+        uint8_t reg = *line - 'a';
 
-        code_log(self, "%02x                         ", addrMode);
-
-        if (code_writeRaw_(self, (const char *)&addrMode, 1)) {
-            ERR("Couldn't write to file");
-            return true;
-        }
         line++;
+
+        skipSpace_(&line);
+
+        if (*line == '+' || *line == '-') {  // WARNING: This is always signed
+            //addrMode.locImm = 1;
+            addrMode.loc |= ARGLOC_IMM;
+
+            WRITE_ADDRMODE_();
+
+            if (code_writeRaw_(self, &reg, sizeof(reg))) {
+                ERR("Couldn't write to file");
+                return true;
+            }
+
+            char immArg[sizeof(value_t)] = {};
+
+            if (readConst_(&line, immArg, addrMode.type)) {
+                ERR("Couldn't read an argument");
+                return true;
+            }
+
+            /*for (size_t i = 0; i < sizeof(value_t); ++i) {
+                if (i < self->size) {
+                    code_log(self, "%02x ", immArg[i]);
+                } else {
+                    code_log(self, "   ");
+                }
+            }*/
+
+            if (code_writeRaw_(self, immArg, 1 << addrMode.typeS))  {
+                ERR("Couldn't write to file");
+                return true;
+            }
+
+            code_log(self, "%02x %02x <>                   ", addrMode, reg);  // TODO
+        } else {
+            WRITE_ADDRMODE_();
+
+            if (code_writeRaw_(self, &reg, sizeof(reg))) {
+                ERR("Couldn't write to file");
+                return true;
+            }
+
+            code_log(self, "%02x %02x                      ", addrMode, reg);
+        }
     } else {
-        addrMode |= ARGLOC_IMM << 2;
+        //addrMode.locReg = 0;
+        //addrMode.locImm = 1;
+        addrMode.loc |= ARGLOC_IMM;
 
         code_log(self, "%02x ", addrMode);
 
-        if (code_writeRaw_(self, (const char *)&addrMode, 1)) {
-            ERR("Couldn't write to file");
+        WRITE_ADDRMODE_();
+
+        char immArg[sizeof(value_t)] = {};
+
+        if (readConst_(&line, immArg, addrMode.type)) {
+            ERR("Couldn't read an argument");
             return true;
         }
 
-        char opArg[sizeof(value_t)] = "";
-        code_size_t opArgSize = 0;
-
-        int lineDelta = 0;
-        int res = 0;
-
-        #define ARGTYPE_CASE_(type, format)                                  \
-                res = sscanf(line, format "%n", (type *)&opArg, &lineDelta); \
-                                                                             \
-                if (res != 1) {                                              \
-                    ERR("Corrupt immediate value: <%s>", line);              \
-                    return true;                                             \
-                }                                                            \
-                                                                             \
-                line += lineDelta;                                           \
-                opArgSize = sizeof(type);                                    \
-                                                                             \
-                break;
-
-        #define ARGTYPE_CASE_SIGN_(utype, stype, format)                           \
-                if (*line == '+' || *line == '-') {                                \
-                    line++;                                                        \
-                    res = sscanf(line, format "u%n", (utype *)&opArg, &lineDelta); \
-                } else {                                                           \
-                    res = sscanf(line, format "d%n", (stype *)&opArg, &lineDelta); \
-                }                                                                  \
-                                                                                   \
-                if (res != 1) {                                                    \
-                    ERR("Corrupt immediate value: <%s>", line);                    \
-                    return true;                                                   \
-                }                                                                  \
-                                                                                   \
-                line += lineDelta;                                                 \
-                opArgSize = sizeof(utype);                                         \
-                                                                                   \
-                break;
-
-        if (EOL_) {
-            ERR("Expected an argument value");
-            return true;
-        }
-
-        switch ((addrMode >> 4) & 0b1111) {
-            // ARGTYPE_DF ARGTYPE_FL ARGTYPE_FH ARGTYPE_QW ARGTYPE_DWL ARGTYPE_DWH ARGTYPE_WL ARGTYPE_WH ARGTYPE_BL ARGTYPE_BH
-        case ARGTYPE_DF:
-            ARGTYPE_CASE_(double, "%lg")
-        case ARGTYPE_FL:
-        case ARGTYPE_FH:
-            ARGTYPE_CASE_(float, "%g")
-        case ARGTYPE_QW:
-            ARGTYPE_CASE_SIGN_(uint64_t, int64_t, "%ll")
-        case ARGTYPE_DWL:
-        case ARGTYPE_DWH:
-            ARGTYPE_CASE_SIGN_(uint32_t, int32_t, "%")
-        case ARGTYPE_WL:
-        case ARGTYPE_WH:
-            ARGTYPE_CASE_SIGN_(uint16_t, int16_t, "%h")
-        case ARGTYPE_BL:
-        case ARGTYPE_BH:
-            ARGTYPE_CASE_SIGN_(uint8_t, int8_t, "%hh")
-        default:
-            ERR("Cannot handle constants of <%s> type", argType);
-            return true;
-        }
-
-        #undef ARGTYPE_CASE_SIGN_
-        #undef ARGTYPE_CASE_
-
-        for (size_t i = 0; i < sizeof(value_t); ++i) {
-            if (i < self->size) {
-                code_log(self, "%02x ", opArg[i]);
+        for (unsigned i = 0; i < sizeof(value_t); ++i) {
+            if (i < (unsigned)(1 << addrMode.typeS)) {
+                code_log(self, "%02x ", (unsigned char)immArg[i]);
             } else {
                 code_log(self, "   ");
             }
         }
 
-        if (code_writeRaw_(self, opArg, opArgSize))  {
+        if (code_writeRaw_(self, immArg, 1 << addrMode.typeS))  {
             ERR("Couldn't write to file");
             return true;
         }
     }
 
-    code_log(self, "| %u%u%u%u %u%u %u%u | \"%s\"\n", addrMode >> 7 & 1, addrMode >> 6 & 1, addrMode >> 5 & 1, addrMode >> 4 & 1, addrMode >> 3 & 1, addrMode >> 2 & 1, addrMode >> 1 & 1, addrMode >> 0 & 1, origLine);
-
-    if (!EOL_ && !isspace(*line)) {
-        ERR("Garbage after argument: <%s>", line);
-        return true;
+    if (/*addrMode.locMem*/ addrMode.loc & ARGLOC_MEM) {
+        if (*line != ']') {
+            ERR("Missing closing square bracket");
+            return true;
+        }
+        line++;
     }
 
-    SKIP_SPACE_();
+    #undef WRITE_ADDRMODE_
 
-    if (!EOL_) {
+    // TODO: Change
+    code_log(self, "| %u%u%u%u%u%u%u%u | \"%s\"\n", addrMode.all >> 7 & 1, addrMode.all >> 6 & 1, addrMode.all >> 5 & 1, addrMode.all >> 4 & 1, addrMode.all >> 3 & 1, addrMode.all >> 2 & 1, addrMode.all >> 1 & 1, addrMode.all >> 0 & 1, origLine);
+
+    skipSpace_(&line);
+
+    if (!isEOL_(line)) {
         ERR("Garbage at the end of line: <%s>", line);
         return true;
     }
 
     return false;
-
-    #undef EOL_
-    #undef SKIP_SPACE_
 }
 
 bool code_assembleFile(code_t *self, FILE *ifile) {
@@ -298,6 +310,8 @@ bool code_assembleFile(code_t *self, FILE *ifile) {
         return true;
     }
 
+    code_log(self, "[ASM] +--------+\n");
+
     for (unsigned int i = 0; i < itext.length; ++i) {
         if (code_assembleLine(self, (const char *)itext.index[i].val)) {  // TODO: Rework assembleLine to work with line_t
             ERR("Couldn't assemble line #%u", i);  // TODO?: i + 1
@@ -305,6 +319,7 @@ bool code_assembleFile(code_t *self, FILE *ifile) {
         }
     }
 
+    code_log(self, "[ASM] +--------+\n");
 
     text_free(&itext);
 
@@ -381,6 +396,85 @@ bool readUntil_(const char **source, char *dest, char until, size_t limit) {
     return true;
 }
 
+static inline bool isEOL_(const char *line) {
+    return *line == '\0' || *line == ';';
+}
+
+static inline void skipSpace_(const char **line) {
+    while (!isEOL_(*line) && isspace(**line)) ++*line;
+}
+
+static bool readConst_(const char **line, void *valueBuf, uint8_t argType) {
+    int lineDelta = 0;
+    int res = 0;
+
+    addrMode_t tmpAM = {};  // For convenience
+    tmpAM.type = argType;
+
+    #define ARGTYPE_CASE_(TYPE, FORMAT)                                 \
+        assert(sizeof(TYPE) == 1 << tmpAM.typeS);                       \
+        res = sscanf(*line, FORMAT "%n", (TYPE *)valueBuf, &lineDelta); \
+                                                                        \
+        if (res != 1) {                                                 \
+            ERR("Corrupt immediate value: <%s>", *line);                \
+            return true;                                                \
+        }                                                               \
+                                                                        \
+        *line += lineDelta;                                             \
+                                                                        \
+        break;
+
+    #define ARGTYPE_CASE_SIGN_(UTYPE, STYPE, FORMAT)                          \
+        static_assert(sizeof(STYPE) == sizeof(UTYPE));                        \
+        assert(sizeof(UTYPE) == 1 << tmpAM.typeS);                            \
+        if (**line == '+' || **line == '-') {                                 \
+            ++*line;                                                          \
+            res = sscanf(*line, FORMAT "u%n", (UTYPE *)valueBuf, &lineDelta); \
+        } else {                                                              \
+            res = sscanf(*line, FORMAT "d%n", (STYPE *)valueBuf, &lineDelta); \
+        }                                                                     \
+                                                                              \
+        if (res != 1) {                                                       \
+            ERR("Corrupt immediate value: <%s>", line);                       \
+            return true;                                                      \
+        }                                                                     \
+                                                                              \
+        line += lineDelta;                                                    \
+                                                                              \
+        break;
+
+    if (isEOL_(*line)) {
+        ERR("Expected an argument value");
+        return true;
+    }
+
+    switch (argType) {
+    case ARGTYPE_DF:
+        ARGTYPE_CASE_(double, "%lg")
+    case ARGTYPE_FL:
+    case ARGTYPE_FH:
+        ARGTYPE_CASE_(float, "%g")
+    case ARGTYPE_QW:
+        ARGTYPE_CASE_SIGN_(uint64_t, int64_t, "%ll")
+    case ARGTYPE_DWL:
+    case ARGTYPE_DWH:
+        ARGTYPE_CASE_SIGN_(uint32_t, int32_t, "%")
+    case ARGTYPE_WL:
+    case ARGTYPE_WH:
+        ARGTYPE_CASE_SIGN_(uint16_t, int16_t, "%h")
+    case ARGTYPE_BL:
+    case ARGTYPE_BH:
+        ARGTYPE_CASE_SIGN_(uint8_t, int8_t, "%hh")
+    default:
+        ERR("Cannot handle constants of <%s> type", argType);
+        return true;
+    }
+
+    #undef ARGTYPE_CASE_SIGN_
+    #undef ARGTYPE_CASE_
+
+    return false;
+}
 
 void code_log(code_t *self, const char *fmt, ...) {
     assert(self != NULL);

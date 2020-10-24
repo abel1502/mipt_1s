@@ -23,7 +23,6 @@ int main(int argc, char **argv) {
 
     FILE *ifile = NULL;
     extern int verbosity;
-    bool disMode = false;
 
     int c = 0;
 
@@ -34,9 +33,6 @@ int main(int argc, char **argv) {
             return 1;  // TODO: Encapsulate as enum
         case 'v':
             verbosity++;
-            break;
-        case 'd':
-            disMode = true;
             break;
         case '?':
             printf("Unknown option: -%c.\n", optopt);
@@ -72,26 +68,14 @@ int main(int argc, char **argv) {
         return 3;
     }
 
-    if (disMode) {
-        printf("Done, disassembling...\n");
+    printf("Done, executing...\n");
 
-        if (program_disassemble(&program)) {
-            program_free(&program);
-            fclose(ifile);
+    if (program_execute(&program)) {
+        program_free(&program);
+        fclose(ifile);
 
-            printf("Failed to disassemble the program.\n");
-            return 3;
-        }
-    } else {
-        printf("Done, executing...\n");
-
-        if (program_execute(&program)) {
-            program_free(&program);
-            fclose(ifile);
-
-            printf("Failed to execute the program.\n");
-            return 3;
-        }
+        printf("Failed to execute the program.\n");
+        return 3;
     }
 
     printf("Done.\n");
