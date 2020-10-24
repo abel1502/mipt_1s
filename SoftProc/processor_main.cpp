@@ -68,6 +68,8 @@ int main(int argc, char **argv) {
         return 3;
     }
 
+    program.flags.flag_trace = verbosity >= 3;
+
     printf("Done, executing...\n");
 
     if (program_execute(&program)) {

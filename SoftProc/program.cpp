@@ -61,6 +61,10 @@ bool program_executeOpcode(program_t *self) {
         return true;
     }
 
+    if (self->flags.flag_trace) {
+        printf("[PRC] OP 0x%02x\n", curOp.op);
+    }
+
     #define NOTIMPL_  goto notimpl_label;
     #define TMP_ONLYDOUBLE_  if (curOp.addrMode.type != ARGTYPE_DF) { NOTIMPL_ }\
 
@@ -317,7 +321,7 @@ void program_dump(program_t *self) {
     printf("program_t [0x%p] {\n", self);
     if (self != NULL) {
         printf("  ip     = %u (out of %u)\n", self->ip, self->mmap.header.codeSize);
-        printf("  flags  = 0b%d%d%d%d%d%d%d%d\n", self->flags.flag_exit, self->flags.flag_monday, self->flags.f2, self->flags.f3, self->flags.f4, self->flags.f5, self->flags.f6, self->flags.f7);
+        printf("  flags  = 0b%d%d%d%d%d%d%d%d\n", self->flags.flag_exit, self->flags.flag_monday, self->flags.flag_trace, self->flags.f3, self->flags.f4, self->flags.f5, self->flags.f6, self->flags.f7);
 
         printf("  registers [0x%p] {\n", self->registers);
         if (self->registers != NULL) {

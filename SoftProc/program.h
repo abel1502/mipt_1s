@@ -17,7 +17,7 @@ typedef struct flag_regs_s flag_regs_t;
 struct flag_regs_s {
     bool flag_exit : 1;
     bool flag_monday : 1;
-    bool f2 : 1;
+    bool flag_trace : 1;
     bool f3 : 1;
     bool f4 : 1;
     bool f5 : 1;
