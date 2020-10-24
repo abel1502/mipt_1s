@@ -74,7 +74,7 @@ bool program_executeOpcode(program_t *self) {
     #define AM_   (curOp.addrMode)
     #define ARG_  (curOp.arg)
 
-    value_t tos0 = {}, tos1 = {}, res = {};
+    value_t tos0 = {}, tos1 = {}, tos2 = {}, tos3 = {}, res = {};
 
     #define DEF_OP(NUM, NAME_CAP, NAME_LOW, ARG_CNT, ARG_TYPE_MASK, ARG_LOC_MASK, CODE) \
         case OP_##NAME_CAP: \
