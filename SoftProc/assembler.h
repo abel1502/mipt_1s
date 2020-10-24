@@ -11,6 +11,7 @@ struct code_s {
     code_size_t size;
     code_size_t capacity;
     char *buf;
+    code_size_t lineStart;
     bool doLog;
 };
 
@@ -30,6 +31,8 @@ bool code_resize(code_t *self, code_size_t capacity);
 void code_free(code_t *self);
 
 void code_log(code_t *self, const char *fmt, ...);
+
+void code_logLine(code_t *self, const char *line);
 
 
 #endif // ASSEMBLER_H_GUARD

@@ -16,6 +16,7 @@
 
 const code_size_t CODE_DEFAULT_CAPACITY = 0x20;
 const code_size_t CODE_MAX_CAPACITY = 0x7fff0000;
+const code_size_t CODE_LOG_BYTESPERLINE = 12;
 
 
 static bool readUntil_(const char **source, char *dest, char until, size_t limit);
@@ -72,13 +73,13 @@ bool code_assembleLine(code_t *self, const char *line) {
 
     const char *origLine = line;
 
+    self->lineStart = self->size;
+
     skipSpace_(&line);
 
     if (isEOL_(line)) {
         return false;  // Empty lines are ok
     }
-
-    code_log(self, "[ASM] | 0x%04x | ", self->size);  // TODO?: 0x%08x
 
     opcode_t op = OP_NOP;
     int curNameLen = 0;
@@ -110,8 +111,6 @@ bool code_assembleLine(code_t *self, const char *line) {
 
     skipSpace_(&line);
 
-    code_log(self, "%02x ", op);
-
     if (code_writeRaw_(self, &op, sizeof(op))) {
         ERR("Couldn't write to file");
         return true;
@@ -123,7 +122,7 @@ bool code_assembleLine(code_t *self, const char *line) {
             return true;
         }
 
-        code_log(self, "                           |          | \"%s\"\n", origLine);
+        code_logLine(self, origLine);
 
         return false;
     }
@@ -181,8 +180,6 @@ bool code_assembleLine(code_t *self, const char *line) {
         //addrMode.locReg = 0;
         //addrMode.locImm = 0;
 
-        code_log(self, "%02x                         ", addrMode);
-
         WRITE_ADDRMODE_();
 
         //while (!isEOL_(line) && !isspace(*line)) ++line;
@@ -222,20 +219,10 @@ bool code_assembleLine(code_t *self, const char *line) {
                 return true;
             }
 
-            /*for (size_t i = 0; i < sizeof(value_t); ++i) {
-                if (i < self->size) {
-                    code_log(self, "%02x ", immArg[i]);
-                } else {
-                    code_log(self, "   ");
-                }
-            }*/
-
             if (code_writeRaw_(self, immArg, 1 << addrMode.typeS))  {
                 ERR("Couldn't write to file");
                 return true;
             }
-
-            code_log(self, "%02x %02x <>                   ", addrMode, reg);  // TODO
         } else {
             WRITE_ADDRMODE_();
 
@@ -243,15 +230,11 @@ bool code_assembleLine(code_t *self, const char *line) {
                 ERR("Couldn't write to file");
                 return true;
             }
-
-            code_log(self, "%02x %02x                      ", addrMode, reg);
         }
     } else {
         //addrMode.locReg = 0;
         //addrMode.locImm = 1;
         addrMode.loc |= ARGLOC_IMM;
-
-        code_log(self, "%02x ", addrMode);
 
         WRITE_ADDRMODE_();
 
@@ -260,14 +243,6 @@ bool code_assembleLine(code_t *self, const char *line) {
         if (readConst_(&line, immArg, addrMode.type)) {
             ERR("Couldn't read an argument");
             return true;
-        }
-
-        for (unsigned i = 0; i < sizeof(value_t); ++i) {
-            if (i < (unsigned)(1 << addrMode.typeS)) {
-                code_log(self, "%02x ", (unsigned char)immArg[i]);
-            } else {
-                code_log(self, "   ");
-            }
         }
 
         if (code_writeRaw_(self, immArg, 1 << addrMode.typeS))  {
@@ -286,15 +261,14 @@ bool code_assembleLine(code_t *self, const char *line) {
 
     #undef WRITE_ADDRMODE_
 
-    // TODO: Change
-    code_log(self, "| %u%u%u%u%u%u%u%u | \"%s\"\n", addrMode.all >> 7 & 1, addrMode.all >> 6 & 1, addrMode.all >> 5 & 1, addrMode.all >> 4 & 1, addrMode.all >> 3 & 1, addrMode.all >> 2 & 1, addrMode.all >> 1 & 1, addrMode.all >> 0 & 1, origLine);
-
     skipSpace_(&line);
 
     if (!isEOL_(line)) {
         ERR("Garbage at the end of line: <%s>", line);
         return true;
     }
+
+    code_logLine(self, origLine);
 
     return false;
 }
@@ -493,5 +467,25 @@ void code_log(code_t *self, const char *fmt, ...) {
     vprintf(fmt, args);
 
     va_end(args);
+}
+
+void code_logLine(code_t *self, const char *line) {
+    assert(self != NULL);
+    assert(line != NULL);
+
+    code_log(self, "[ASM] | 0x%04x | ", self->lineStart);
+
+    code_size_t ind = 0;
+
+    while (self->lineStart + ind < self->size) {
+        code_log(self, "%02x ", (unsigned char)self->buf[self->lineStart + ind++]);
+    }
+
+    while (ind < CODE_LOG_BYTESPERLINE) {
+        code_log(self, "   ");
+        ind++;
+    }
+
+    code_log(self, "| \"%s\"\n", line);
 }
 

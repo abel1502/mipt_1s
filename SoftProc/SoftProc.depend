@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1603554029 source:d:\workspace\.mipt\s1\softproc\assembler.cpp
+1603562295 source:d:\workspace\.mipt\s1\softproc\assembler.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -98,7 +98,7 @@
 	<inttypes.h>
 	<SAPI.h>
 
-1603484676 d:\workspace\.mipt\s1\softproc\assembler.h
+1603562245 d:\workspace\.mipt\s1\softproc\assembler.h
 	"aef_file.h"
 
 1603104173 d:\workspace\.mipt\s1\softproc\opcodes.h
@@ -154,5 +154,5 @@
 	<stdint.h>
 	"opcode_defs.h"
 
-1603557742 d:\workspace\.mipt\s1\softproc\opcode_defs.h
+1603557868 d:\workspace\.mipt\s1\softproc\opcode_defs.h
 
