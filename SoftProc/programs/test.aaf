@@ -1,5 +1,16 @@
 ; Test program
 
+
+in df:
+dup
+out df:
+push df:0
+cg df:
+jt dwl:0
+
+
+end
+
 out df:123.456
 
 in df:
