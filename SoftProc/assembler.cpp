@@ -130,7 +130,7 @@ bool code_assembleLine(code_t *self, const char *line) {
 
     char argType[4] = "";
 
-    if (readUntil_(&line, argType, ':', 3)) {
+    if (readUntil_(&line, argType, ':', 4)) {
         ERR("Bad argument type");
         return true;
     }
@@ -413,6 +413,7 @@ static bool readConst_(const char **line, void *valueBuf, uint8_t argType) {
 
     #define ARGTYPE_CASE_(TYPE, FORMAT)                                 \
         assert(sizeof(TYPE) == 1 << tmpAM.typeS);                       \
+        lineDelta = 0;                                                  \
         res = sscanf(*line, FORMAT "%n", (TYPE *)valueBuf, &lineDelta); \
                                                                         \
         if (res != 1) {                                                 \
@@ -426,6 +427,7 @@ static bool readConst_(const char **line, void *valueBuf, uint8_t argType) {
 
     #define ARGTYPE_CASE_SIGN_(UTYPE, STYPE, FORMAT)                          \
         static_assert(sizeof(STYPE) == sizeof(UTYPE));                        \
+        lineDelta = 0;                                                        \
         assert(sizeof(UTYPE) == 1 << tmpAM.typeS);                            \
         if (**line == '+' || **line == '-') {                                 \
             ++*line;                                                          \
@@ -439,7 +441,7 @@ static bool readConst_(const char **line, void *valueBuf, uint8_t argType) {
             return true;                                                      \
         }                                                                     \
                                                                               \
-        line += lineDelta;                                                    \
+        *line += lineDelta;                                                   \
                                                                               \
         break;
 
