@@ -16,6 +16,7 @@
 
 const code_size_t CODE_DEFAULT_CAPACITY = 0x20;
 const code_size_t CODE_MAX_CAPACITY = 0x7fff0000;
+const code_size_t CODE_LABEL_CAPACITY = 0x1000;
 const code_size_t CODE_LOG_BYTESPERLINE = 12;
 
 
@@ -25,10 +26,9 @@ static inline void skipSpace_(const char **line);
 
 static inline bool isEOL_(const char *line);
 
-static bool readConst_(const char **line, void *valueBuf, uint8_t argType);
-
 
 code_t *code_init(code_t *self, bool doLog) {
+    self->size = 0;
     self->capacity = CODE_DEFAULT_CAPACITY;
 
     self->buf = (char *)calloc(self->capacity, sizeof(self->buf[0]));
@@ -37,9 +37,17 @@ code_t *code_init(code_t *self, bool doLog) {
         return NULL;
     }
 
-    self->size = 0;
-
     self->doLog = doLog;
+    self->lineStart = 0;
+
+    self->labelCnt = 0;
+    self->labelsInited = false;
+
+    self->labels = (label_t *)calloc(CODE_LABEL_CAPACITY, sizeof(self->labels[0]));
+
+    if (self->labels == NULL) {
+        return NULL;
+    }
 
     return self;
 }
@@ -79,6 +87,17 @@ bool code_assembleLine(code_t *self, const char *line) {
 
     if (isEOL_(line)) {
         return false;  // Empty lines are ok
+    }
+
+    if (*line == '$') {  // A label
+        line++;
+
+        if (code_readLabel(self, &line)) {
+            ERR("Failed to register label");
+            return true;
+        }
+
+        return false;
     }
 
     opcode_t op = OP_NOP;
@@ -122,7 +141,9 @@ bool code_assembleLine(code_t *self, const char *line) {
             return true;
         }
 
-        code_logLine(self, origLine);
+        if (self->labelsInited) {
+            code_logLine(self, origLine);
+        }
 
         return false;
     }
@@ -214,7 +235,7 @@ bool code_assembleLine(code_t *self, const char *line) {
 
             char immArg[sizeof(value_t)] = {};
 
-            if (readConst_(&line, immArg, addrMode.type)) {
+            if (code_readConst_(self, &line, immArg, addrMode.type)) {
                 ERR("Couldn't read an argument");
                 return true;
             }
@@ -240,7 +261,7 @@ bool code_assembleLine(code_t *self, const char *line) {
 
         char immArg[sizeof(value_t)] = {};
 
-        if (readConst_(&line, immArg, addrMode.type)) {
+        if (code_readConst_(self, &line, immArg, addrMode.type)) {
             ERR("Couldn't read an argument");
             return true;
         }
@@ -268,7 +289,9 @@ bool code_assembleLine(code_t *self, const char *line) {
         return true;
     }
 
-    code_logLine(self, origLine);
+    if (self->labelsInited) {
+        code_logLine(self, origLine);
+    }
 
     return false;
 }
@@ -283,6 +306,18 @@ bool code_assembleFile(code_t *self, FILE *ifile) {
         ERR("Can't read ifile text");
         return true;
     }
+
+    self->labelsInited = false;
+
+    for (unsigned int i = 0; i < itext.length; ++i) {
+        if (code_assembleLine(self, (const char *)itext.index[i].val)) {
+            ERR("Couldn't assemble line #%u", i);  // TODO?: i + 1
+            return true;
+        }
+    }
+
+    self->labelsInited = true;
+    self->size = 0;
 
     code_log(self, "[ASM] +--------+\n");
 
@@ -303,6 +338,8 @@ bool code_assembleFile(code_t *self, FILE *ifile) {
 bool code_compileToFile(code_t *self, FILE *ofile) {
     assert(self != NULL);
     assert(ofile != NULL);
+
+    assert(self->labelsInited);
 
     aef_mmap_t mmap = {};
     aef_mmap_init(&mmap, self->size, self->buf);
@@ -345,8 +382,13 @@ void code_free(code_t *self) {
 
     free(self->buf);
 
+    free(self->labels);
+
     self->capacity = 0;
     self->size = 0;
+
+    self->labelCnt = 0;
+    self->labelsInited = false;
 }
 
 bool readUntil_(const char **source, char *dest, char until, size_t limit) {
@@ -378,7 +420,7 @@ static inline void skipSpace_(const char **line) {
     while (!isEOL_(*line) && isspace(**line)) ++*line;
 }
 
-static bool readConst_(const char **line, void *valueBuf, uint8_t argType) {
+bool code_readConst_(code_t *self, const char **line, void *valueBuf, uint8_t argType) {
     int lineDelta = 0;
     int res = 0;
 
@@ -434,6 +476,18 @@ static bool readConst_(const char **line, void *valueBuf, uint8_t argType) {
         ARGTYPE_CASE_SIGN_(uint64_t, int64_t, "%ll")
     case ARGTYPE_DWL:
     case ARGTYPE_DWH:
+        if (**line == '$') {
+            ++*line;
+
+            assert(sizeof(code_size_t) == sizeof(uint32_t));
+
+            if (code_lookupLabel(self, line, (code_size_t *)valueBuf)) {
+                ERR("Couldn't look up label $%s", line);
+                return true;
+            }
+
+            break;
+        }
         ARGTYPE_CASE_SIGN_(uint32_t, int32_t, "%")
     case ARGTYPE_WL:
     case ARGTYPE_WH:
@@ -487,5 +541,65 @@ void code_logLine(code_t *self, const char *line) {
     }
 
     code_log(self, "| \"%s\"\n", line);
+}
+
+bool code_readLabel(code_t *self, const char **line) {
+    assert(self != NULL);
+
+    label_t label = {};
+    label.val = *line;
+    label.offset = self->size;
+
+    while (!isEOL_(*line) && **line != ':' && **line != ']' && !isspace(**line)) {
+        ++*line;
+        label.len++;
+    }
+
+    skipSpace_(line);
+
+    if (**line != ':') {
+        ERR("Expected a semicolon after label definition");
+        return true;
+    }
+
+    ++*line;
+
+    if (self->labelsInited) {
+        return false;
+    }
+
+    if (self->labelCnt >= CODE_LABEL_CAPACITY) {
+        ERR("Too many labels");
+        return true;
+    }
+
+    self->labels[self->labelCnt++] = label;
+
+    return false;
+}
+
+bool code_lookupLabel(code_t *self, const char **line, code_size_t *offset) {
+    assert(self != NULL);
+    assert(line != NULL);
+    assert(*line != NULL);
+    assert(offset != NULL);
+
+    if (!self->labelsInited) {
+        *offset = 0;
+        while (!isEOL_(*line) && !isspace(**line) && **line != ']') {
+            ++*line;
+        }
+        return false;
+    }
+
+    for (code_size_t i = 0; i < self->labelCnt; ++i) {
+        if (strncmp(self->labels[i].val, *line, self->labels[i].len) == 0) {
+            *offset = self->labels[i].offset;
+            *line += self->labels[i].len;
+            return false;
+        }
+    }
+
+    return true;
 }
 

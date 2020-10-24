@@ -1,15 +1,17 @@
 ; Test program
 
+nop
+nop
+nop
 
+$main_loop:
 in df:
 dup
 out df:
 push df:0
 cg df:
-jt dwl:0
+jt dwl:$main_loop
 
-
-end
 
 out df:123.456
 
