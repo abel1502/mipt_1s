@@ -42,6 +42,7 @@ static void printHelper(stack_elem_t elem) {
 struct program_s {
     aef_mmap_t mmap;
     stack_t stack;
+    stack_t frameStack;
     value_t registers[GENERAL_REG_CNT];
     flag_regs_t flags;
     uint32_t ip;

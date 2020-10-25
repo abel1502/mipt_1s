@@ -41,6 +41,11 @@ bool program_read(program_t *self, FILE *ifile) {
         return true;
     }
 
+    if (stack_construct(&self->frameStack, STACK_INITIAL_CAPACITY) == NULL) {
+        ERR("Couldn't initialize frame stack");
+        return true;
+    }
+
     return false;
 }
 
@@ -70,6 +75,8 @@ bool program_executeOpcode(program_t *self) {
 
     #define POP_(dest)  if (stack_pop(&self->stack, (dest))) { ERR("Cannot pop from stack"); return true; }
     #define PUSH_(val)  if (stack_push(&self->stack, (val))) { ERR("Cannot push to stack"); return true; }
+    #define POP_FRAME_(dest)  if (stack_pop(&self->frameStack, (dest))) { ERR("Cannot pop from frame stack"); return true; }
+    #define PUSH_FRAME_(val)  if (stack_push(&self->frameStack, (val))) { ERR("Cannot push to frame stack"); return true; }
 
     #define AM_   (curOp.addrMode)
     #define ARG_  (curOp.arg)
@@ -106,6 +113,8 @@ bool program_executeOpcode(program_t *self) {
 
     #undef POP_
     #undef PUSH_
+    #undef POP_FRAME_
+    #undef PUSH_FRAME_
 
     #undef TMP_ONLYDOUBLE_
     #undef NOTIMPL_
@@ -232,6 +241,8 @@ void program_free(program_t *self) {
     assert(self != NULL);
 
     stack_free(&self->stack);
+
+    stack_free(&self->frameStack);
 }
 
 static inline bool readByte_(program_t *self, uint8_t *dest) {

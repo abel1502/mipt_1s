@@ -130,9 +130,16 @@ DEF_OP(0x22, JT  , jt  , 1, 0b0000000000010000, 0b00000111, {
     }
 })
 
-DEF_OP(0x23, CALL, call, 1, 0b0000000000010000, 0b00000111, { NOTIMPL_; })
+DEF_OP(0x23, CALL, call, 1, 0b0000000000010000, 0b00000111, {
+    res.dwl = self->ip;
+    PUSH_FRAME_(res);
+    self->ip = ARG_.dwl;
+})
 
-DEF_OP(0x24, RET , ret , 0, 0b0000000000000000, 0b00000000, { NOTIMPL_; })
+DEF_OP(0x24, RET , ret , 0, 0b0000000000000000, 0b00000000, {
+    POP_FRAME_(&res);
+    self->ip = res.dwl;
+})
 
 #define EPSILON_ 1e-12
 
