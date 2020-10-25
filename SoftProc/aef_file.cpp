@@ -28,20 +28,24 @@ bool aef_mmap_read(aef_mmap_t *self, FILE *ifile) {
     res = fread(&self->header, sizeof(self->header), 1, ifile);
 
     if (res != 1) {
+        ERR("Failed to read the aef header");
         return true;
     }
 
     if (self->header.magic != AEF_MAGIC) {
+        ERR("Input file is not an aef program");
         return true;  // TODO: error codes?
     }
 
     if (self->header.version != AEF_VERSION) {
+        ERR("Program's version not supported");
         return true;
     }
 
     self->code = (char *)calloc(self->header.codeSize, sizeof(self->code[0]));
 
     if (self->code == NULL) {
+        ERR("Code too big");
         return true;
     }
 
@@ -50,10 +54,12 @@ bool aef_mmap_read(aef_mmap_t *self, FILE *ifile) {
     res = fread(self->code, sizeof(self->code[0]), self->header.codeSize, ifile);
 
     if (res != self->header.codeSize) {
+        ERR("Couldn't read the code");
         return true;
     }
 
     if (crc32_compute(self->code, self->header.codeSize) != self->header.codeChecksum) {
+        ERR("Checksum mismatch");
         return true;
     }
 
@@ -74,12 +80,14 @@ bool aef_mmap_write(aef_mmap_t *self, FILE *ofile) {
     res = fwrite(&self->header, sizeof(self->header), 1, ofile);
 
     if (res != 1) {
+        ERR("Couldn't write aef header");
         return true;
     }
 
     res = fwrite(self->code, sizeof(self->code[0]), self->header.codeSize, ofile);
 
     if (res != self->header.codeSize) {
+        ERR("Couldn't write code");
         return true;
     }
 
