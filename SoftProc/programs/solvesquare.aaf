@@ -1,39 +1,157 @@
-; SolveSquare discriminant calculator, test version in AAF
+; SolveSquare, test version in AAF
+
+in df:
+in df:
+in df:
+call dwl:$solve
+
+pop df:ra
+out df:ra
+
+push df:ra
+push df:1
+cge df:
+jf dwl:$end_of_program
+
+out df:
+
+push df:ra
+push df:2
+cge df:
+jf dwl:$end_of_program
+
+out df:
+
+$end_of_program:
+end
 
 
-; Input
 
-in df:ra
-in df:rb
-in df:rc
+; solve(a, b, c) -> rootCnt <0, 1, 2, -1 (:=INF)> [, root1 [, root2]]
+$solve:
 
-; dump
+pop df:rc
+pop df:rb
+pop df:ra
 
 
-; Calculations
+push df:ra
+push df:0
+ce df:
+jt dwl:$linear
 
-; b^2
+; Square
 push df:rb
 sqr df:
 
-; 4*a*c
 push df:4
 push df:ra
 push df:rc
 mul df:
 mul df:
 
-; D = b^2-4*a*c
 sub df:
 pop df:rd
 
-; dump
-
-
-; Output
 push df:rd
-out df:
+push df:0
+cl df:
+jt dwl:$noroots
 
-; dump
+push df:rd
+push df:0
+ce df:
+jt dwl:$descr_zero
 
-end
+push df:rd
+sqrt df:
+pop df:rd
+
+; TODO: Calculate the two roots
+
+push df:ra
+push df:rb
+push df:rd  ; Function call messes up registers, so we push the arguments for both calls in advance
+
+push df:ra
+push df:rb
+push df:0
+push df:rd
+sub df:
+
+call dwl:$root_by_sqrt_discr
+pop df:re
+
+call dwl:$root_by_sqrt_discr
+
+push df:re
+
+push df:2
+ret  ; Two roots
+
+$descr_zero:
+
+push df:ra
+push df:rb
+push df:0
+
+call dwl:$root_by_sqrt_discr
+
+push df:1
+ret  ; One root
+
+; Linear
+$linear:
+
+push df:rb
+push df:0
+ce df:
+jt dwl:$const
+
+push df:0
+push df:rc
+sub df:
+push df:rb
+div df:
+
+push df:1
+ret  ; One root
+
+; Const
+$const:
+
+push df:rc
+push df:0
+ce df:
+jf dwl:$noroots
+
+push df:-1  ; I could return an actual INF, i.e. 1/0, but that could potentially mess up some systems, so let's go the boring route
+ret  ; Inf roots
+
+$noroots:
+
+push df:0
+ret  ; No roots
+
+; ================================
+
+
+; root_by_sqrt_discr(a, b, sqrt_d) -> (-b + sqrt_d) / (2*a)
+$root_by_sqrt_discr:
+pop df:rd
+pop df:rb
+pop df:ra
+
+push df:rd
+push df:rb
+sub df:
+
+push df:2
+push df:ra
+mul df:
+
+div df:
+
+ret
+
+; ================================
