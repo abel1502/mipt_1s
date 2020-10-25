@@ -311,7 +311,7 @@ bool code_assembleFile(code_t *self, FILE *ifile) {
 
     for (unsigned int i = 0; i < itext.length; ++i) {
         if (code_assembleLine(self, (const char *)itext.index[i].val)) {
-            ERR("Couldn't assemble line #%u", i);  // TODO?: i + 1
+            ERR("Couldn't assemble line #%u", i + 1);
             return true;
         }
     }
@@ -323,7 +323,7 @@ bool code_assembleFile(code_t *self, FILE *ifile) {
 
     for (unsigned int i = 0; i < itext.length; ++i) {
         if (code_assembleLine(self, (const char *)itext.index[i].val)) {  // TODO: Rework assembleLine to work with line_t
-            ERR("Couldn't assemble line #%u", i);  // TODO?: i + 1
+            ERR("Couldn't assemble line #%u", i + 1);
             return true;
         }
     }

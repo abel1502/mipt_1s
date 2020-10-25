@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1603572158 source:d:\workspace\.mipt\s1\softproc\assembler.cpp
+1603616168 source:d:\workspace\.mipt\s1\softproc\assembler.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -30,7 +30,7 @@
 1603484501 d:\workspace\.mipt\s1\softproc\constants.h
 	"version.h"
 
-1603554309 d:\workspace\.mipt\s1\softproc\program.h
+1603615154 d:\workspace\.mipt\s1\softproc\program.h
 	"general.h"
 	"constants.h"
 	"opcode.h"
@@ -142,7 +142,7 @@
 	"program.h"
 	"general.h"
 
-1603555451 source:d:\workspace\.mipt\s1\softproc\program.cpp
+1603615314 source:d:\workspace\.mipt\s1\softproc\program.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -154,5 +154,5 @@
 	<stdint.h>
 	"opcode_defs.h"
 
-1603607356 d:\workspace\.mipt\s1\softproc\opcode_defs.h
+1603615644 d:\workspace\.mipt\s1\softproc\opcode_defs.h
 
