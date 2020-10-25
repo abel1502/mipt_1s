@@ -1,17 +1,37 @@
 ; Test program
 
+in df:
+call dwl:$main
+out df:
+end
+
 nop
 nop
 nop
+
+$main:
+pop df:ra
 
 $main_loop:
-in df:
-dup
-out df:
+push df:ra
+push df:1
+sub df:
+pop df:ra
+
+push df:ra
 push df:0
-cg df:
+cge df:
 jt dwl:$main_loop
 
+push df:ra
+push df:1
+add df:
+
+ret
+
+
+
+end  ; ===================================
 
 out df:123.456
 
