@@ -1,7 +1,7 @@
 0x00 : nop  ()
 
 0x01 : push (df,qw,dwl,wl,bl:imm,reg)
-0x02 : pop  (df,qw,dwl,wl,bl:reg)
+0x02 : pop  (df:reg)
 0x03 : popv ()
 0x04 : dup  ()
 0x05 : rot  (dwl:imm,reg)

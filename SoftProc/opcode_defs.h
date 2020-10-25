@@ -4,8 +4,9 @@ DEF_OP(0x01, PUSH, push, 1, 0b0100000001010101, 0b00000110, {
     PUSH_(ARG_);
 })
 
-DEF_OP(0x02, POP , pop , 1, 0b0100000001010101, 0b00000100, {
-    POP_(&self->registers[curOp.reg]);
+DEF_OP(0x02, POP , pop , 1, 0b0100000000000000, 0b00000100, {
+    POP_(&tos0);
+    self->registers[curOp.reg].df = tos0.df;  // To avoid overwriting the other values
 })
 
 DEF_OP(0x03, POPV, popv, 0, 0b0000000000000000, 0b00000000, {
