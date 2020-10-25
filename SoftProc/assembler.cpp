@@ -594,6 +594,11 @@ bool code_lookupLabel(code_t *self, const char **line, code_size_t *offset) {
 
     for (code_size_t i = 0; i < self->labelCnt; ++i) {
         if (strncmp(self->labels[i].val, *line, self->labels[i].len) == 0) {
+            const char nextChar = (*line)[self->labels[i].len];
+            if (!isEOL_(&nextChar) && !isspace(nextChar) && nextChar != ']') {
+                continue;
+            }
+
             *offset = self->labels[i].offset;
             *line += self->labels[i].len;
             return false;
