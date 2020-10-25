@@ -78,11 +78,11 @@ bool program_executeOpcode(program_t *self) {
 
     #define DEF_OP(NUM, NAME_CAP, NAME_LOW, ARG_CNT, ARG_TYPE_MASK, ARG_LOC_MASK, CODE) \
         case OP_##NAME_CAP: \
-            if (ARG_TYPE_MASK != 0 && readArg_(self, &curOp)) { \
+            if (ARG_CNT != 0 && readArg_(self, &curOp)) { \
                 ERR("Coudn't read opcode argument"); \
                 return true; \
             } \
-            if (ARG_TYPE_MASK != 0 && (!(ARG_TYPE_MASK & 1 << curOp.addrMode.type) || !(ARG_LOC_MASK & 1 << curOp.addrMode.loc))) { \
+            if (ARG_CNT != 0 && (!(ARG_TYPE_MASK & 1 << curOp.addrMode.type) || !(ARG_LOC_MASK & 1 << curOp.addrMode.loc))) { \
                 ERR("Inappropriate argument for opcode 0x%02hhx", curOp.op); \
                 return true; \
             } \
