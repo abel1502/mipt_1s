@@ -59,15 +59,9 @@ struct opcode_info_s {
 
 bool program_read(program_t *self, FILE *ifile);
 
-/*bool program_parseOpcode(program_t *self, opcode_info_t *opcode);*/
-
 bool program_executeOpcode(program_t *self);
 
 bool program_execute(program_t *self);
-
-/*bool program_disassembleOpcode(program_t *self);
-
-bool program_disassemble(program_t *self);*/
 
 void program_free(program_t *self);
 
