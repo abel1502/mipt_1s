@@ -85,7 +85,7 @@ unsigned long long fsize(FILE *ifile) {
     assert(ifile != NULL);
 
     struct stat buf = {};
-    int res = fstat(ifile->_file, &buf);
+    int res = fstat(fileno(ifile), &buf);
     assert(res == 0);
 
     return buf.st_size + 1;
