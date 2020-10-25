@@ -113,6 +113,8 @@ int main() {
     }
     printf("\n");
 
+    free(result);
+
     heap_free(heap);
 
     return 0;
