@@ -479,6 +479,9 @@ bool code_readConst_(code_t *self, const char **line, void *valueBuf, uint8_t ar
         ARGTYPE_CASE_SIGN_(uint64_t, int64_t, "%ll")
     case ARGTYPE_DWL:
     case ARGTYPE_DWH:
+        if (**line == '+' && *(*line + 1) == '$') {
+            ++*line;
+        }
         if (**line == '$') {
             ++*line;
 
