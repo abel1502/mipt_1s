@@ -12,6 +12,9 @@
 0x0B : div  (df:stack)
 0x0C : sqr  (df:stack)
 0x0D : sqrt (df:stack)
+0x0E : dec  (df:stack)
+0x0F : inc  (df:stack)
+0x10 : neg  (df:stack)
 
 # Arguments provide not only destination, but also type:
 # they can, essentially, say "in stack.df" -

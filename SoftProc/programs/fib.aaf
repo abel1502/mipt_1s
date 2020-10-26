@@ -29,8 +29,7 @@ pop df:rb
 pop df:ra
 
 push df:rc
-push df:1
-sub df:
+dec df:
 dup
 pop df:rc
 

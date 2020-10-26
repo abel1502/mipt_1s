@@ -83,6 +83,24 @@ DEF_OP(0x0d, SQRT, sqrt, 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
     PUSH_(res);
 })
 
+DEF_OP(0x0e, DEC , dec , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+    POP_(&res);
+    res.df--;
+    PUSH_(res);
+})
+
+DEF_OP(0x0f, INC , inc , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+    POP_(&res);
+    res.df++;
+    PUSH_(res);
+})
+
+DEF_OP(0x10, NEG , neg , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+    POP_(&res);
+    res.df = -res.df;
+    PUSH_(res);
+})
+
 DEF_OP(0x18, IN  , in  , 1, 0b0100000000000000, 0b00000101, { TMP_ONLYDOUBLE_
     printf("(df) > ");
     if (AM_.locMem) {
