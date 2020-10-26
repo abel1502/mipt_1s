@@ -1,5 +1,15 @@
 ; Test program
 
+
+push df:1
+pop df:ra
+push df:ra+30
+out df:
+
+
+end ; ==================================
+
+
 in df:
 call dwl:$main
 out df:

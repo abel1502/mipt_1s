@@ -1,10 +1,10 @@
 0x00 : nop  ()
 
-0x01 : push (df,qw,dwl,wl,bl:imm,reg)
+0x01 : push (df,qw,dwl,wl,bl:imm,reg,reg+imm)
 0x02 : pop  (df:reg)
 0x03 : popv ()
 0x04 : dup  ()
-0x05 : rot  (dwl:imm,reg)
+0x05 : rot  (dwl:imm,reg,reg+imm)
 
 0x08 : add  (df:stack)
 0x09 : sub  (df:stack)
@@ -19,12 +19,12 @@
 # 0x18 : in   (df:stack)
 # 0x19 : out  (df:stack)
 0x18 : in   (df:stack,reg)
-0x19 : out  (df:stack,reg,imm)
+0x19 : out  (df:stack,reg,imm,reg+imm)
 
-0x20 : jmp  (dwl:stack,reg,imm)
-0x21 : jf   (dwl:stack,reg,imm)
-0x22 : jt   (dwl:stack,reg,imm)
-0x23 : call (dwl:stack,reg,imm)
+0x20 : jmp  (dwl:stack,reg,imm,reg+imm)
+0x21 : jf   (dwl:stack,reg,imm,reg+imm)
+0x22 : jt   (dwl:stack,reg,imm,reg+imm)
+0x23 : call (dwl:stack,reg,imm,reg+imm)
 0x24 : ret  ()
 
 0x28 : cg   (df:stack)
@@ -37,4 +37,4 @@
 
 0xF0 : end  ()
 0xF1 : dump ()
-0xF2 : jm   (dwl:stack,reg,imm)
+0xF2 : jm   (dwl:stack,reg,imm,reg+imm)

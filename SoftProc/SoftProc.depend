@@ -142,11 +142,12 @@
 	"program.h"
 	"general.h"
 
-1603615314 source:d:\workspace\.mipt\s1\softproc\program.cpp
+1603695840 source:d:\workspace\.mipt\s1\softproc\program.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
 	<math.h>
+	<time.h>
 	"program.h"
 	"opcode_defs.h"
 
@@ -154,5 +155,5 @@
 	<stdint.h>
 	"opcode_defs.h"
 
-1603695949 d:\workspace\.mipt\s1\softproc\opcode_defs.h
+1603697496 d:\workspace\.mipt\s1\softproc\opcode_defs.h
 

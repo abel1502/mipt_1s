@@ -1,6 +1,6 @@
 DEF_OP(0x00, NOP , nop , 0, 0b0000000000000000, 0b00000000, {})
 
-DEF_OP(0x01, PUSH, push, 1, 0b0100000001010101, 0b00000110, {
+DEF_OP(0x01, PUSH, push, 1, 0b0100000001010101, 0b00001110, {
     PUSH_(ARG_);
 })
 
@@ -19,7 +19,7 @@ DEF_OP(0x04, DUP , dup , 0, 0b0000000000000000, 0b00000000, {
     PUSH_(tos0);
 })
 
-DEF_OP(0x05, ROT , rot , 1, 0b0000000000010000, 0b00000110, {
+DEF_OP(0x05, ROT , rot , 1, 0b0000000000010000, 0b00001110, {
     switch (ARG_.dwl) {
     case 0:
     case 1:
@@ -101,7 +101,7 @@ DEF_OP(0x18, IN  , in  , 1, 0b0100000000000000, 0b00000101, { TMP_ONLYDOUBLE_
     }
 })
 
-DEF_OP(0x19, OUT , out , 1, 0b0100000000000000, 0b00000111, { TMP_ONLYDOUBLE_
+DEF_OP(0x19, OUT , out , 1, 0b0100000000000000, 0b00001111, { TMP_ONLYDOUBLE_
     printf("(df) ");
     if (AM_.loc) {
         printf("%lg", ARG_.df);
@@ -112,25 +112,25 @@ DEF_OP(0x19, OUT , out , 1, 0b0100000000000000, 0b00000111, { TMP_ONLYDOUBLE_
     printf("\n");
 })
 
-DEF_OP(0x20, JMP , jmp , 1, 0b0000000000010000, 0b00000111, {
+DEF_OP(0x20, JMP , jmp , 1, 0b0000000000010000, 0b00001111, {
     self->ip = ARG_.dwl;
 })
 
-DEF_OP(0x21, JF  , jf  , 1, 0b0000000000010000, 0b00000111, {
+DEF_OP(0x21, JF  , jf  , 1, 0b0000000000010000, 0b00001111, {
     POP_(&tos0);
     if (!tos0.dwl) {
         self->ip = ARG_.dwl;
     }
 })
 
-DEF_OP(0x22, JT  , jt  , 1, 0b0000000000010000, 0b00000111, {
+DEF_OP(0x22, JT  , jt  , 1, 0b0000000000010000, 0b00001111, {
     POP_(&tos0);
     if (tos0.dwl) {
         self->ip = ARG_.dwl;
     }
 })
 
-DEF_OP(0x23, CALL, call, 1, 0b0000000000010000, 0b00000111, {
+DEF_OP(0x23, CALL, call, 1, 0b0000000000010000, 0b00001111, {
     res.dwl = self->ip;
     PUSH_FRAME_(res);
     self->ip = ARG_.dwl;
@@ -195,7 +195,7 @@ DEF_OP(0xf1, DUMP, dump, 0, 0b0000000000000000, 0b00000000, {
     program_dump(self);
 })
 
-DEF_OP(0xf2, JM  , jm  , 1, 0b0000000000010000, 0b00000111, {
+DEF_OP(0xf2, JM  , jm  , 1, 0b0000000000010000, 0b00001111, {
     if (self->flags.flag_monday) {
         self->ip = ARG_.dwl;
     }
