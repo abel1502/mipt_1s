@@ -3,7 +3,7 @@
 #include "aef_file.h"
 #include "constants.h"
 
-aef_mmap_t *aef_mmap_init(aef_mmap_t *self, code_size_t codeSize, char *code) {
+aef_mmap_t *aef_mmap_init(aef_mmap_t *self, code_size_t codeSize, char *code, code_size_t entryPoint, code_size_t ramSize) {
     assert(self != NULL);
     assert(code != NULL);
 
@@ -11,6 +11,8 @@ aef_mmap_t *aef_mmap_init(aef_mmap_t *self, code_size_t codeSize, char *code) {
     self->header.version = AEF_VERSION;
     self->header.codeSize = codeSize;
     self->header.codeChecksum = crc32_compute(code, codeSize);
+    self->header.entryPoint = entryPoint;
+    self->header.ramSize = ramSize;
 
     self->code = code;
 

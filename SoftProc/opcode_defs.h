@@ -1,13 +1,31 @@
 DEF_OP(0x00, NOP , nop , 0, 0b0000000000000000, 0b00000000, {})
 
-DEF_OP(0x01, PUSH, push, 1, 0b0100000001010101, 0b00001110, {
+DEF_OP(0x01, PUSH, push, 1, 0b0100000001010101, 0b11101110, {
     PUSH_(ARG_);
 })
 
-DEF_OP(0x02, POP , pop , 1, 0b0100000000000000, 0b00000100, {
+
+#define ARGTYPE_CASE_(NAME_CAP, NAME_LOW, TYPE, FMT_U, FMT_S) \
+    case ARGTYPE_##NAME_CAP: \
+        if (AM_.locMem) { \
+            /*printf("!!%u\n", curOp.memAddr);*/ \
+            /*printf("!!%016llx <- %016llx\n", *(unsigned long long *)&self->ram[curOp.memAddr], *(unsigned long long *)&tos0);*/ \
+            *(TYPE *)&self->ram[curOp.memAddr] = tos0.NAME_LOW; \
+            /*memcpy(self->ram + curOp.memAddr, &(tos0.NAME_LOW), sizeof(TYPE));*/ \
+            /*printf("!!%016llx\n", *(unsigned long long *)&self->ram[curOp.memAddr]);*/ \
+        } else { \
+            self->registers[curOp.reg].NAME_LOW = tos0.NAME_LOW; \
+        } \
+        break;
+DEF_OP(0x02, POP , pop , 1, 0b0100000001010101, 0b11100100, {
     POP_(&tos0);
-    self->registers[curOp.reg].df = tos0.df;  // To avoid overwriting the other values
+
+    ARGTYPE_SWITCH_(AM_.type,
+        ERR("Inexistent argType: 0x%01x", AM_.type);
+        return true;
+    )
 })
+#undef ARGTYPE_CASE__
 
 DEF_OP(0x03, POPV, popv, 0, 0b0000000000000000, 0b00000000, {
     POP_(NULL);
@@ -19,7 +37,7 @@ DEF_OP(0x04, DUP , dup , 0, 0b0000000000000000, 0b00000000, {
     PUSH_(tos0);
 })
 
-DEF_OP(0x05, ROT , rot , 1, 0b0000000000010000, 0b00001110, {
+DEF_OP(0x05, ROT , rot , 1, 0b0000000000010000, 0b11101110, {
     switch (ARG_.dwl) {
     case 0:
     case 1:
@@ -101,10 +119,13 @@ DEF_OP(0x10, NEG , neg , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
     PUSH_(res);
 })
 
-DEF_OP(0x18, IN  , in  , 1, 0b0100000000000000, 0b00000101, { TMP_ONLYDOUBLE_
+DEF_OP(0x18, IN  , in  , 1, 0b0100000000000000, 0b11100101, { TMP_ONLYDOUBLE_
     printf("(df) > ");
     if (AM_.locMem) {
-        NOTIMPL_;
+        if (scanf("%lg", &(((value_t *)&self->ram[curOp.memAddr])->df)) != 1) {
+            ERR("Cannot read input");
+            return true;
+        }
     } else if (AM_.locReg) {
         if (scanf("%lg", &self->registers[curOp.reg].df) != 1) {
             ERR("Cannot read input");
@@ -119,7 +140,7 @@ DEF_OP(0x18, IN  , in  , 1, 0b0100000000000000, 0b00000101, { TMP_ONLYDOUBLE_
     }
 })
 
-DEF_OP(0x19, OUT , out , 1, 0b0100000000000000, 0b00001111, { TMP_ONLYDOUBLE_
+DEF_OP(0x19, OUT , out , 1, 0b0100000000000000, 0b11101111, { TMP_ONLYDOUBLE_
     printf("(df) ");
     if (AM_.loc) {
         printf("%lg", ARG_.df);
@@ -130,25 +151,25 @@ DEF_OP(0x19, OUT , out , 1, 0b0100000000000000, 0b00001111, { TMP_ONLYDOUBLE_
     printf("\n");
 })
 
-DEF_OP(0x20, JMP , jmp , 1, 0b0000000000010000, 0b00001111, {
+DEF_OP(0x20, JMP , jmp , 1, 0b0000000000010000, 0b11101111, {
     self->ip = ARG_.dwl;
 })
 
-DEF_OP(0x21, JF  , jf  , 1, 0b0000000000010000, 0b00001111, {
+DEF_OP(0x21, JF  , jf  , 1, 0b0000000000010000, 0b11101111, {
     POP_(&tos0);
     if (!tos0.dwl) {
         self->ip = ARG_.dwl;
     }
 })
 
-DEF_OP(0x22, JT  , jt  , 1, 0b0000000000010000, 0b00001111, {
+DEF_OP(0x22, JT  , jt  , 1, 0b0000000000010000, 0b11101111, {
     POP_(&tos0);
     if (tos0.dwl) {
         self->ip = ARG_.dwl;
     }
 })
 
-DEF_OP(0x23, CALL, call, 1, 0b0000000000010000, 0b00001111, {
+DEF_OP(0x23, CALL, call, 1, 0b0000000000010000, 0b11101111, {
     res.dwl = self->ip;
     PUSH_FRAME_(res);
     self->ip = ARG_.dwl;
@@ -213,7 +234,7 @@ DEF_OP(0xf1, DUMP, dump, 0, 0b0000000000000000, 0b00000000, {
     program_dump(self);
 })
 
-DEF_OP(0xf2, JM  , jm  , 1, 0b0000000000010000, 0b00001111, {
+DEF_OP(0xf2, JM  , jm  , 1, 0b0000000000010000, 0b11101110, {
     if (self->flags.flag_monday) {
         self->ip = ARG_.dwl;
     }

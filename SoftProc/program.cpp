@@ -14,7 +14,7 @@ const size_t STACK_INITIAL_CAPACITY = 8;
 
 static inline bool readByte_(program_t *self, uint8_t *dest);
 
-static inline bool readBytes_(program_t *self, uint32_t size, void *dest);
+static inline bool readBytes_(program_t *self, code_size_t size, void *dest);
 
 static bool readImm_(program_t *self, opcode_info_t *opcode);
 
@@ -30,7 +30,9 @@ bool program_read(program_t *self, FILE *ifile) {
         return true;
     }
 
-    self->ip = 0;
+    self->ip = self->mmap.header.entryPoint;
+
+    self->ram = (char *)calloc(self->mmap.header.ramSize, sizeof(self->ram[0]));
 
     // self->registers = {} didn't work
     memset(self->registers, 0, sizeof(self->registers[0]) * GENERAL_REG_CNT);
@@ -153,6 +155,8 @@ bool program_execute(program_t *self) {
 void program_free(program_t *self) {
     assert(self != NULL);
 
+    free(self->ram);
+
     stack_free(&self->stack);
 
     stack_free(&self->frameStack);
@@ -168,7 +172,7 @@ static inline bool readByte_(program_t *self, uint8_t *dest) {
     return false;
 }
 
-static inline bool readBytes_(program_t *self, uint32_t size, void *dest) {
+static inline bool readBytes_(program_t *self, code_size_t size, void *dest) {
     if (self->ip + size > self->mmap.header.codeSize) {
         return true;
     }
@@ -186,7 +190,7 @@ static bool readImm_(program_t *self, opcode_info_t *opcode) {
             readBytes_(self, sizeof(opcode->arg.NAME_LOW), &opcode->arg.NAME_LOW); \
             break;
 
-    ARGTYPE_SWITCH_(
+    ARGTYPE_SWITCH_(opcode->addrMode.type,
         ERR("Inexistent argType: 0x%01x", opcode->addrMode.type);
         return true;
     )
@@ -208,6 +212,14 @@ static bool readArg_(program_t *self, opcode_info_t *opcode) {
     opcode->arg = {};
 
     opcode->reg = 0xff;
+
+    opcode->memAddr = (uint32_t)-1;
+
+    uint8_t backupArgType = opcode->addrMode.type;
+
+    if (opcode->addrMode.locMem) {
+        opcode->addrMode.type = ARGTYPE_DWL;
+    }
 
     if (opcode->addrMode.locReg && readByte_(self, &opcode->reg)) {
         ERR("Couldn't read register number for the opcode argument");
@@ -262,8 +274,9 @@ static bool readArg_(program_t *self, opcode_info_t *opcode) {
 void program_dump(program_t *self) {
     printf("program_t [0x%p] {\n", self);
     if (self != NULL) {
-        printf("  ip     = %u (out of %u)\n", self->ip, self->mmap.header.codeSize);
-        printf("  flags  = 0b%d%d%d%d%d%d%d%d\n", self->flags.flag_exit, self->flags.flag_monday, self->flags.flag_trace, self->flags.f3, self->flags.f4, self->flags.f5, self->flags.f6, self->flags.f7);
+        printf("  ip        = %u (out of %u)\n", self->ip, self->mmap.header.codeSize);
+        printf("  ram size  = %u\n", self->mmap.header.ramSize);
+        printf("  flags     = 0b%d%d%d%d%d%d%d%d\n", self->flags.flag_exit, self->flags.flag_monday, self->flags.flag_trace, self->flags.f3, self->flags.f4, self->flags.f5, self->flags.f6, self->flags.f7);
 
         printf("  registers [0x%p] {\n", self->registers);
         if (self->registers != NULL) {
@@ -276,6 +289,20 @@ void program_dump(program_t *self) {
         printf("  }\n");
 
         stack_dumpPadded(&self->stack, "  ");
+
+        stack_dumpPadded(&self->frameStack, "  ");
+
+        printf("  ram [0x%p] {\n", self->ram);
+        if (self->ram != NULL) {
+            printf("    ");
+            for (code_size_t i = 0; i < 32; ++i) {
+                printf("%02x ", (unsigned char)self->ram[i]);
+            }
+            printf("\n");
+        } else {
+            printf("    <corrupt>\n");
+        }
+        printf("  }\n");
     } else {
         printf("  <corrupt>\n");
     }

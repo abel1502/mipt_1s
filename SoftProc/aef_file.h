@@ -21,6 +21,8 @@ struct aef_file_header_s {
     version_t version;
     crc32_t codeChecksum;
     code_size_t codeSize;
+    code_size_t entryPoint;
+    code_size_t ramSize;
 };
 
 struct aef_mmap_s {
@@ -30,7 +32,7 @@ struct aef_mmap_s {
 };
 
 
-aef_mmap_t *aef_mmap_init(aef_mmap_t *self, code_size_t codeSize, char *code);
+aef_mmap_t *aef_mmap_init(aef_mmap_t *self, code_size_t codeSize, char *code, code_size_t entryPoint, code_size_t ramSize);
 
 bool aef_mmap_read(aef_mmap_t *self, FILE *ifile);
 

@@ -18,6 +18,7 @@ const code_size_t CODE_DEFAULT_CAPACITY = 0x20;
 const code_size_t CODE_MAX_CAPACITY = 0x7fff0000;
 const code_size_t CODE_LABEL_CAPACITY = 0x1000;
 const code_size_t CODE_LOG_BYTESPERLINE = 12;
+const code_size_t CODE_DEFAULT_RAM_SIZE = 0x64000;
 
 
 static bool readUntil_(const char **source, char *dest, char until, size_t limit);
@@ -36,6 +37,8 @@ code_t *code_init(code_t *self, bool doLog) {
     if (self->buf == NULL) {
         return NULL;
     }
+
+    self->ramSize = CODE_DEFAULT_RAM_SIZE;
 
     self->doLog = doLog;
     self->lineStart = 0;
@@ -186,6 +189,7 @@ bool code_assembleLine(code_t *self, const char *line) {
     }
 
     #define WRITE_ADDRMODE_() \
+        addrMode.type = backupArgType; \
         if (!(curArgLocMask & (1 << addrMode.loc))) { \
             ERR("Inappropriate argument loc 0x%02x for op 0x%02x", addrMode.loc, op); \
             return true; \
@@ -193,11 +197,17 @@ bool code_assembleLine(code_t *self, const char *line) {
         if (code_writeRaw_(self, &addrMode, sizeof(addrMode))) { \
             ERR("Couldn't write to file"); \
             return true; \
+        } \
+        if (addrMode.locMem) { \
+            addrMode.type = ARGTYPE_DWL; \
         }
+
+    uint8_t backupArgType = addrMode.type;  // Because memory addressing forces arg type to be dwl, and the actual type may be valuable later
 
     if (*line == '[') {
         //addrMode.locMem = 1;
         addrMode.loc |= ARGLOC_MEM;
+        addrMode.type = ARGTYPE_DWL;
         line++;
     }
 
@@ -346,7 +356,7 @@ bool code_compileToFile(code_t *self, FILE *ofile) {
     assert(self->labelsInited);
 
     aef_mmap_t mmap = {};
-    aef_mmap_init(&mmap, self->size, self->buf);
+    aef_mmap_init(&mmap, self->size, self->buf, 0, self->ramSize);
 
     code_log(self, "[ASM] Total size: 0x%08x\n\n", self->size);  // TODO?: 0x%08x
 
@@ -547,6 +557,8 @@ void code_logLine(code_t *self, const char *line) {
     }
 
     char buf[MAX_LINE + 1] = "";
+
+    skipSpace_(&line);
 
     readUntil_(&line, buf, ';', MAX_LINE);
 

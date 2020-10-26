@@ -45,15 +45,17 @@ struct program_s {
     stack_t frameStack;
     value_t registers[GENERAL_REG_CNT];
     flag_regs_t flags;
-    uint32_t ip;
+    code_size_t ip;
+    char *ram;
 };
 
 struct opcode_info_s {
-    uint32_t addr;
+    code_size_t addr;
     opcode_t op;
     addrMode_t addrMode;
     uint8_t reg;
     value_t arg;
+    uint32_t memAddr;
 };
 
 

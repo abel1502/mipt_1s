@@ -13,6 +13,7 @@ struct code_s {
     code_size_t size;
     code_size_t capacity;
     char *buf;
+    code_size_t ramSize;
 
     code_size_t lineStart;
 

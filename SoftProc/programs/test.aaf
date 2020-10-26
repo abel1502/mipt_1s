@@ -1,59 +1,61 @@
 ; Test program
 
 
-push df:1
-pop df:ra
-push df:ra+30
-out df:
-
-
+	push df:123
+	pop df:[0]
+	push dwl:10
+	pop dwl:ra
+	push df:[ra-10]
+	out df:
+	
+	
 end ; ==================================
+	
+	
+	in df:
+	call dwl:$main
+	out df:
+	end
 
-
-in df:
-call dwl:$main
-out df:
-end
-
-nop
-nop
-nop
+	nop
+	nop
+	nop
 
 $main:
-pop df:ra
+	pop df:ra
 
 $main_loop:
-push df:ra
-push df:1
-sub df:
-pop df:ra
-
-push df:ra
-push df:0
-cge df:
-jt dwl:$main_loop
-
-push df:ra
-push df:1
-add df:
-
-ret
-
-
-
+	push df:ra
+	push df:1
+	sub df:
+	pop df:ra
+	
+	push df:ra
+	push df:0
+	cge df:
+	jt dwl:$main_loop
+	
+	push df:ra
+	push df:1
+	add df:
+	
+	ret
+	
+	
+	
 end  ; ===================================
 
-out df:123.456
+	out df:123.456
 
-in df:
-pop df:ra
+	in df:
+	pop df:ra
 
-push df:ra
-push df:1
-add df:stack  ; We may omit the 'stack' if we want, but don't have to
-push df:ra
-div df:
+	push df:ra
+	push df:1
+	add df:stack  ; We may omit the 'stack' if we want, but don't have to
+	push df:ra
+	div df:
 
-out df:
+	out df:
 
 end

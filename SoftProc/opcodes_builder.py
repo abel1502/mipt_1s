@@ -51,7 +51,7 @@ class AddrMode(object):
              'bl' : i << 3 | b  << 1 | l, 
              'bh' : i << 3 | b  << 1 | h}
     
-    locs = {"": 0, "stack": 0, "imm" : imm, "reg": reg, "mem": mem}
+    locs = {"": 0, "stack": 0, "imm" : imm, "reg": reg}
     
     @staticmethod
     def parseLoc(name):
@@ -63,7 +63,7 @@ class AddrMode(object):
         names = name.split('+')
         assert 1 <= len(names) <= 2
         
-        return reduce(lambda old, cur: old | cur, map(lambda x: AddrMode.locs[x.strip()], names), 0)
+        return reduce(lambda old, cur: old | cur, map(lambda x: AddrMode.locs[x.strip()], names), 0) | (isMem and AddrMode.mem)
     
     @staticmethod
     def parseType(name):
@@ -84,8 +84,14 @@ class Opcode(object):
         
         types, locs = arg.split(':')
         
-        types = list(map(AddrMode.parseType, types.strip().split(',')))
-        locs  = list(map(AddrMode.parseLoc, locs.strip().split(',')))
+        types = types.strip()
+        locs = locs.strip()
+        
+        locs = locs.replace('write', 'reg,[imm],[reg],[reg+imm]')
+        locs = locs.replace('read', 'imm,reg,reg+imm,[imm],[reg],[reg+imm]')
+        
+        types = list(map(AddrMode.parseType, types.split(',')))
+        locs  = list(map(AddrMode.parseLoc, locs.split(',')))
         
         return (types, locs)
     
