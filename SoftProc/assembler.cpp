@@ -450,14 +450,13 @@ bool code_readConst_(code_t *self, const char **line, void *valueBuf, uint8_t ar
         lineDelta = 0;                                                        \
         assert(sizeof(UTYPE) == 1 << tmpAM.typeS);                            \
         if (**line == '+' || **line == '-') {                                 \
-            ++*line;                                                          \
-            res = sscanf(*line, FORMAT "u%n", (UTYPE *)valueBuf, &lineDelta); \
-        } else {                                                              \
             res = sscanf(*line, FORMAT "d%n", (STYPE *)valueBuf, &lineDelta); \
+        } else {                                                              \
+            res = sscanf(*line, FORMAT "u%n", (UTYPE *)valueBuf, &lineDelta); \
         }                                                                     \
                                                                               \
         if (res != 1) {                                                       \
-            ERR("Corrupt immediate value: <%s>", line);                       \
+            ERR("Corrupt immediate value: <%s>", *line);                      \
             return true;                                                      \
         }                                                                     \
                                                                               \
