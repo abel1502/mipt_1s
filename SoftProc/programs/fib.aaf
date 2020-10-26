@@ -1,0 +1,47 @@
+; Recusive fibbonacchi generator
+
+in df:
+push df:0
+push df:1
+call dwl:$genFib
+
+end
+
+
+
+
+; genFib(n) -> void  // Prints the first N fib. numbers
+$genFib:
+
+pop df:ra
+pop df:rb
+pop df:rc
+
+push df:rb
+
+push df:ra
+push df:rb
+add df:
+dup
+out df:
+
+pop df:rb
+pop df:ra
+
+push df:rc
+push df:1
+sub df:
+dup
+pop df:rc
+
+push df:0
+cle df:
+jt dwl:$genFib_end
+
+push df:rc
+push df:rb
+push df:ra
+call dwl:$genFib
+
+$genFib_end:
+ret
