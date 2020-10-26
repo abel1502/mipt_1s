@@ -230,7 +230,25 @@ static bool readArg_(program_t *self, opcode_info_t *opcode) {
                 opcode->arg.NAME_LOW += self->registers[opcode->reg].NAME_LOW; \
                 break;
 
-        ARGTYPE_SWITCH_(
+        ARGTYPE_SWITCH_(opcode->addrMode.type,
+            ERR("Inexistent argType: 0x%01x", opcode->addrMode.type);
+            return true;
+        )
+
+        #undef ARGTYPE_CASE_
+    }
+
+    opcode->addrMode.type = backupArgType;
+
+    if (opcode->addrMode.locMem) {
+        opcode->memAddr = opcode->arg.dwl;
+
+        #define ARGTYPE_CASE_(NAME_CAP, NAME_LOW, TYPE, FMT_U, FMT_S) \
+            case ARGTYPE_##NAME_CAP: \
+                opcode->arg.NAME_LOW = ((value_t *)(&self->ram[opcode->memAddr]))->NAME_LOW; \
+                break;
+
+        ARGTYPE_SWITCH_(opcode->addrMode.type,
             ERR("Inexistent argType: 0x%01x", opcode->addrMode.type);
             return true;
         )

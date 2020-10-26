@@ -11,8 +11,8 @@ typedef enum { false, true } bool;
 
 
 // Usage: #define ARGTYPE_CASE_(NAME_CAP, NAME_LOW, TYPE, FMT_U, FMT_S)
-#define ARGTYPE_SWITCH_(DEFAULT) \
-    switch (opcode->addrMode.type) { \
+#define ARGTYPE_SWITCH_(VAR, DEFAULT) \
+    switch (VAR) { \
         ARGTYPE_CASE_(DF, df, double, "%lg", "%lg") \
         ARGTYPE_CASE_(FL, fl, float, "%g", "%g") \
         ARGTYPE_CASE_(FH, fh, float, "%g", "%g") \
