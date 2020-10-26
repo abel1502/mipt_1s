@@ -195,3 +195,9 @@ DEF_OP(0xf1, DUMP, dump, 0, 0b0000000000000000, 0b00000000, {
     program_dump(self);
 })
 
+DEF_OP(0xf2, JM  , jm  , 1, 0b0000000000010000, 0b00000111, {
+    if (self->flags.flag_monday) {
+        self->ip = ARG_.dwl;
+    }
+})
+

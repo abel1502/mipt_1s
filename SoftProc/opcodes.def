@@ -37,3 +37,4 @@
 
 0xF0 : end  ()
 0xF1 : dump ()
+0xF2 : jm   (dwl:stack,reg,imm)

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
+#include <time.h>
 
 #define CHECKSUM_NOIMPL
 
@@ -122,8 +123,19 @@ bool program_executeOpcode(program_t *self) {
     return false;
 }
 
+void program_checkMonday(program_t *self) {
+    assert(self != NULL);
+
+    time_t t = time(NULL);
+    if (t >= 0) {
+        self->flags.flag_monday = localtime(&t)->tm_wday == 1;
+    }
+}
+
 bool program_execute(program_t *self) {
     assert(self != NULL);
+
+    program_checkMonday(self);
 
     while (!self->flags.flag_exit) {
         if (program_executeOpcode(self)) {

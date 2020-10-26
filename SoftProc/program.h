@@ -61,6 +61,8 @@ bool program_read(program_t *self, FILE *ifile);
 
 bool program_executeOpcode(program_t *self);
 
+void program_checkMonday(program_t *self);
+
 bool program_execute(program_t *self);
 
 void program_free(program_t *self);
