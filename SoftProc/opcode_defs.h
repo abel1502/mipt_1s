@@ -45,42 +45,42 @@ DEF_OP(0x05, ROT , rot , 1, 0b0000000000010000, 0b00000110, {
 
 DEF_OP(0x08, ADD , add , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
     POP_(&tos0);
-	POP_(&tos1);
-	res.df = tos1.df + tos0.df;
-	PUSH_(res);
+    POP_(&tos1);
+    res.df = tos1.df + tos0.df;
+    PUSH_(res);
 })
 
 DEF_OP(0x09, SUB , sub , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
     POP_(&tos0);
-	POP_(&tos1);
-	res.df = tos1.df - tos0.df;
-	PUSH_(res);
+    POP_(&tos1);
+    res.df = tos1.df - tos0.df;
+    PUSH_(res);
 })
 
 DEF_OP(0x0a, MUL , mul , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
     POP_(&tos0);
-	POP_(&tos1);
-	res.df = tos1.df * tos0.df;
-	PUSH_(res);
+    POP_(&tos1);
+    res.df = tos1.df * tos0.df;
+    PUSH_(res);
 })
 
 DEF_OP(0x0b, DIV , div , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
     POP_(&tos0);
-	POP_(&tos1);
-	res.df = tos1.df / tos0.df;  // Zero division produces inf
-	PUSH_(res);
+    POP_(&tos1);
+    res.df = tos1.df / tos0.df;  // Zero division produces inf
+    PUSH_(res);
 })
 
 DEF_OP(0x0c, SQR , sqr , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
     POP_(&tos0);
-	res.df = tos0.df * tos0.df;
-	PUSH_(res);
+    res.df = tos0.df * tos0.df;
+    PUSH_(res);
 })
 
 DEF_OP(0x0d, SQRT, sqrt, 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
     POP_(&tos0);
-	res.df = sqrt(tos0.df);
-	PUSH_(res);
+    res.df = sqrt(tos0.df);
+    PUSH_(res);
 })
 
 DEF_OP(0x18, IN  , in  , 1, 0b0100000000000000, 0b00000101, { TMP_ONLYDOUBLE_
@@ -145,44 +145,44 @@ DEF_OP(0x24, RET , ret , 0, 0b0000000000000000, 0b00000000, {
 
 DEF_OP(0x28, CG  , cg  , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
     POP_(&tos0);
-	POP_(&tos1);
-	res.dwl = tos1.df > tos0.df + EPSILON_;
-	PUSH_(res);
+    POP_(&tos1);
+    res.dwl = tos1.df > tos0.df + EPSILON_;
+    PUSH_(res);
 })
 
 DEF_OP(0x29, CGE , cge , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
     POP_(&tos0);
-	POP_(&tos1);
-	res.dwl = tos1.df >= tos0.df - EPSILON_;
-	PUSH_(res);
+    POP_(&tos1);
+    res.dwl = tos1.df >= tos0.df - EPSILON_;
+    PUSH_(res);
 })
 
 DEF_OP(0x2a, CL  , cl  , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
     POP_(&tos0);
-	POP_(&tos1);
-	res.dwl = tos1.df < tos0.df - EPSILON_;
-	PUSH_(res);
+    POP_(&tos1);
+    res.dwl = tos1.df < tos0.df - EPSILON_;
+    PUSH_(res);
 })
 
 DEF_OP(0x2b, CLE , cle , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
     POP_(&tos0);
-	POP_(&tos1);
-	res.dwl = tos1.df <= tos0.df;
-	PUSH_(res);
+    POP_(&tos1);
+    res.dwl = tos1.df <= tos0.df;
+    PUSH_(res);
 })
 
 DEF_OP(0x2c, CE  , ce  , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
     POP_(&tos0);
-	POP_(&tos1);
-	res.dwl = tos1.df <= tos0.df + EPSILON_ && tos1.df + EPSILON_ >= tos0.df;
-	PUSH_(res);
+    POP_(&tos1);
+    res.dwl = tos1.df <= tos0.df + EPSILON_ && tos1.df + EPSILON_ >= tos0.df;
+    PUSH_(res);
 })
 
 DEF_OP(0x2d, CNE , cne , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
     POP_(&tos0);
-	POP_(&tos1);
-	res.dwl = tos1.df > tos0.df + EPSILON_ || tos1.df + EPSILON_ < tos0.df;
-	PUSH_(res);
+    POP_(&tos1);
+    res.dwl = tos1.df > tos0.df + EPSILON_ || tos1.df + EPSILON_ < tos0.df;
+    PUSH_(res);
 })
 
 #undef EPSILON_
