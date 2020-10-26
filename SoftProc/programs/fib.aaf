@@ -1,4 +1,4 @@
-; Recusive fibbonacchi generator
+; Recusive fibonacchi generator
 
 in df:
 push df:0
