@@ -97,6 +97,10 @@ bool code_assembleLine(code_t *self, const char *line) {
             return true;
         }
 
+        if (self->labelsInited) {
+            code_log(self, "[ASM] |   ----->   |\n", self->size);
+        }
+
         return false;
     }
 
@@ -319,7 +323,7 @@ bool code_assembleFile(code_t *self, FILE *ifile) {
     self->labelsInited = true;
     self->size = 0;
 
-    code_log(self, "[ASM] +--------+\n");
+    code_log(self, "[ASM] +------------+\n");
 
     for (unsigned int i = 0; i < itext.length; ++i) {
         if (code_assembleLine(self, (const char *)itext.index[i].val)) {  // TODO: Rework assembleLine to work with line_t
@@ -328,7 +332,7 @@ bool code_assembleFile(code_t *self, FILE *ifile) {
         }
     }
 
-    code_log(self, "[ASM] +--------+\n");
+    code_log(self, "[ASM] +------------+\n");
 
     text_free(&itext);
 
@@ -344,7 +348,7 @@ bool code_compileToFile(code_t *self, FILE *ofile) {
     aef_mmap_t mmap = {};
     aef_mmap_init(&mmap, self->size, self->buf);
 
-    code_log(self, "[ASM] Total size: 0x%04x\n\n", self->size);  // TODO?: 0x%08x
+    code_log(self, "[ASM] Total size: 0x%08x\n\n", self->size);  // TODO?: 0x%08x
 
     if (aef_mmap_write(&mmap, ofile)) {
         ERR("Couldn't write compiled bytecode to file");
@@ -527,7 +531,7 @@ void code_logLine(code_t *self, const char *line) {
     assert(self != NULL);
     assert(line != NULL);
 
-    code_log(self, "[ASM] | 0x%04x | ", self->lineStart);
+    code_log(self, "[ASM] | 0x%08x | ", self->lineStart);
 
     code_size_t ind = 0;
 
@@ -540,7 +544,11 @@ void code_logLine(code_t *self, const char *line) {
         ind++;
     }
 
-    code_log(self, "| \"%s\"\n", line);
+    char buf[MAX_LINE + 1] = "";
+
+    readUntil_(&line, buf, ';', MAX_LINE);
+
+    code_log(self, "| %s\n", buf);
 }
 
 bool code_readLabel(code_t *self, const char **line) {
