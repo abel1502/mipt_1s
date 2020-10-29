@@ -3,27 +3,35 @@
 
 ; ===[ Constants ]===
 
+$drawBuf = 0
+
 $screenWidth  = 30  ; Actually 60, but this is already converted into square pixels
 $screenHeight = 30
 
-$pixelFill0 = 32
+$pixelFill0 = 45   ;32
 $pixelFill1 = 176
 $pixelFill2 = 177
 $pixelFill3 = 178
-$pixelFill3 = 219
+$pixelFill4 = 219
 
-$circleRadius = 13.4
-$circleBorder = 0.45
+$circleRadius = 1800
+$circleBorder = 1808
 
 ; ===================
-
-
 
 ;
 ; ENTRYPOINT main() -> void
 ;   regs: ra (x), rb(y), rc(center)
 ;
 $main:
+	push df:13.4
+	pop df:[$circleRadius]
+	;pop df:rd
+	
+	push df:0.45
+	pop df:[$circleBorder]
+	;pop df:re
+	
 	push dwl:$screenHeight
 	i2d
 	push df:2
@@ -53,21 +61,22 @@ $main:
 
 			add df:     ; (x-c)**2+(y-c)**2
 
-			;push df:$circleRadius
+			;push df:[$circleRadius]
 			;sqr df:
 			;
 			;sub df:     ; (x-c)**2+(y-c)**2-r**2
 			
 			sqrt df:
-			push df:$circleRadius
+			push df:[$circleRadius]
+			;push df:rd
 			sub df:
-			
 
 			dup
 
 			call dwl:$fabs
 
-			push df:0.45  ; TODO: ?
+			push df:[$circleBorder]
+			;push df:re
 			cle df:
 			jt dwl:$main_drawBorder
 
@@ -113,7 +122,7 @@ $main:
 		cl df:
 		jt dwl:$main_for_x
 
-	draw dwl:0
+	draw dwl:$drawBuf
 
 	end
 
@@ -150,12 +159,12 @@ $drawPixel:
 	d2i
 	pop dwl:rh
 	push bl:rg
-	pop bl:[rh]
+	pop bl:[rh+$drawBuf]
 
 	d2i
 	pop dwl:rh
 	push bl:rg
-	pop bl:[rh]
+	pop bl:[rh+$drawBuf]
 
 	ret
 
