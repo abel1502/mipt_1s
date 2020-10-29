@@ -32,7 +32,8 @@ bool program_read(program_t *self, FILE *ifile) {
 
     self->ip = self->mmap.header.entryPoint;
 
-    self->ram = (char *)calloc(self->mmap.header.ramSize, sizeof(self->ram[0]));
+    self->ram = calloc(GRAPHICS_BUF_SIZE + self->mmap.header.ramSize, 1);
+    memset(self->ram, ' ', GRAPHICS_BUF_SIZE);
 
     // self->registers = {} didn't work
     memset(self->registers, 0, sizeof(self->registers[0]) * GENERAL_REG_CNT);
@@ -134,6 +135,20 @@ void program_checkMonday(program_t *self) {
     }
 }
 
+bool program_drawScreen(program_t *self, code_size_t addr) {
+    char *buf = program_ramReadBytes(self, addr, GRAPHICS_BUF_SIZE, NULL);
+    for (unsigned y = 0; y < GRAPHICS_SCREEN_HEIGHT; ++y) {
+        for (unsigned x = 0; x < GRAPHICS_SCREEN_WIDTH; ++x) {
+            if (putc(buf[y * GRAPHICS_SCREEN_WIDTH + x], stdout) == EOF) {
+                ERR("Screen drawing failed");
+                return true;
+            }
+        }
+        putc('\n', stdout);
+    }
+    return false;
+}
+
 bool program_execute(program_t *self) {
     assert(self != NULL);
 
@@ -141,7 +156,7 @@ bool program_execute(program_t *self) {
 
     while (!self->flags.flag_exit) {
         if (program_executeOpcode(self)) {
-            ERR("Error during execution of opcode at 0x%08x", self->ip);
+            ERR("Error during execution of opcode at 0x%08x (Warning: the opcode's starting position may be lower)", self->ip);
             if (self->ip == self->mmap.header.codeSize) {
                 ERR("(Most likely your program is missing an <end> opcode in the end)");
             }
@@ -151,6 +166,55 @@ bool program_execute(program_t *self) {
 
     return false;
 }
+
+// TODO?: Maybe not abort, but return true
+// Temporary workaround implemented
+#define VALIDATE_ADDR_(ADDR) \
+    if ((ADDR) >= self->mmap.header.ramSize) { \
+        ERR("Address 0x%08x out of ram bounds (0x%08d)", (ADDR), self->mmap.header.ramSize); \
+        ERR("Error during execution of opcode at 0x%08x (Warning: the opcode's starting position may be lower)", self->ip); \
+        abort(); \
+    }
+
+char program_ramReadByte(program_t *self, code_size_t addr) {
+    assert(self != NULL);
+
+    VALIDATE_ADDR_(addr);
+
+    return ((char *)self->ram)[addr];
+}
+
+void program_ramWriteByte(program_t *self, code_size_t addr, char byte) {
+    assert(self != NULL);
+
+    VALIDATE_ADDR_(addr);
+
+    ((char *)self->ram)[addr] = byte;
+}
+
+char *program_ramReadBytes(program_t *self, code_size_t addr, code_size_t size, void *dest) {
+    assert(self != NULL);
+
+    VALIDATE_ADDR_(addr + size - 1);
+
+    if (dest != NULL) {
+        memcpy(dest, &((char *)self->ram)[addr], size);
+        return (char *)dest;
+    } else {
+        return &((char *)self->ram)[addr];
+    }
+}
+
+void program_ramWriteBytes(program_t *self, code_size_t addr, code_size_t size, const void *source) {
+    assert(self != NULL);
+    assert(source != NULL);
+
+    VALIDATE_ADDR_(addr + size - 1);
+
+    memcpy(&((char *)self->ram)[addr], source, size);
+}
+
+#undef VALIDATE_ADDR_
 
 void program_free(program_t *self) {
     assert(self != NULL);
@@ -257,7 +321,7 @@ static bool readArg_(program_t *self, opcode_info_t *opcode) {
 
         #define ARGTYPE_CASE_(NAME_CAP, NAME_LOW, TYPE, FMT_U, FMT_S) \
             case ARGTYPE_##NAME_CAP: \
-                opcode->arg.NAME_LOW = ((value_t *)(&self->ram[opcode->memAddr]))->NAME_LOW; \
+                program_ramReadBytes(self, opcode->memAddr, sizeof(TYPE), &opcode->arg.NAME_LOW); \
                 break;
 
         ARGTYPE_SWITCH_(opcode->addrMode.type,
@@ -296,9 +360,9 @@ void program_dump(program_t *self) {
         if (self->ram != NULL) {
             printf("    ");
             for (code_size_t i = 0; i < 32; ++i) {
-                printf("%02x ", (unsigned char)self->ram[i]);
+                printf("%02x ", ((unsigned char*)self->ram)[i]);
             }
-            printf("\n");
+            printf(" ... \n");
         } else {
             printf("    <corrupt>\n");
         }

@@ -8,11 +8,7 @@ DEF_OP(0x01, PUSH, push, 1, 0b0100000001010101, 0b11101110, {
 #define ARGTYPE_CASE_(NAME_CAP, NAME_LOW, TYPE, FMT_U, FMT_S) \
     case ARGTYPE_##NAME_CAP: \
         if (AM_.locMem) { \
-            /*printf("!!%u\n", curOp.memAddr);*/ \
-            /*printf("!!%016llx <- %016llx\n", *(unsigned long long *)&self->ram[curOp.memAddr], *(unsigned long long *)&tos0);*/ \
-            *(TYPE *)&self->ram[curOp.memAddr] = tos0.NAME_LOW; \
-            /*memcpy(self->ram + curOp.memAddr, &(tos0.NAME_LOW), sizeof(TYPE));*/ \
-            /*printf("!!%016llx\n", *(unsigned long long *)&self->ram[curOp.memAddr]);*/ \
+            program_ramWriteBytes(self, curOp.memAddr, sizeof(TYPE), &tos0.NAME_LOW); \
         } else { \
             self->registers[curOp.reg].NAME_LOW = tos0.NAME_LOW; \
         } \
@@ -38,11 +34,13 @@ DEF_OP(0x04, DUP , dup , 0, 0b0000000000000000, 0b00000000, {
 })
 
 DEF_OP(0x05, ROT , rot , 1, 0b0000000000010000, 0b11101110, {
-    switch (ARG_.dwl) {
+    switch ((int32_t)ARG_.dwl) {
     case 0:
     case 1:
+    case -1:
         break;
     case 2:
+    case -2:
         POP_(&tos0);
         POP_(&tos1);
         PUSH_(tos0);
@@ -55,6 +53,14 @@ DEF_OP(0x05, ROT , rot , 1, 0b0000000000010000, 0b11101110, {
         PUSH_(tos0);
         PUSH_(tos2);
         PUSH_(tos1);
+        break;
+    case -3:
+        POP_(&tos0);
+        POP_(&tos1);
+        POP_(&tos2);
+        PUSH_(tos1);
+        PUSH_(tos0);
+        PUSH_(tos2);
         break;
     default:
         NOTIMPL_;
@@ -122,7 +128,7 @@ DEF_OP(0x10, NEG , neg , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
 DEF_OP(0x18, IN  , in  , 1, 0b0100000000000000, 0b11100101, { TMP_ONLYDOUBLE_
     printf("(df) > ");
     if (AM_.locMem) {
-        if (scanf("%lg", &(((value_t *)&self->ram[curOp.memAddr])->df)) != 1) {
+        if (scanf("%lg", (double *)program_ramReadBytes(self, curOp.memAddr, sizeof(double), NULL)) != 1) {
             ERR("Cannot read input");
             return true;
         }
@@ -226,6 +232,27 @@ DEF_OP(0x2d, CNE , cne , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
 
 #undef EPSILON_
 
+DEF_OP(0xe0, D2B , d2b , 0, 0b0000000000000000, 0b00000000, {
+    POP_(&tos0);
+    res.bl = (uint8_t)tos0.df;
+    PUSH_(res);
+})
+DEF_OP(0xe1, B2D , b2d , 0, 0b0000000000000000, 0b00000000, {
+    POP_(&tos0);
+    res.df = (double)tos0.bl;
+    PUSH_(res);
+})
+DEF_OP(0xe2, D2I , d2i , 0, 0b0000000000000000, 0b00000000, {
+    POP_(&tos0);
+    res.dwl = (uint32_t)tos0.df;
+    PUSH_(res);
+})
+DEF_OP(0xe3, I2D , i2d , 0, 0b0000000000000000, 0b00000000, {
+    POP_(&tos0);
+    res.df = (double)tos0.dwl;
+    PUSH_(res);
+})
+
 DEF_OP(0xf0, END , end , 0, 0b0000000000000000, 0b00000000, {
     self->flags.flag_exit = true;
 })
@@ -240,3 +267,14 @@ DEF_OP(0xf2, JM  , jm  , 1, 0b0000000000010000, 0b11101110, {
     }
 })
 
+DEF_OP(0xf3, DRAW, draw, 1, 0b0000000000010000, 0b11101111, {
+    if (program_drawScreen(self, ARG_.dwl)) {
+        ERR("Failed to draw screen");
+        return true;
+    }
+})
+
+DEF_OP(0xf4, CLDB, cldb, 1, 0b0000000000010000, 0b11101111, {
+    // TODO?: bounds check
+    memset(program_ramReadBytes(self, ARG_.dwl, GRAPHICS_BUF_SIZE, NULL), ' ', GRAPHICS_BUF_SIZE);
+})

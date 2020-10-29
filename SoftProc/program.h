@@ -46,7 +46,7 @@ struct program_s {
     value_t registers[GENERAL_REG_CNT];
     flag_regs_t flags;
     code_size_t ip;
-    char *ram;
+    void *ram;
 };
 
 struct opcode_info_s {
@@ -55,7 +55,7 @@ struct opcode_info_s {
     addrMode_t addrMode;
     uint8_t reg;
     value_t arg;
-    uint32_t memAddr;
+    code_size_t memAddr;
 };
 
 
@@ -65,7 +65,17 @@ bool program_executeOpcode(program_t *self);
 
 void program_checkMonday(program_t *self);
 
+bool program_drawScreen(program_t *self, code_size_t addr);
+
 bool program_execute(program_t *self);
+
+char program_ramReadByte(program_t *self, code_size_t addr);
+
+void program_ramWriteByte(program_t *self, code_size_t addr, char byte);
+
+char *program_ramReadBytes(program_t *self, code_size_t addr, code_size_t size, void *dest);
+
+void program_ramWriteBytes(program_t *self, code_size_t addr, code_size_t size, const void *source);
 
 void program_free(program_t *self);
 

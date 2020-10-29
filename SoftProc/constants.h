@@ -11,4 +11,9 @@ const uint32_t AEF_MAGIC = '\nFEA';  // Abel Executable Format
 
 const unsigned char GENERAL_REG_CNT = 8;
 
+const uint32_t GRAPHICS_SCREEN_HEIGHT = 30;
+const uint32_t GRAPHICS_SCREEN_WIDTH = 60;
+
+const uint32_t GRAPHICS_BUF_SIZE = GRAPHICS_SCREEN_HEIGHT * GRAPHICS_SCREEN_WIDTH;
+
 #endif // CONSTANTS_H_GUARD

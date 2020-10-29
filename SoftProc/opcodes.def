@@ -38,6 +38,13 @@
 0x2D : cne  (df:stack)
 
 
+0xE0 : d2b  ()
+0xE1 : b2d  ()
+0xE2 : d2i  ()
+0xE3 : i2d  ()
+
 0xF0 : end  ()
 0xF1 : dump ()
 0xF2 : jm   (dwl:read)
+0xF3 : draw (dwl:stack,read)  # The argument is the memory address at which the buffer is located
+0xF4 : cldb (dwl:stack,read)  # -"-
