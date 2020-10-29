@@ -25,7 +25,7 @@ DEF_OP(0x02, POP , pop , 1, 0b0100000001010101, 0b11100100, {
         return true;
     )
 })
-#undef ARGTYPE_CASE__
+#undef ARGTYPE_CASE_
 
 DEF_OP(0x03, POPV, popv, 0, 0b0000000000000000, 0b00000000, {
     POP_(NULL);
