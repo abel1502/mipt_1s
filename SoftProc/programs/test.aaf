@@ -1,5 +1,14 @@
 ; Test program
 
+$var_1 = 123
+
+push bl:61
+pop bl:[$var_1]
+draw dwl:0
+
+
+
+end ; ==================================
 
 	push df:123
 	pop df:[0]

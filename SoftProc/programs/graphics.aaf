@@ -1,0 +1,181 @@
+; Circle drawer
+
+
+; ===[ Constants ]===
+
+$screenWidth  = 30  ; Actually 60, but this is already converted into square pixels
+$screenHeight = 30
+
+$pixelFill0 = 32
+$pixelFill1 = 176
+$pixelFill2 = 177
+$pixelFill3 = 178
+$pixelFill3 = 219
+
+$circleRadius = 13.4
+$circleBorder = 0.45
+
+; ===================
+
+
+
+;
+; ENTRYPOINT main() -> void
+;   regs: ra (x), rb(y), rc(center)
+;
+$main:
+	push dwl:$screenHeight
+	i2d
+	push df:2
+	div df:
+	pop df:rc
+
+	push df:0
+	pop df:ra
+
+	$main_for_x:
+		push df:0
+		pop df:rb
+
+		$main_for_y:
+			push df:ra
+			push df:rb
+
+			push df:ra
+			push df:rc
+			sub df:
+			sqr df:
+
+			push df:rb
+			push df:rc
+			sub df:
+			sqr df:
+
+			add df:     ; (x-c)**2+(y-c)**2
+
+			;push df:$circleRadius
+			;sqr df:
+			;
+			;sub df:     ; (x-c)**2+(y-c)**2-r**2
+			
+			sqrt df:
+			push df:$circleRadius
+			sub df:
+			
+
+			dup
+
+			call dwl:$fabs
+
+			push df:0.45  ; TODO: ?
+			cle df:
+			jt dwl:$main_drawBorder
+
+			push df:0
+			cle df:
+			jt dwl:$main_drawInside
+
+			;$main_drawOutside:
+				push dwl:$pixelFill0
+				jmp dwl:$main_draw
+
+			$main_drawBorder:
+				popv
+				push dwl:$pixelFill3
+				jmp dwl:$main_draw
+
+			$main_drawInside:
+				push dwl:$pixelFill1
+				;jmp dwl:$main_draw
+
+			$main_draw:
+			call dwl:$drawPixel
+
+			push df:rb
+			push df:1
+			add df:
+			dup
+			pop df:rb
+			
+			push dwl:$screenHeight
+			i2d
+			cl df:
+			jt dwl:$main_for_y
+
+		push df:ra
+		push df:1
+		add df:
+		dup
+		pop df:ra
+
+		push dwl:$screenWidth
+		i2d
+		cl df:
+		jt dwl:$main_for_x
+
+	draw dwl:0
+
+	end
+
+
+
+; 
+; drawPixel(df:x, df:y, bl:pixel) -> void
+;   Draws a square pixel in the given coordinates
+;   regs: rg (pixel), rh (addr)
+; 
+$drawPixel:
+	rot dwl:3             ; pixel, x, y
+	
+	;dup
+	;out df:
+	;rot dwl:2
+	;dup
+	;out df:
+	;rot dwl:2
+	
+	push dwl:$screenWidth
+	i2d
+	mul df:               ; pixel, x, sW*y
+	add df:               ; pixel, sW*y+x
+	push df:2             
+	mul df:               ; pixel, 2*(sW*y+x)
+	dup                   ; pixel, 2*(sW*y+x), 2*(sW*y+x)
+	push df:1             
+	add df:               ; pixel, 2*(sW*y+x), 2*(sW*y+x)+1
+
+	rot dwl:-3            ; 2*(sW*y+x), 2*(sW*y+x), pixel
+	pop bl:rg             ; 2*(sW*y+x), 2*(sW*y+x)
+
+	d2i
+	pop dwl:rh
+	push bl:rg
+	pop bl:[rh]
+
+	d2i
+	pop dwl:rh
+	push bl:rg
+	pop bl:[rh]
+
+	ret
+
+
+
+;
+; fabs(df:x) -> df
+;   Computes the |x|
+;   regs: -
+;
+$fabs:
+	dup
+	push df:0
+	cl df:
+	jf dwl:$fabs_ret
+
+	push df:-1
+	mul df:
+
+	$fabs_ret:
+	ret
+
+
