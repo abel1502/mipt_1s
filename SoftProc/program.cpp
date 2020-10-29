@@ -138,13 +138,7 @@ void program_checkMonday(program_t *self) {
 bool program_drawScreen(program_t *self, code_size_t addr) {
     char *buf = program_ramReadBytes(self, addr, GRAPHICS_BUF_SIZE, NULL);
     for (unsigned y = 0; y < GRAPHICS_SCREEN_HEIGHT; ++y) {
-        for (unsigned x = 0; x < GRAPHICS_SCREEN_WIDTH; ++x) {
-            if (putc(buf[y * GRAPHICS_SCREEN_WIDTH + x], stdout) == EOF) {
-                ERR("Screen drawing failed");
-                return true;
-            }
-        }
-        putc('\n', stdout);
+        printf("%.*s\n", GRAPHICS_SCREEN_WIDTH, &buf[y * GRAPHICS_SCREEN_WIDTH]);
     }
     return false;
 }

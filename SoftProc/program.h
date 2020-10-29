@@ -34,7 +34,6 @@ static void printHelper(stack_elem_t elem) {
 }
 #define STACK_ELEM_PRINT printHelper
 #endif
-//#define STACK_VALIDATION_LEVEL 3
 #include "../Stack/stack.h"
 // =============================
 

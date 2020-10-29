@@ -27,17 +27,17 @@
 1602705988 d:\workspace\.mipt\s1\softproc\version.h
 	<stdint.h>
 
-1603965001 d:\workspace\.mipt\s1\softproc\constants.h
+1603980235 d:\workspace\.mipt\s1\softproc\constants.h
 	"version.h"
 
-1603962154 d:\workspace\.mipt\s1\softproc\program.h
+1603980597 d:\workspace\.mipt\s1\softproc\program.h
 	"general.h"
 	"constants.h"
 	"opcode.h"
 	"aef_file.h"
 	"../Stack/stack.h"
 
-1603811039 d:\workspace\.mipt\s1\stack\stack.h
+1603980947 d:\workspace\.mipt\s1\stack\stack.h
 	<stdlib.h>
 	<stdio.h>
 	<string.h>
@@ -132,7 +132,7 @@
 	<errno.h>
 	"general.h"
 
-1603557759 source:d:\workspace\.mipt\s1\softproc\processor_main.cpp
+1603981020 source:d:\workspace\.mipt\s1\softproc\processor_main.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -142,7 +142,7 @@
 	"program.h"
 	"general.h"
 
-1603967783 source:d:\workspace\.mipt\s1\softproc\program.cpp
+1603980383 source:d:\workspace\.mipt\s1\softproc\program.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
