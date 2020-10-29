@@ -110,8 +110,10 @@
 
 #if (STACK_VALIDATION_LEVEL >= 2)
 #define STACK_USE_HASH_STRUCT 1
+#define STACK_USE_WIN_PTRCHECK 1
 #else
 #define STACK_USE_HASH_STRUCT 0
+#define STACK_USE_WIN_PTRCHECK 0
 #endif
 
 #if (STACK_VALIDATION_LEVEL >= 1)
@@ -957,7 +959,8 @@ bool isPointerValid(const void *ptr) {
     // I won't include a unix-specific check, because the only one I could find is extremely
     // inefficient and requires a non-const pointer
 
-    #ifdef _WIN32
+    #if defined(_WIN32) && STACK_USE_WIN_PTRCHECK
+    // This one actually turned out to be incredibly slow, so I'll only include it at validation level 2, I guess
 
     // (c) Ded32, TXLib
     MEMORY_BASIC_INFORMATION mbi = {};
@@ -971,7 +974,9 @@ bool isPointerValid(const void *ptr) {
 
     return (mbi.Protect & readRights) != 0;
 
-    #endif // _WIN32
+    #endif // defined(_WIN32) && STACK_USE_WIN_PTRCHECK
+
+    return true;
 }
 
 #if STACK_USE_CANARY
@@ -1046,6 +1051,7 @@ void test_stack(stack_elem_t val1, stack_elem_t val2, stack_elem_t val3) {
 #undef ASSERT_OK
 #undef REQUIRE
 
+#undef STACK_USE_WIN_PTRCHECK
 #undef STACK_USE_HASH_STRUCT
 #undef STACK_USE_HASH_DATA
 #undef STACK_USE_POISON
