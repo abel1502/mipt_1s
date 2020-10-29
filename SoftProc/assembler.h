@@ -26,9 +26,9 @@ struct code_s {
 };
 
 struct label_s {
-    const char *val;
+    const char *name;
     unsigned len;
-    code_size_t offset;
+    code_size_t value;
 };
 
 

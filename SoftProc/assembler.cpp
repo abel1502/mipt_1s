@@ -16,7 +16,7 @@
 
 const code_size_t CODE_DEFAULT_CAPACITY = 0x20;
 const code_size_t CODE_MAX_CAPACITY = 0x7fff0000;
-const code_size_t CODE_LABEL_CAPACITY = 0x1000;
+const code_size_t CODE_LABEL_CAPACITY = 0x10000;
 const code_size_t CODE_LOG_BYTESPERLINE = 12;
 const code_size_t CODE_DEFAULT_RAM_SIZE = 0x64000;
 
@@ -100,9 +100,27 @@ bool code_assembleLine(code_t *self, const char *line) {
             return true;
         }
 
-        if (self->labelsInited) {
-            code_log(self, "[ASM] |   ----->   |\n", self->size);
+        skipSpace_(&line);
+
+        if (!isEOL_(line)) {
+            ERR("Garbage after label definition");
+            return true;
         }
+
+        if (!self->labelsInited) {
+            label_t *curLabel = &self->labels[self->labelCnt - 1];
+            char *tmpBuf = (char *)calloc(curLabel->len + 1, sizeof(char));
+            assert(tmpBuf != NULL);
+
+            memcpy(tmpBuf, curLabel->name, curLabel->len);
+
+            code_log(self, "[ASM] $%s = 0x%08x\n", tmpBuf, curLabel->value);
+            free(tmpBuf);
+        }
+
+        /*if (self->labelsInited) {
+            code_log(self, "[ASM] |   ----->   |\n");
+        }*/
 
         return false;
     }
@@ -474,6 +492,22 @@ bool code_readConst_(code_t *self, const char **line, void *valueBuf, uint8_t ar
                                                                               \
         break;
 
+    #define ALLOW_LABEL_(TYPE)                              \
+        if (**line == '+' && *(*line + 1) == '$') ++*line;  \
+        if (**line == '$') {                                \
+            ++*line;                                        \
+            code_size_t buf = 0;                            \
+                                                            \
+            if (code_lookupLabel(self, line, &buf)) {       \
+                ERR("Couldn't look up label $%s", line);    \
+                return true;                                \
+            }                                               \
+                                                            \
+            *(TYPE *)valueBuf = (TYPE)buf;                  \
+                                                            \
+            break;                                          \
+        }
+
     if (isEOL_(*line)) {
         ERR("Expected an argument value");
         return true;
@@ -489,7 +523,7 @@ bool code_readConst_(code_t *self, const char **line, void *valueBuf, uint8_t ar
         ARGTYPE_CASE_SIGN_(uint64_t, int64_t, "%ll")
     case ARGTYPE_DWL:
     case ARGTYPE_DWH:
-        if (**line == '+' && *(*line + 1) == '$') {
+        /*if (**line == '+' && *(*line + 1) == '$') {
             ++*line;
         }
         if (**line == '$') {
@@ -503,19 +537,23 @@ bool code_readConst_(code_t *self, const char **line, void *valueBuf, uint8_t ar
             }
 
             break;
-        }
+        }*/
+        ALLOW_LABEL_(uint32_t);
         ARGTYPE_CASE_SIGN_(uint32_t, int32_t, "%")
     case ARGTYPE_WL:
     case ARGTYPE_WH:
+        ALLOW_LABEL_(uint16_t);
         ARGTYPE_CASE_SIGN_(uint16_t, int16_t, "%h")
     case ARGTYPE_BL:
     case ARGTYPE_BH:
+        ALLOW_LABEL_(uint8_t);
         ARGTYPE_CASE_SIGN_(uint8_t, int8_t, "%hh")
     default:
         ERR("Cannot handle constants of <%s> type", argType);
         return true;
     }
 
+    #undef ALLOW_LABEL_
     #undef ARGTYPE_CASE_SIGN_
     #undef ARGTYPE_CASE_
 
@@ -569,8 +607,7 @@ bool code_readLabel(code_t *self, const char **line) {
     assert(self != NULL);
 
     label_t label = {};
-    label.val = *line;
-    label.offset = self->size;
+    label.name = *line;
 
     while (!isEOL_(*line) && **line != ':' && **line != ']' && !isspace(**line)) {
         ++*line;
@@ -579,12 +616,23 @@ bool code_readLabel(code_t *self, const char **line) {
 
     skipSpace_(line);
 
-    if (**line != ':') {
-        ERR("Expected a semicolon after label definition");
+    switch (*((*line)++)) {
+    case ':':
+        label.value = self->size;
+        break;
+    case '=':
+        skipSpace_(line);
+
+        if (code_readConst_(self, line, &label.value, ARGTYPE_DWL)) {
+            ERR("Label assignment must be followed by a valid dwl constant");
+            return true;
+        }
+
+        break;
+    default:
+        ERR("Expected a semicolon or an assignment after label definition");
         return true;
     }
-
-    ++*line;
 
     if (self->labelsInited) {
         return false;
@@ -600,14 +648,14 @@ bool code_readLabel(code_t *self, const char **line) {
     return false;
 }
 
-bool code_lookupLabel(code_t *self, const char **line, code_size_t *offset) {
+bool code_lookupLabel(code_t *self, const char **line, code_size_t *value) {
     assert(self != NULL);
     assert(line != NULL);
     assert(*line != NULL);
-    assert(offset != NULL);
+    assert(value != NULL);
 
     if (!self->labelsInited) {
-        *offset = 0;
+        *value = 0;
         while (!isEOL_(*line) && !isspace(**line) && **line != ']') {
             ++*line;
         }
@@ -615,13 +663,13 @@ bool code_lookupLabel(code_t *self, const char **line, code_size_t *offset) {
     }
 
     for (code_size_t i = 0; i < self->labelCnt; ++i) {
-        if (strncmp(self->labels[i].val, *line, self->labels[i].len) == 0) {
+        if (strncmp(self->labels[i].name, *line, self->labels[i].len) == 0) {
             const char nextChar = (*line)[self->labels[i].len];
             if (!isEOL_(&nextChar) && !isspace(nextChar) && nextChar != ']') {
                 continue;
             }
 
-            *offset = self->labels[i].offset;
+            *value = self->labels[i].value;
             *line += self->labels[i].len;
             return false;
         }
