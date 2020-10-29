@@ -106,7 +106,7 @@ class Opcode(object):
         
         #assert num not in self.opcodes
         
-        name, arg = line.split("(", 1);
+        name, arg = line.split("(", 1)
         name = name.strip()
         arg = arg.strip()
         

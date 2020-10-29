@@ -113,13 +113,13 @@ class Struct1(BinTree):
     
     def getMin(self):
         ind = 1
-        while self.lChild(ind) != None:
+        while self.lChild(ind) is not None:
             ind = self.lChild(ind)
         return self[ind]
     
     def getMax(self):
         ind = 1
-        while self.rChild(ind) != None:
+        while self.rChild(ind) is not None:
             ind = self.rChild(ind)
         return self[ind]
 

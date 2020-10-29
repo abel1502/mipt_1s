@@ -974,8 +974,6 @@ bool isPointerValid(const void *ptr) {
     #endif // _WIN32
 }
 
-
-
 #if STACK_USE_CANARY
 static canary_t *stack_leftDataCanary(const stack_t *self) {
     REQUIRE(isPointerValid(self));
