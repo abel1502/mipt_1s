@@ -70,10 +70,6 @@ bool program_executeOpcode(program_t *self) {
         return true;
     }
 
-    if (self->flags.flag_trace) {
-        printf("[PRC] OP 0x%02x\n", curOp.op);
-    }
-
     #define NOTIMPL_  goto notimpl_label;
     #define TMP_ONLYDOUBLE_  if (curOp.addrMode.type != ARGTYPE_DF) { NOTIMPL_ }\
 
@@ -96,6 +92,19 @@ bool program_executeOpcode(program_t *self) {
             if (ARG_CNT != 0 && (!(ARG_TYPE_MASK & 1 << curOp.addrMode.type) || !(ARG_LOC_MASK & 1 << curOp.addrMode.loc))) { \
                 ERR("Inappropriate argument for opcode 0x%02hhx", curOp.op); \
                 return true; \
+            } \
+            if (self->flags.flag_trace) { \
+                printf("[PRC] 0x%08x | %-5s ", self->ip, #NAME_CAP); \
+                if (ARG_CNT > 0) { \
+                    printf("<%02hhx:%02hhx> ", curOp.addrMode.type, curOp.addrMode.loc); \
+                    if (curOp.addrMode.locImm) \
+                        printf("0x%016llx ", curOp.arg.qw); \
+                    if (curOp.addrMode.locReg) \
+                        printf("r%c ", 'a' + curOp.reg); \
+                    if (curOp.addrMode.locMem) \
+                        printf("0x%08x ", curOp.memAddr); \
+                } \
+                printf("\n"); \
             } \
             CODE \
             break;
