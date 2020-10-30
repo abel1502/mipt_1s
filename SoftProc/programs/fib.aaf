@@ -10,7 +10,7 @@ end
 
 
 
-; genFib(n) -> void  // Prints the first N fib. numbers
+; genFib(n, first, second) -> void  // Prints the first N fib. numbers, if the first two are `first` and `second`
 $genFib:
 
 pop df:ra

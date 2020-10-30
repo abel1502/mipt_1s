@@ -24,6 +24,8 @@ $circleBorder = 1808
 ;   regs: -
 ;
 $main:
+	cldb dwl:$drawBuf
+	
 	;push dwl:$screenHeight
 	;i2d
 	;push df:2
