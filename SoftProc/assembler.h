@@ -40,7 +40,9 @@ bool code_assembleLine(code_t *self, const char *line);
 
 bool code_assembleFile(code_t *self, FILE *ifile);
 
-bool code_readConst_(code_t *self, const char **line, void *valueBuf, uint8_t argType);
+bool code_readArgConst_(code_t *self, const char **line, void *valueBuf, uint8_t argType);
+
+bool code_readArgReg_(code_t *self, const char **line, uint8_t *reg);
 
 bool code_compileToFile(code_t *self, FILE *ofile);
 

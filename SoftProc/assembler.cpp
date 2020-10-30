@@ -28,6 +28,12 @@ static inline void skipSpace_(const char **line);
 
 static inline bool isEOL_(const char *line);
 
+static bool code_assembleLabelLine_(code_t *self, const char **line);
+
+static bool parseStrArgtype_(const char *argType, addrMode_t *addrMode);
+
+static bool code_assembleOpArg_(code_t *self, addrMode_t addrMode, uint8_t argLocMask, const char **line);
+
 
 code_t *code_init(code_t *self, bool doLog) {
     self->size = 0;
@@ -71,7 +77,9 @@ bool code_writeRaw_(code_t *self, const void *data, code_size_t amount) {
         }
     }
 
-    memcpy(self->buf + self->size, data, amount);
+    if (self->labelsInited) {  // We may actually not write anything during label initialization.
+        memcpy(self->buf + self->size, data, amount);
+    }
 
     self->size += amount;
 
@@ -94,36 +102,7 @@ bool code_assembleLine(code_t *self, const char *line) {
     }
 
     if (*line == '$') {  // A label
-        line++;
-
-        if (code_readLabel(self, &line)) {
-            ERR("Failed to register label");
-            return true;
-        }
-
-        skipSpace_(&line);
-
-        if (!isEOL_(line)) {
-            ERR("Garbage after label definition");
-            return true;
-        }
-
-        if (!self->labelsInited) {
-            label_t *curLabel = &self->labels[self->labelCnt - 1];
-            char *tmpBuf = (char *)calloc(curLabel->len + 1, sizeof(char));
-            assert(tmpBuf != NULL);
-
-            memcpy(tmpBuf, curLabel->name, curLabel->len);
-
-            code_log(self, "[ASM] $%s = 0x%08x\n", tmpBuf, curLabel->value);
-            free(tmpBuf);
-        }
-
-        /*if (self->labelsInited) {
-            code_log(self, "[ASM] |   ----->   |\n");
-        }*/
-
-        return false;
+        return code_assembleLabelLine_(self, &line);
     }
 
     opcode_t op = OP_NOP;
@@ -183,7 +162,159 @@ bool code_assembleLine(code_t *self, const char *line) {
 
     addrMode_t addrMode = {};
 
-    #define ARGTYPE_CASE_(name, value)  if (strcmp(argType, name) == 0) { addrMode.type = value; } else
+    if (parseStrArgtype_(argType, &addrMode)) {
+        ERR("Couldn't parse argument type");
+        return true;
+    }
+
+    if (!(curArgTypeMask & 1 << addrMode.type)) {
+        ERR("Inappropriate argument type 0x%02x for op 0x%02x", addrMode.type, op);
+        return true;
+    }
+
+    skipSpace_(&line);
+
+    if (code_assembleOpArg_(self, addrMode, curArgLocMask, &line)) {
+        ERR("Bad argument for op 0x%02x", op);
+        return true;
+    }
+
+    skipSpace_(&line);
+
+    if (!isEOL_(line)) {
+        ERR("Garbage at the end of line: <%s>", line);
+        return true;
+    }
+
+    if (self->labelsInited) {
+        code_logLine(self, origLine);
+    }
+
+    return false;
+}
+
+static bool code_assembleLabelLine_(code_t *self, const char **line) {
+    assert(self != NULL);
+    assert(line != NULL);
+
+    assert(**line == '$');
+    ++*line;
+
+    if (code_readLabel(self, line)) {
+        ERR("Failed to register label");
+        return true;
+    }
+
+    skipSpace_(line);
+
+    if (!isEOL_(*line)) {
+        ERR("Garbage after label definition");
+        return true;
+    }
+
+    if (!self->labelsInited) {
+        label_t *curLabel = &self->labels[self->labelCnt - 1];
+        char *tmpBuf = (char *)calloc(curLabel->len + 1, sizeof(char));
+        assert(tmpBuf != NULL);
+
+        memcpy(tmpBuf, curLabel->name, curLabel->len);
+
+        code_log(self, "[ASM] $%s = 0x%08x\n", tmpBuf, curLabel->value);
+        free(tmpBuf);
+    }
+
+    /*if (self->labelsInited) {
+        code_log(self, "[ASM] |   ----->   |\n");
+    }*/
+
+    return false;
+}
+
+static bool code_assembleOpArg_(code_t *self, addrMode_t addrMode, uint8_t argLocMask, const char **line) {
+    #define WRITE_ADDRMODE_() \
+        addrMode.type = backupArgType; \
+        if (!(argLocMask & (1 << addrMode.loc))) { \
+            ERR("Inappropriate argument loc 0x%02x", addrMode.loc); \
+            return true; \
+        } \
+        if (code_writeRaw_(self, &addrMode, sizeof(addrMode))) { \
+            ERR("Couldn't write to file"); \
+            return true; \
+        } \
+        if (addrMode.locMem) { \
+            addrMode.type = ARGTYPE_DWL; \
+        }
+
+    uint8_t backupArgType = addrMode.type;  // Because memory addressing forces arg type to be dwl, and the actual type may be valuable later
+
+    if (**line == '[') {
+        addrMode.locMem = 1;
+
+        addrMode.type = ARGTYPE_DWL;
+        ++*line;
+    }
+
+    skipSpace_(line);
+
+    if (isEOL_(*line) || isspace(**line) || (strncmp(*line, "stack", 5) == 0 && (*line += 5 /* Crotchy, but we kind of need this */))) {
+        addrMode.locReg = 0;
+        addrMode.locImm = 0;
+
+        WRITE_ADDRMODE_();
+    } else {
+        char immArg[sizeof(value_t)] = {};
+        uint8_t reg = 0xff;
+
+        if (**line == 'r') {
+            addrMode.locReg = 1;
+
+            if (code_readArgReg_(self, line, &reg)) {
+                ERR("Couldn't read argument");
+                return true;
+            }
+
+            skipSpace_(line);
+        }
+
+        if (!addrMode.locReg || **line == '+' || **line == '-') {
+            addrMode.locImm = 1;
+
+            if (code_readArgConst_(self, line, immArg, addrMode.type)) {
+                ERR("Couldn't read argument");
+                return true;
+            }
+        }
+
+        WRITE_ADDRMODE_();
+
+        if (addrMode.locReg && code_writeRaw_(self, &reg, sizeof(reg))) {
+            ERR("Couldn't write to file");
+            return true;
+        }
+
+        if (addrMode.locImm && code_writeRaw_(self, immArg, 1 << addrMode.typeS))  {
+            ERR("Couldn't write to file");
+            return true;
+        }
+    }
+
+    skipSpace_(line);
+
+    if (addrMode.locMem) {
+        if (**line != ']') {
+            ERR("Missing closing square bracket");
+            return true;
+        }
+        ++*line;
+    }
+
+    #undef WRITE_ADDRMODE_
+
+    return false;
+}
+
+static bool parseStrArgtype_(const char *argType, addrMode_t *addrMode) {
+    #define ARGTYPE_CASE_(NAME, VALUE)  if (strcmp(argType, NAME) == 0) { addrMode->type = VALUE; } else
 
     ARGTYPE_CASE_("df",  ARGTYPE_DF)
     ARGTYPE_CASE_("fl",  ARGTYPE_FL)
@@ -201,130 +332,6 @@ bool code_assembleLine(code_t *self, const char *line) {
     }
 
     #undef ARGTYPE_CASE_
-
-    if (!(curArgTypeMask & 1 << addrMode.type)) {
-        ERR("Inappropriate argument type 0x%02x for op 0x%02x", addrMode.type, op);
-        return true;
-    }
-
-    #define WRITE_ADDRMODE_() \
-        addrMode.type = backupArgType; \
-        if (!(curArgLocMask & (1 << addrMode.loc))) { \
-            ERR("Inappropriate argument loc 0x%02x for op 0x%02x", addrMode.loc, op); \
-            return true; \
-        } \
-        if (code_writeRaw_(self, &addrMode, sizeof(addrMode))) { \
-            ERR("Couldn't write to file"); \
-            return true; \
-        } \
-        if (addrMode.locMem) { \
-            addrMode.type = ARGTYPE_DWL; \
-        }
-
-    uint8_t backupArgType = addrMode.type;  // Because memory addressing forces arg type to be dwl, and the actual type may be valuable later
-
-    if (*line == '[') {
-        //addrMode.locMem = 1;
-        addrMode.loc |= ARGLOC_MEM;
-        addrMode.type = ARGTYPE_DWL;
-        line++;
-    }
-
-    if (isEOL_(line) || isspace(*line) || (strncmp(line, "stack", 5) == 0 && (line += 5 /* Crotchy, but we kind of need this */))) {
-        //addrMode.locReg = 0;
-        //addrMode.locImm = 0;
-
-        WRITE_ADDRMODE_();
-
-        //while (!isEOL_(line) && !isspace(*line)) ++line;
-    } else if (*line == 'r') {  // TODO: labels too
-        //addrMode.locReg = 1;
-        //addrMode.locImm = 0;
-        addrMode.loc |= ARGLOC_REG;
-
-        line++;
-
-        if (!('a' <= *line && *line <= 'a' + GENERAL_REG_CNT)) {
-            ERR("Unknown register <r%c>", *line);
-            return true;
-        }
-
-        uint8_t reg = *line - 'a';
-
-        line++;
-
-        skipSpace_(&line);
-
-        if (*line == '+' || *line == '-') {  // WARNING: This is always signed
-            //addrMode.locImm = 1;
-            addrMode.loc |= ARGLOC_IMM;
-
-            WRITE_ADDRMODE_();
-
-            if (code_writeRaw_(self, &reg, sizeof(reg))) {
-                ERR("Couldn't write to file");
-                return true;
-            }
-
-            char immArg[sizeof(value_t)] = {};
-
-            if (code_readConst_(self, &line, immArg, addrMode.type)) {
-                ERR("Couldn't read an argument");
-                return true;
-            }
-
-            if (code_writeRaw_(self, immArg, 1 << addrMode.typeS))  {
-                ERR("Couldn't write to file");
-                return true;
-            }
-        } else {
-            WRITE_ADDRMODE_();
-
-            if (code_writeRaw_(self, &reg, sizeof(reg))) {
-                ERR("Couldn't write to file");
-                return true;
-            }
-        }
-    } else {
-        //addrMode.locReg = 0;
-        //addrMode.locImm = 1;
-        addrMode.loc |= ARGLOC_IMM;
-
-        WRITE_ADDRMODE_();
-
-        char immArg[sizeof(value_t)] = {};
-
-        if (code_readConst_(self, &line, immArg, addrMode.type)) {
-            ERR("Couldn't read an argument");
-            return true;
-        }
-
-        if (code_writeRaw_(self, immArg, 1 << addrMode.typeS))  {
-            ERR("Couldn't write to file");
-            return true;
-        }
-    }
-
-    if (/*addrMode.locMem*/ addrMode.loc & ARGLOC_MEM) {
-        if (*line != ']') {
-            ERR("Missing closing square bracket");
-            return true;
-        }
-        line++;
-    }
-
-    #undef WRITE_ADDRMODE_
-
-    skipSpace_(&line);
-
-    if (!isEOL_(line)) {
-        ERR("Garbage at the end of line: <%s>", line);
-        return true;
-    }
-
-    if (self->labelsInited) {
-        code_logLine(self, origLine);
-    }
 
     return false;
 }
@@ -383,7 +390,7 @@ bool code_compileToFile(code_t *self, FILE *ofile) {
     aef_mmap_t mmap = {};
     aef_mmap_init(&mmap, self->size, self->buf, entrypoint, self->ramSize);
 
-    code_log(self, "[ASM] Total size: 0x%08x\n\n", self->size);  // TODO?: 0x%08x
+    code_log(self, "[ASM] Total size: 0x%08x\n\n", self->size);
 
     if (aef_mmap_write(&mmap, ofile)) {
         ERR("Couldn't write compiled bytecode to file");
@@ -459,7 +466,11 @@ static inline void skipSpace_(const char **line) {
     while (!isEOL_(*line) && isspace(**line)) ++*line;
 }
 
-bool code_readConst_(code_t *self, const char **line, void *valueBuf, uint8_t argType) {
+bool code_readArgConst_(code_t *self, const char **line, void *valueBuf, uint8_t argType) {
+    assert(self != NULL);
+    assert(line != NULL);
+    assert(valueBuf != NULL);
+
     int lineDelta = 0;
     int res = 0;
 
@@ -530,21 +541,6 @@ bool code_readConst_(code_t *self, const char **line, void *valueBuf, uint8_t ar
         ARGTYPE_CASE_SIGN_(uint64_t, int64_t, "%ll")
     case ARGTYPE_DWL:
     case ARGTYPE_DWH:
-        /*if (**line == '+' && *(*line + 1) == '$') {
-            ++*line;
-        }
-        if (**line == '$') {
-            ++*line;
-
-            assert(sizeof(code_size_t) == sizeof(uint32_t));
-
-            if (code_lookupLabel(self, line, (code_size_t *)valueBuf)) {
-                ERR("Couldn't look up label $%s", line);
-                return true;
-            }
-
-            break;
-        }*/
         ALLOW_LABEL_(uint32_t);
         ARGTYPE_CASE_SIGN_(uint32_t, int32_t, "%")
     case ARGTYPE_WL:
@@ -563,6 +559,27 @@ bool code_readConst_(code_t *self, const char **line, void *valueBuf, uint8_t ar
     #undef ALLOW_LABEL_
     #undef ARGTYPE_CASE_SIGN_
     #undef ARGTYPE_CASE_
+
+    return false;
+}
+
+bool code_readArgReg_(code_t *self, const char **line, uint8_t *reg) {
+    assert(self != NULL);
+    assert(line != NULL);
+    assert(reg != NULL);
+
+    assert(**line == 'r');
+
+    ++*line;
+
+    if (!('a' <= **line && **line <= 'a' + GENERAL_REG_CNT)) {
+        ERR("Unknown register <r%c>", **line);
+        return true;
+    }
+
+    *reg = **line - 'a';
+
+    ++*line;
 
     return false;
 }
@@ -630,7 +647,7 @@ bool code_readLabel(code_t *self, const char **line) {
     case '=':
         skipSpace_(line);
 
-        if (code_readConst_(self, line, &label.value, ARGTYPE_DWL)) {
+        if (code_readArgConst_(self, line, &label.value, ARGTYPE_DWL)) {
             ERR("Label assignment must be followed by a valid dwl constant");
             return true;
         }

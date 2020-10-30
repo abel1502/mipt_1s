@@ -115,19 +115,6 @@ int main(int argc, char **argv) {
     fclose(ifile);
     fclose(ofile);
 
-    /*code_t testCode = {};
-    code_init(&testCode, true);
-
-    FILE *ifile = fopen("test.aaf", "r");
-    assert(!code_assembleFile(&testCode, ifile));
-    fclose(ifile);
-
-    FILE *ofile = fopen("test.aef", "wb");
-    assert(!code_compileToFile(&testCode, ofile));
-    fclose(ofile);
-
-    code_free(&testCode);*/
-
     return 0;
 }
 

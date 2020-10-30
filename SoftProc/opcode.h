@@ -53,15 +53,6 @@ typedef enum argType_e {
 static_assert(sizeof(argType_t) == 1);
 
 
-typedef enum argLoc_e {
-    ARGLOC_IMM = 0b001,
-    ARGLOC_REG = 0b010,
-    ARGLOC_MEM = 0b100
-} __attribute__((__packed__)) argLoc_t;
-
-static_assert(sizeof(argLoc_t) == 1);
-
-
 #pragma pack(1)
 typedef struct addrMode_s {
     union {
