@@ -142,7 +142,7 @@
 	"program.h"
 	"general.h"
 
-1604008260 source:d:\workspace\.mipt\s1\softproc\program.cpp
+1604047521 source:d:\workspace\.mipt\s1\softproc\program.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>

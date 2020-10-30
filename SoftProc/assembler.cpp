@@ -19,6 +19,7 @@ const code_size_t CODE_MAX_CAPACITY = 0x7fff0000;
 const code_size_t CODE_LABEL_CAPACITY = 0x10000;
 const code_size_t CODE_LOG_BYTESPERLINE = 12;
 const code_size_t CODE_DEFAULT_RAM_SIZE = 0x64000;
+const char CODE_EP_NAME[] = "main";
 
 
 static bool readUntil_(const char **source, char *dest, char until, size_t limit);
@@ -373,8 +374,14 @@ bool code_compileToFile(code_t *self, FILE *ofile) {
 
     assert(self->labelsInited);
 
+    code_size_t entrypoint = 0;
+    const char *epname = CODE_EP_NAME;
+    if (code_lookupLabel(self, &epname, &entrypoint)) {
+        ERR("Warning: implicit entrypoint");
+    }
+
     aef_mmap_t mmap = {};
-    aef_mmap_init(&mmap, self->size, self->buf, 0, self->ramSize);
+    aef_mmap_init(&mmap, self->size, self->buf, entrypoint, self->ramSize);
 
     code_log(self, "[ASM] Total size: 0x%08x\n\n", self->size);  // TODO?: 0x%08x
 
@@ -499,7 +506,7 @@ bool code_readConst_(code_t *self, const char **line, void *valueBuf, uint8_t ar
             code_size_t buf = 0;                            \
                                                             \
             if (code_lookupLabel(self, line, &buf)) {       \
-                ERR("Couldn't look up label $%s", line);    \
+                ERR("Couldn't look up label $%s", *line);   \
                 return true;                                \
             }                                               \
                                                             \
