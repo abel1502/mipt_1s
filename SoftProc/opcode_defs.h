@@ -67,61 +67,166 @@ DEF_OP(0x05, ROT , rot , 1, 0b0000000000010000, 0b11101110, {
     }
 })
 
-DEF_OP(0x08, ADD , add , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+DEF_OP(0x08, ADD , add , 1, 0b0100000000010000, 0b00000001, {
     POP_(&tos0);
     POP_(&tos1);
-    res.df = tos1.df + tos0.df;
+    switch (AM_.type) {
+    case ARGTYPE_DF:
+        res.df = tos1.df + tos0.df;
+        break;
+    case ARGTYPE_DWL:
+        res.dwl = tos1.dwl + tos0.dwl;
+        break;
+    default:
+        NOTIMPL_;
+    }
     PUSH_(res);
 })
 
-DEF_OP(0x09, SUB , sub , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+DEF_OP(0x09, SUB , sub , 1, 0b0100000000010000, 0b00000001, {
     POP_(&tos0);
     POP_(&tos1);
-    res.df = tos1.df - tos0.df;
+    switch (AM_.type) {
+    case ARGTYPE_DF:
+        res.df = tos1.df - tos0.df;
+        break;
+    case ARGTYPE_DWL:
+        res.dwl = tos1.dwl - tos0.dwl;
+        break;
+    default:
+        NOTIMPL_;
+    }
     PUSH_(res);
 })
 
-DEF_OP(0x0a, MUL , mul , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+DEF_OP(0x0a, MUL , mul , 1, 0b0100000000010000, 0b00000001, {
     POP_(&tos0);
     POP_(&tos1);
-    res.df = tos1.df * tos0.df;
+    switch (AM_.type) {
+    case ARGTYPE_DF:
+        res.df = tos1.df * tos0.df;
+        break;
+    case ARGTYPE_DWL:
+        res.dwl = tos1.dwl * tos0.dwl;
+        break;
+    default:
+        NOTIMPL_;
+    }
     PUSH_(res);
 })
 
-DEF_OP(0x0b, DIV , div , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+DEF_OP(0x0b, DIV , div , 1, 0b0100000000010000, 0b00000001, {
     POP_(&tos0);
     POP_(&tos1);
-    res.df = tos1.df / tos0.df;  // Zero division produces inf
+    switch (AM_.type) {
+    case ARGTYPE_DF:
+        res.df = tos1.df / tos0.df;
+        break;
+    case ARGTYPE_DWL:
+        if (tos0.dwl == 0) {
+            ERR("Zero division attempted");
+            return true;
+        }
+        res.dwl = tos1.dwl / tos0.dwl;
+        break;
+    default:
+        NOTIMPL_;
+    }
     PUSH_(res);
 })
 
-DEF_OP(0x0c, SQR , sqr , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+DEF_OP(0x0c, SQR , sqr , 1, 0b0100000000010000, 0b00000001, {
     POP_(&tos0);
-    res.df = tos0.df * tos0.df;
+    switch (AM_.type) {
+    case ARGTYPE_DF:
+        res.df = tos0.df * tos0.df;
+        break;
+    case ARGTYPE_DWL:
+        res.dwl = tos0.dwl * tos0.dwl;
+        break;
+    default:
+        NOTIMPL_;
+    }
     PUSH_(res);
 })
 
-DEF_OP(0x0d, SQRT, sqrt, 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+DEF_OP(0x0d, SQRT, sqrt, 1, 0b0100000000000000, 0b00000001, { // Attention: only double
     POP_(&tos0);
     res.df = sqrt(tos0.df);
     PUSH_(res);
 })
 
-DEF_OP(0x0e, DEC , dec , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+DEF_OP(0x0e, DEC , dec , 1, 0b0100000000010000, 0b00000001, {
     POP_(&res);
-    res.df--;
+    switch (AM_.type) {
+    case ARGTYPE_DF:
+        res.df--;
+        break;
+    case ARGTYPE_DWL:
+        res.dwl--;
+        break;
+    default:
+        NOTIMPL_;
+    }
     PUSH_(res);
 })
 
-DEF_OP(0x0f, INC , inc , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+DEF_OP(0x0f, INC , inc , 1, 0b0100000000010000, 0b00000001, {
     POP_(&res);
-    res.df++;
+    switch (AM_.type) {
+    case ARGTYPE_DF:
+        res.df++;
+        break;
+    case ARGTYPE_DWL:
+        res.dwl++;
+        break;
+    default:
+        NOTIMPL_;
+    }
     PUSH_(res);
 })
 
-DEF_OP(0x10, NEG , neg , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+DEF_OP(0x10, NEG , neg , 1, 0b0100000000010000, 0b00000001, {
     POP_(&res);
-    res.df = -res.df;
+    switch (AM_.type) {
+    case ARGTYPE_DF:
+        res.df = -res.df;
+        break;
+    case ARGTYPE_DWL:
+        res.dwl = -res.dwl;
+        break;
+    default:
+        NOTIMPL_;
+    }
+    PUSH_(res);
+})
+
+DEF_OP(0x11, MOD , mod , 1, 0b0000000000010000, 0b00000001, {
+    POP_(&tos0);
+    POP_(&tos1);
+    if (tos0.dwl == 0) {
+        ERR("Zero division attempted");
+        return true;
+    }
+    res.dwl = tos1.dwl % tos0.dwl;
+    PUSH_(res);
+})
+
+DEF_OP(0x12, MULS, muls, 1, 0b0000000000010000, 0b00000001, {
+    POP_(&tos0);
+    POP_(&tos1);
+    res.dwl = (uint32_t)((int32_t)tos1.dwl * (int32_t)tos0.dwl);
+    PUSH_(res);
+})
+
+DEF_OP(0x13, DIVS, divs, 1, 0b0000000000010000, 0b00000001, {
+    POP_(&tos0);
+    POP_(&tos1);
+    if (tos0.dwl == 0) {
+        ERR("Zero division attempted");
+        return true;
+    }
+    res.dwl = (uint32_t)((int32_t)tos1.dwl / (int32_t)tos0.dwl);
     PUSH_(res);
 })
 
@@ -188,45 +293,99 @@ DEF_OP(0x24, RET , ret , 0, 0b0000000000000000, 0b00000000, {
 
 #define EPSILON_ 1e-12
 
-DEF_OP(0x28, CG  , cg  , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+DEF_OP(0x28, CG  , cg  , 1, 0b0100000000010000, 0b00000001, {
     POP_(&tos0);
     POP_(&tos1);
-    res.dwl = tos1.df > tos0.df + EPSILON_;
+    switch (AM_.type) {
+    case ARGTYPE_DF:
+        res.dwl = tos1.df > tos0.df + EPSILON_;
+        break;
+    case ARGTYPE_DWL:
+        res.dwl = tos1.dwl > tos0.dwl;
+        break;
+    default:
+        NOTIMPL_;
+    }
     PUSH_(res);
 })
 
-DEF_OP(0x29, CGE , cge , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+DEF_OP(0x29, CGE , cge , 1, 0b0100000000010000, 0b00000001, {
     POP_(&tos0);
     POP_(&tos1);
-    res.dwl = tos1.df >= tos0.df - EPSILON_;
+    switch (AM_.type) {
+    case ARGTYPE_DF:
+        res.dwl = tos1.df >= tos0.df - EPSILON_;
+        break;
+    case ARGTYPE_DWL:
+        res.dwl = tos1.dwl >= tos0.dwl;
+        break;
+    default:
+        NOTIMPL_;
+    }
     PUSH_(res);
 })
 
-DEF_OP(0x2a, CL  , cl  , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+DEF_OP(0x2a, CL  , cl  , 1, 0b0100000000010000, 0b00000001, {
     POP_(&tos0);
     POP_(&tos1);
-    res.dwl = tos1.df < tos0.df - EPSILON_;
+    switch (AM_.type) {
+    case ARGTYPE_DF:
+        res.dwl = tos1.df < tos0.df - EPSILON_;
+        break;
+    case ARGTYPE_DWL:
+        res.dwl = tos1.dwl < tos0.dwl;
+        break;
+    default:
+        NOTIMPL_;
+    }
     PUSH_(res);
 })
 
-DEF_OP(0x2b, CLE , cle , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+DEF_OP(0x2b, CLE , cle , 1, 0b0100000000010000, 0b00000001, {
     POP_(&tos0);
     POP_(&tos1);
-    res.dwl = tos1.df <= tos0.df;
+    switch (AM_.type) {
+    case ARGTYPE_DF:
+        res.dwl = tos1.df <= tos0.df + EPSILON_;
+        break;
+    case ARGTYPE_DWL:
+        res.dwl = tos1.dwl <= tos0.dwl;
+        break;
+    default:
+        NOTIMPL_;
+    }
     PUSH_(res);
 })
 
-DEF_OP(0x2c, CE  , ce  , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+DEF_OP(0x2c, CE  , ce  , 1, 0b0100000000010000, 0b00000001, {
     POP_(&tos0);
     POP_(&tos1);
-    res.dwl = tos1.df <= tos0.df + EPSILON_ && tos1.df + EPSILON_ >= tos0.df;
+    switch (AM_.type) {
+    case ARGTYPE_DF:
+        res.dwl = tos1.df <= tos0.df + EPSILON_ && tos1.df + EPSILON_ >= tos0.df;
+        break;
+    case ARGTYPE_DWL:
+        res.dwl = tos1.dwl == tos0.dwl;
+        break;
+    default:
+        NOTIMPL_;
+    }
     PUSH_(res);
 })
 
-DEF_OP(0x2d, CNE , cne , 1, 0b0100000000000000, 0b00000001, { TMP_ONLYDOUBLE_
+DEF_OP(0x2d, CNE , cne , 1, 0b0100000000010000, 0b00000001, {
     POP_(&tos0);
     POP_(&tos1);
-    res.dwl = tos1.df > tos0.df + EPSILON_ || tos1.df + EPSILON_ < tos0.df;
+    switch (AM_.type) {
+    case ARGTYPE_DF:
+        res.dwl = tos1.df > tos0.df + EPSILON_ || tos1.df + EPSILON_ < tos0.df;
+        break;
+    case ARGTYPE_DWL:
+        res.dwl = tos1.dwl != tos0.dwl;
+        break;
+    default:
+        NOTIMPL_;
+    }
     PUSH_(res);
 })
 
@@ -244,10 +403,22 @@ DEF_OP(0xe1, B2D , b2d , 0, 0b0000000000000000, 0b00000000, {
 })
 DEF_OP(0xe2, D2I , d2i , 0, 0b0000000000000000, 0b00000000, {
     POP_(&tos0);
-    res.dwl = (uint32_t)tos0.df;
+    res.dwl = (int32_t)tos0.df;
     PUSH_(res);
 })
 DEF_OP(0xe3, I2D , i2d , 0, 0b0000000000000000, 0b00000000, {
+    POP_(&tos0);
+    res.df = (double)(int32_t)tos0.dwl;
+    PUSH_(res);
+})
+
+DEF_OP(0xe4, D2U , d2u , 0, 0b0000000000000000, 0b00000000, {
+    POP_(&tos0);
+    res.dwl = (uint32_t)tos0.df;
+    PUSH_(res);
+})
+
+DEF_OP(0xe5, U2D , u2d , 0, 0b0000000000000000, 0b00000000, {
     POP_(&tos0);
     res.df = (double)tos0.dwl;
     PUSH_(res);
@@ -272,9 +443,26 @@ DEF_OP(0xf3, DRAW, draw, 1, 0b0000000000010000, 0b11101111, {
         ERR("Failed to draw screen");
         return true;
     }
+    Sleep(200);
 })
 
 DEF_OP(0xf4, CLDB, cldb, 1, 0b0000000000010000, 0b11101111, {
-    // TODO?: bounds check
     memset(program_ramReadBytes(self, ARG_.dwl, GRAPHICS_BUF_SIZE, NULL), ' ', GRAPHICS_BUF_SIZE);
+})
+
+DEF_OP(0xf5, CLS , cls , 0, 0b0000000000000000, 0b00000000, {
+    system("cls");  // I know it's slow, but so is every other alternative
+    //printf("\033[0,0H");
+})
+
+DEF_OP(0xf6, SAR , sar , 0, 0b0000000000000000, 0b00000000, {
+    for (unsigned ind = 0; ind < GENERAL_REG_CNT; ++ind) {
+        PUSH_FRAME_(self->registers[ind]);
+    }
+})
+
+DEF_OP(0xf7, RAR , rar , 0, 0b0000000000000000, 0b00000000, {
+    for (unsigned ind = GENERAL_REG_CNT; ind > 0; --ind) {
+        POP_FRAME_(&self->registers[ind - 1]);
+    }
 })

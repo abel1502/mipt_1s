@@ -10,7 +10,7 @@
 
 
 typedef union value_u {
-    int64_t qw;
+    uint64_t qw;
     double df;
 
     struct {

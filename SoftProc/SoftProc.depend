@@ -27,7 +27,7 @@
 1602705988 d:\workspace\.mipt\s1\softproc\version.h
 	<stdint.h>
 
-1603980235 d:\workspace\.mipt\s1\softproc\constants.h
+1604007941 d:\workspace\.mipt\s1\softproc\constants.h
 	"version.h"
 
 1603980597 d:\workspace\.mipt\s1\softproc\program.h
@@ -132,7 +132,7 @@
 	<errno.h>
 	"general.h"
 
-1603981020 source:d:\workspace\.mipt\s1\softproc\processor_main.cpp
+1604007495 source:d:\workspace\.mipt\s1\softproc\processor_main.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -142,7 +142,7 @@
 	"program.h"
 	"general.h"
 
-1603980383 source:d:\workspace\.mipt\s1\softproc\program.cpp
+1604008260 source:d:\workspace\.mipt\s1\softproc\program.cpp
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -151,9 +151,9 @@
 	"program.h"
 	"opcode_defs.h"
 
-1603541562 d:\workspace\.mipt\s1\softproc\opcode.h
+1604007858 d:\workspace\.mipt\s1\softproc\opcode.h
 	<stdint.h>
 	"opcode_defs.h"
 
-1603963449 d:\workspace\.mipt\s1\softproc\opcode_defs.h
+1604008689 d:\workspace\.mipt\s1\softproc\opcode_defs.h
 

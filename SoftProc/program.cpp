@@ -137,9 +137,19 @@ void program_checkMonday(program_t *self) {
 
 bool program_drawScreen(program_t *self, code_size_t addr) {
     char *buf = program_ramReadBytes(self, addr, GRAPHICS_BUF_SIZE, NULL);
+
+    printf("\xc9");
+    for (unsigned x = 0; x < GRAPHICS_SCREEN_WIDTH; ++x) printf("\xcd");
+    printf("\xbb\n");
+
     for (unsigned y = 0; y < GRAPHICS_SCREEN_HEIGHT; ++y) {
-        printf("%.*s\n", GRAPHICS_SCREEN_WIDTH, &buf[y * GRAPHICS_SCREEN_WIDTH]);
+        printf("\xba%.*s\xba\n", (int)GRAPHICS_SCREEN_WIDTH, &buf[y * GRAPHICS_SCREEN_WIDTH]);
     }
+
+    printf("\xc8");
+    for (unsigned x = 0; x < GRAPHICS_SCREEN_WIDTH; ++x) printf("\xcd");
+    printf("\xbc\n");
+
     return false;
 }
 

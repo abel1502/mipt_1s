@@ -6,15 +6,18 @@
 0x04 : dup  ()
 0x05 : rot  (dwl:read)
 
-0x08 : add  (df:stack)
-0x09 : sub  (df:stack)
-0x0A : mul  (df:stack)
-0x0B : div  (df:stack)
-0x0C : sqr  (df:stack)
+0x08 : add  (df,dwl:stack)
+0x09 : sub  (df,dwl:stack)
+0x0A : mul  (df,dwl:stack)
+0x0B : div  (df,dwl:stack)
+0x0C : sqr  (df,dwl:stack)
 0x0D : sqrt (df:stack)
-0x0E : dec  (df:stack)
-0x0F : inc  (df:stack)
-0x10 : neg  (df:stack)
+0x0E : dec  (df,dwl:stack)
+0x0F : inc  (df,dwl:stack)
+0x10 : neg  (df,dwl:stack)
+0x11 : mod  (dwl:stack)
+0x12 : muls (dwl:stack)
+0x13 : divs (dwl:stack)
 
 # Arguments provide not only destination, but also type:
 # they can, essentially, say "in stack.df" -
@@ -30,21 +33,25 @@
 0x23 : call (dwl:stack,read)
 0x24 : ret  ()
 
-0x28 : cg   (df:stack)
-0x29 : cge  (df:stack)
-0x2A : cl   (df:stack)
-0x2B : cle  (df:stack)
-0x2C : ce   (df:stack)
-0x2D : cne  (df:stack)
-
+0x28 : cg   (df,dwl:stack)
+0x29 : cge  (df,dwl:stack)
+0x2A : cl   (df,dwl:stack)
+0x2B : cle  (df,dwl:stack)
+0x2C : ce   (df,dwl:stack)
+0x2D : cne  (df,dwl:stack)
 
 0xE0 : d2b  ()
 0xE1 : b2d  ()
 0xE2 : d2i  ()
 0xE3 : i2d  ()
+0xE4 : d2u  ()
+0xE5 : u2d  ()
 
 0xF0 : end  ()
 0xF1 : dump ()
 0xF2 : jm   (dwl:read)
 0xF3 : draw (dwl:stack,read)  # The argument is the memory address at which the buffer is located
 0xF4 : cldb (dwl:stack,read)  # -"-
+0xF5 : cls  ()  # Clear screen
+0xF6 : sar  ()  # Save all regs
+0xF7 : rar  ()  # Restore all regs

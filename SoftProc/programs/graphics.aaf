@@ -5,14 +5,14 @@
 
 $drawBuf = 0
 
-$screenWidth  = 30  ; Actually 60, but this is already converted into square pixels
-$screenHeight = 30
+$screenWidth  = 28  ; Actually 56, but this is already converted into square pixels
+$screenHeight = 28
 
-$pixelFill0 = 45   ;32
-$pixelFill1 = 176
-$pixelFill2 = 177
-$pixelFill3 = 178
-$pixelFill4 = 219
+$pixelFill0 = 32
+$pixelFill1 = 176 ;46
+$pixelFill2 = 177 ;61
+$pixelFill3 = 178 ;35
+$pixelFill4 = 219 ;36
 
 $circleRadius = 1800
 $circleBorder = 1808
@@ -21,84 +21,135 @@ $circleBorder = 1808
 
 ;
 ; ENTRYPOINT main() -> void
-;   regs: ra (x), rb(y), rc(center)
+;   regs: -
 ;
 $main:
-	push df:13.4
-	pop df:[$circleRadius]
-	;pop df:rd
+	;push dwl:$screenHeight
+	;i2d
+	;push df:2
+	;div df:
+	;push df:0.5
+	;sub df:
+	;dup
 	
-	push df:0.45
-	pop df:[$circleBorder]
-	;pop df:re
+	;push df:14.5
+	;push df:14.5
+	;push df:13.4
+	;push df:0.45
 	
-	push dwl:$screenHeight
-	i2d
+	;push dwl:0
+	;pop dwl:rx
+	
+	;push dwl:0
+	;pop dwl:ry
+	
+	push df:3
+	push df:5
 	push df:2
-	div df:
+	push df:0.5
+	
+	call dwl:$drawCircle
+	
+	push df:17
+	push df:24
+	push df:9
+	push df:0.47
+	
+	call dwl:$drawCircle
+	
+	push df:17
+	push df:24
+	push df:9
+	push df:0.47
+	
+	call dwl:$drawCircle
+	
+	push df:29
+	push df:-1
+	push df:15
+	push df:0.47
+	
+	call dwl:$drawCircle
+	
+	push df:17
+	push df:1
+	push df:7
+	push df:0.47
+	
+	call dwl:$drawCircle
+	
+	draw dwl:$drawBuf
+
+	end
+
+
+
+;
+; drawCircle(df:centerX, df:centerY, df:radius, df:borderWidth) -> void
+;   Draws a circle with a given radius, center and etc.
+;   regs: ra(x), rb(y), rc(centerX), rd(centerY), re(radius), rf(borderWidth)
+;
+$drawCircle:
+	pop df:rf
+	pop df:re
+	pop df:rd
 	pop df:rc
 
 	push df:0
 	pop df:ra
 
-	$main_for_x:
+	$drawCircle_for_x:
 		push df:0
 		pop df:rb
 
-		$main_for_y:
-			push df:ra
-			push df:rb
-
+		$drawCircle_for_y:
 			push df:ra
 			push df:rc
 			sub df:
 			sqr df:
 
 			push df:rb
-			push df:rc
+			push df:rd
 			sub df:
 			sqr df:
 
-			add df:     ; (x-c)**2+(y-c)**2
-
-			;push df:[$circleRadius]
-			;sqr df:
-			;
-			;sub df:     ; (x-c)**2+(y-c)**2-r**2
+			add df:     ; (x-cX)**2+(y-cY)**2
 			
 			sqrt df:
-			push df:[$circleRadius]
-			;push df:rd
+			push df:re
 			sub df:
 
 			dup
 
 			call dwl:$fabs
 
-			push df:[$circleBorder]
-			;push df:re
+			push df:rf
 			cle df:
-			jt dwl:$main_drawBorder
+			jt dwl:$drawCircle_drawBorder
 
 			push df:0
 			cle df:
-			jt dwl:$main_drawInside
+			jt dwl:$drawCircle_drawInside
+			
+			jmp dwl:$drawCircle_nodraw
 
-			;$main_drawOutside:
-				push dwl:$pixelFill0
-				jmp dwl:$main_draw
-
-			$main_drawBorder:
+			$drawCircle_drawBorder:
 				popv
 				push dwl:$pixelFill3
-				jmp dwl:$main_draw
+				jmp dwl:$drawCircle_draw
 
-			$main_drawInside:
+			$drawCircle_drawInside:
 				push dwl:$pixelFill1
-				;jmp dwl:$main_draw
+				;jmp dwl:$drawCircle_draw
 
-			$main_draw:
+			$drawCircle_draw:
+			push df:ra
+			push df:rb
+			rot dwl:-3
+			
 			call dwl:$drawPixel
+			
+			$drawCircle_nodraw:
 
 			push df:rb
 			push df:1
@@ -109,7 +160,7 @@ $main:
 			push dwl:$screenHeight
 			i2d
 			cl df:
-			jt dwl:$main_for_y
+			jt dwl:$drawCircle_for_y
 
 		push df:ra
 		push df:1
@@ -120,11 +171,9 @@ $main:
 		push dwl:$screenWidth
 		i2d
 		cl df:
-		jt dwl:$main_for_x
-
-	draw dwl:$drawBuf
-
-	end
+		jt dwl:$drawCircle_for_x
+	
+	ret
 
 
 
@@ -186,5 +235,6 @@ $fabs:
 
 	$fabs_ret:
 	ret
+
 
 
