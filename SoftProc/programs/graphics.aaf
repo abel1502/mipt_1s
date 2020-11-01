@@ -3,8 +3,6 @@
 
 ; ===[ Constants ]===
 
-$drawBuf = 0
-
 $screenWidth  = 28  ; Actually 56, but this is already converted into square pixels
 $screenHeight = 28
 
@@ -14,17 +12,60 @@ $pixelFill2 = 177 ;61
 $pixelFill3 = 178 ;35
 $pixelFill4 = 219 ;36
 
-$circleRadius = 1800
-$circleBorder = 1808
+$mem_drawBuf = 0     ; 1568 (screenWidth * screenHeight * 2)
+$mem_rndSeed = 2000  ; 4
 
 ; ===================
 
 ;
 ; ENTRYPOINT main() -> void
-;   regs: -
+;   regs: rz (i)
 ;
 $main:
-	cldb dwl:$drawBuf
+	;push dwl:2
+	in dwl:
+	pop  dwl:[$mem_rndSeed]
+	
+	cldb dwl:$mem_drawBuf
+	
+	push dwl:0
+	pop dwl:rz
+	
+	$main_for_circle:
+		call dwl:$random
+		push dwl:$screenWidth
+		mod dwl:
+		i2d
+		
+		call dwl:$random
+		push dwl:$screenHeight
+		mod dwl:
+		i2d
+		
+		call dwl:$random
+		push dwl:7
+		mod dwl:
+		push dwl:2
+		add dwl:
+		i2d
+		
+		push df:0.44
+		
+		call dwl:$drawCircle
+		
+		push dwl:rz
+		push dwl:1
+		add dwl:
+		dup
+		pop dwl:rz
+		
+		push dwl:5
+		cl dwl:
+		jt dwl:$main_for_circle
+	
+	draw dwl:$mem_drawBuf
+	
+	end
 	
 	;push dwl:$screenHeight
 	;i2d
@@ -80,7 +121,7 @@ $main:
 	
 	call dwl:$drawCircle
 	
-	draw dwl:$drawBuf
+	draw dwl:$mem_drawBuf
 
 	end
 
@@ -210,12 +251,12 @@ $drawPixel:
 	d2i
 	pop dwl:rh
 	push bl:rg
-	pop bl:[rh+$drawBuf]
+	pop bl:[rh+$mem_drawBuf]
 
 	d2i
 	pop dwl:rh
 	push bl:rg
-	pop bl:[rh+$drawBuf]
+	pop bl:[rh+$mem_drawBuf]
 
 	ret
 
@@ -239,4 +280,18 @@ $fabs:
 	ret
 
 
-
+;
+; random() -> dwl
+;   Computes a pseudo-random number in [0, 1 << 32)
+;   regs: -
+;
+$random:
+	push dwl:[$mem_rndSeed]
+	push dwl:214013
+	mul dwl:
+	push dwl:2531011
+	add dwl:
+	dup
+	pop dwl:[$mem_rndSeed]
+	
+	ret
