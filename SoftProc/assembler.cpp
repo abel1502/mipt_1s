@@ -245,7 +245,11 @@ static bool code_assembleOpArg_(code_t *self, addrMode_t addrMode, uint8_t argLo
             addrMode.type = ARGTYPE_DWL; \
         }
 
+    addrMode.loc = 0;
+
     uint8_t backupArgType = addrMode.type;  // Because memory addressing forces arg type to be dwl, and the actual type may be valuable later
+
+    skipSpace_(line);
 
     if (**line == '[') {
         addrMode.locMem = 1;
@@ -257,9 +261,6 @@ static bool code_assembleOpArg_(code_t *self, addrMode_t addrMode, uint8_t argLo
     skipSpace_(line);
 
     if (isEOL_(*line) || isspace(**line) || (strncmp(*line, "stack", 5) == 0 && (*line += 5 /* Crotchy, but we kind of need this */))) {
-        addrMode.locReg = 0;
-        addrMode.locImm = 0;
-
         WRITE_ADDRMODE_();
     } else {
         char immArg[sizeof(value_t)] = {};
