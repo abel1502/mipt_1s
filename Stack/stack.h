@@ -14,10 +14,8 @@
  * Signature: void STACK_ELEM_PRINT(stack_elem_t). The dump prints raw bytes in hex alongside, so this may be left undefined.
  *
  * - [define]  (optional) STACK_VALIDATION_LEVEL @n
- * A number from 0 to 2, specifying, how much validation will be performed. Defaults to maximum.
- * 0 - no integrity checks; 1 - only the fast integrity checks; 2 - all integrity checks.
- *
- * - ... <TODO>
+ * A number from 0 to 3, specifying, how much validation will be performed. Defaults to maximum.
+ * 0 - no integrity checks; 1 - only the fast integrity checks; 2 - all integrity checks that don't affect the asymptotical time; 3 - all integrity checks.
  *
  * @warning Erroneous above-stated definitions may result in compilation or even runtime errors,
  *          so make sure to check them properly. The library author does not take responsibility
