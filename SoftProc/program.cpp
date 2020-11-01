@@ -211,10 +211,10 @@ char *program_ramReadBytes(program_t *self, code_size_t addr, code_size_t size, 
     VALIDATE_ADDR_(addr + size - 1);
 
     if (dest != NULL) {
-        memcpy(dest, &((char *)self->ram)[addr], size);
+        memcpy(dest, (char *)self->ram + addr, size);
         return (char *)dest;
     } else {
-        return &((char *)self->ram)[addr];
+        return (char *)self->ram + addr;
     }
 }
 

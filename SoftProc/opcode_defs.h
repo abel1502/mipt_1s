@@ -33,8 +33,8 @@ DEF_OP(0x04, DUP , dup , 0, 0b0000000000000000, 0b00000000, {
     PUSH_(tos0);
 })
 
-DEF_OP(0x05, ROT , rot , 1, 0b0000000000010000, 0b11101110, {
-    switch ((int32_t)ARG_.dwl) {
+DEF_OP(0x05, ROT , rot , 1, 0b0000000000010101, 0b11101110, {
+    switch ((int8_t)ARG_.bl) {
     case 0:
     case 1:
     case -1:
@@ -230,37 +230,53 @@ DEF_OP(0x13, DIVS, divs, 1, 0b0000000000010000, 0b00000001, {
     PUSH_(res);
 })
 
-DEF_OP(0x18, IN  , in  , 1, 0b0100000000000000, 0b11100101, { TMP_ONLYDOUBLE_
-    printf("(df) > ");
-    if (AM_.locMem) {
-        if (scanf("%lg", (double *)program_ramReadBytes(self, curOp.memAddr, sizeof(double), NULL)) != 1) {
-            ERR("Cannot read input");
-            return true;
-        }
-    } else if (AM_.locReg) {
-        if (scanf("%lg", &self->registers[curOp.reg].df) != 1) {
-            ERR("Cannot read input");
-            return true;
-        }
-    } else {
-        if (scanf("%lg", &res.df) != 1) {
-            ERR("Cannot read input");
-            return true;
-        }
-        PUSH_(res);
-    }
+#define ARGTYPE_CASE_(NAME_CAP, NAME_LOW, TYPE, FMT_U, FMT_S) \
+    case ARGTYPE_##NAME_CAP: \
+        printf("(%s) > ", #NAME_LOW); \
+        if (AM_.locMem) { \
+            if (scanf(FMT_U, (TYPE *)program_ramReadBytes(self, curOp.memAddr, sizeof(TYPE), NULL)) != 1) { \
+                ERR("Cannot read input"); \
+                return true; \
+            } \
+        } else if (AM_.locReg) { \
+            if (scanf(FMT_U, &self->registers[curOp.reg].NAME_LOW) != 1) { \
+                ERR("Cannot read input"); \
+                return true; \
+            } \
+        } else { \
+            if (scanf(FMT_U, &res.NAME_LOW) != 1) { \
+                ERR("Cannot read input"); \
+                return true; \
+            } \
+            PUSH_(res); \
+        } \
+        break;
+DEF_OP(0x18, IN  , in  , 1, 0b0100000000010000, 0b11100101, {
+    ARGTYPE_SWITCH_(AM_.type,
+        ERR("Inexistent argType: 0x%01x", AM_.type);
+        return true;
+    )
 })
+#undef ARGTYPE_CASE_
 
-DEF_OP(0x19, OUT , out , 1, 0b0100000000000000, 0b11101111, { TMP_ONLYDOUBLE_
-    printf("(df) ");
-    if (AM_.loc) {
-        printf("%lg", ARG_.df);
-    } else {
-        POP_(&tos0);
-        printf("%lg", tos0.df);
-    }
-    printf("\n");
+#define ARGTYPE_CASE_(NAME_CAP, NAME_LOW, TYPE, FMT_U, FMT_S) \
+    case ARGTYPE_##NAME_CAP: \
+        printf("(%s) ", #NAME_LOW); \
+        if (AM_.loc) { \
+            printf(FMT_U, ARG_.NAME_LOW); \
+        } else { \
+            POP_(&tos0); \
+            printf(FMT_U, tos0.NAME_LOW); \
+        } \
+        printf("\n"); \
+        break;
+DEF_OP(0x19, OUT , out , 1, 0b0100000000010000, 0b11101111, {
+    ARGTYPE_SWITCH_(AM_.type,
+        ERR("Inexistent argType: 0x%01x", AM_.type);
+        return true;
+    )
 })
+#undef ARGTYPE_CASE_
 
 DEF_OP(0x20, JMP , jmp , 1, 0b0000000000010000, 0b11101111, {
     self->ip = ARG_.dwl;

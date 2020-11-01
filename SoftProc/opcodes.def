@@ -4,7 +4,7 @@
 0x02 : pop  (df,qw,dwl,wl,bl:write)
 0x03 : popv ()
 0x04 : dup  ()
-0x05 : rot  (dwl:read)
+0x05 : rot  (bl,wl,dwl:read)
 
 0x08 : add  (df,dwl:stack)
 0x09 : sub  (df,dwl:stack)
@@ -24,8 +24,8 @@
 # and that would mean "read a double and put it on the stack"
 # 0x18 : in   (df:stack)
 # 0x19 : out  (df:stack)
-0x18 : in   (df:stack,write)
-0x19 : out  (df:stack,read)
+0x18 : in   (df,dwl:stack,write)
+0x19 : out  (df,dwl:stack,read)
 
 0x20 : jmp  (dwl:stack,read)
 0x21 : jf   (dwl:stack,read)
