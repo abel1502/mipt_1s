@@ -33,6 +33,7 @@
 //#include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "../libs/checksum.h"
 
@@ -64,9 +65,9 @@
 
 
 #if (LIST_VALIDATION_LEVEL >= 2)
-//
+#define LIST_USE_WIN_PTRCHECK 1
 #else
-//
+#define LIST_USE_WIN_PTRCHECK 0
 #endif
 
 #if (LIST_VALIDATION_LEVEL >= 1)
@@ -110,8 +111,9 @@
 
 //--------------------------------------------------------------------------------
 
-static const size_t LIST_DUMP_LIMIT = 100;
-static const size_t LIST_HARD_CAP = (((size_t)-1) >> 8) / sizeof(list_elem_t);
+static const int LIST_DUMP_LIMIT = 100;
+static const int LIST_HARD_CAP = (int)(((unsigned)-1) >> 3) / sizeof(list_elem_t);
+static const char LIST_DUMP_FILE_FMT[] = "dump/list-dump-%y%m%d-%H%M%S";
 
 #ifndef __cplusplus
 typedef enum { false, true } bool;
@@ -143,14 +145,14 @@ struct list_s {
     #endif
 
     list_node_t *buf;          ///< Actual list nodes on the heap
-    size_t size;               ///< List's current size
-    size_t capacity;           ///< List's maximal size
+    int size;                  ///< List's current size
+    int capacity;              ///< List's maximal size
     bool inArrayMode;          ///< Whether the list is in a sped-up mode for lookups
     list_allocState_e state;   ///< List allocation state
 
-    size_t head;               ///< Head index
-    size_t tail;               ///< Tail index
-    size_t free;               ///< First free element's index
+    int head;                  ///< Head index
+    int tail;                  ///< Tail index
+    int free;                  ///< First free element's index
 
     #if LIST_USE_CANARY
     list_canary_t rightCanary; ///< Right canary
@@ -162,8 +164,8 @@ struct list_s {
  */
 struct list_node_s {
     list_elem_t value;
-    size_t prev;
-    size_t next;
+    int prev;
+    int next;
 };
 
 /**
@@ -186,7 +188,7 @@ typedef enum {
  *
  * @return List instance, NULL on error
  */
-list_t *list_new(size_t capacity);
+list_t *list_new(int capacity);
 
 /**
  * List constructor (external allocation)
@@ -196,7 +198,7 @@ list_t *list_new(size_t capacity);
  *
  * @return `self`, NULL on error
  */
-list_t *list_init(list_t *self, size_t capacity);
+list_t *list_init(list_t *self, int capacity);
 
 /**
  * List destructor (internal allocation)
@@ -221,7 +223,7 @@ void list_free(list_t *self);
  *
  * @return true on error, false otherwise
  */
-bool list_insertBefore(list_t *self, list_node_t *node, list_elem_t value);
+bool list_insertBefore(list_t *self, int node, list_elem_t value);
 
 /**
  * Insert `value` to the list
@@ -232,7 +234,7 @@ bool list_insertBefore(list_t *self, list_node_t *node, list_elem_t value);
  *
  * @return true on error, false otherwise
  */
-bool list_insertAfter(list_t *self, list_node_t *node, list_elem_t value);
+bool list_insertAfter(list_t *self, int node, list_elem_t value);
 
 /**
  * Remove `node` from the list
@@ -242,12 +244,13 @@ bool list_insertAfter(list_t *self, list_node_t *node, list_elem_t value);
  *
  * @return true on error, false otherwise
  */
-bool list_remove(list_t *self, list_node_t *node);
+bool list_remove(list_t *self, int node);
 
 /**
- * Find a list node by its (list) index
+ * Find a list node by its list-index
  *
  * @warning Works in linear time, unless self.inArrayMode!
+ * @warning Do not confuse list-index with node-index: the latter may used to directly access a node in the buf
  *
  * @param [in/out] self   List instance
  * @param [in]     ind    The index to look up
@@ -255,7 +258,28 @@ bool list_remove(list_t *self, list_node_t *node);
  *
  * @return true on error, false otherwise
  */
-bool list_findByIndex(list_t *self, size_t ind, list_elem_t *value);
+bool list_findByIndex(list_t *self, int ind, list_elem_t *value);
+
+/**
+ * Transforms a node-index into a node pointer
+ * (mostly for internal use)
+ *
+ * @param [in/out] self   List instance
+ * @param [in]     node   The node-index
+ *
+ * @return &self->buf[node] or NULL if index is out of range
+ */
+list_node_t *list_getNode(list_t *self, int node);
+
+/**
+ * Test if a node is free
+ *
+ * @param [in/out] self   List instance
+ * @param [in]     node   The node to check
+ *
+ * @return true if node is free, false otherwise
+ */
+bool list_isNodeFree(list_t *self, int node);
 
 /**
  * Transforms the list in such a way that lookups by index now take O(1) time
@@ -273,7 +297,7 @@ bool list_enterArrayMode(list_t *self);
  *
  * @return true on error, false otherwise
  */
-bool list_resize(list_t *self, size_t capacity);
+bool list_resize(list_t *self, int capacity);
 
 /**
  * Clear the list
@@ -290,6 +314,8 @@ void list_clear(list_t *self);
  * @return true if self is empty, false otherwise
  */
 bool list_isEmpty(const list_t *self);
+
+static int list_nextFreeCell(list_t *self);
 
 /**
  * Dump the list (for debug)
@@ -325,9 +351,9 @@ const char *list_validity_describe(list_validity_e self);
  */
 const char *list_allocState_describe(list_allocState_e self);
 
+#ifndef LIST_NOIMPL
 
-
-#if LIST_USE_CANARY && !defined(LIST_NOIMPL)
+#if LIST_USE_CANARY
 /**
  * Address of list buf's left canary
  *
@@ -345,7 +371,11 @@ static list_canary_t *list_leftBufCanary(const list_t *self);
  * @return Right canary address
  */
 static list_canary_t *list_rightBufCanary(const list_t *self);
-#endif
+#endif // LIST_USE_CANARY
+
+static char *genDumpFileName();
+
+#endif // LIST_NOIMPL
 
 /**
  * Check if ptr is a valid pointer
@@ -364,9 +394,356 @@ void test_list(list_elem_t val1, list_elem_t val2, list_elem_t val3);
 
 #ifndef LIST_NOIMPL
 
-// TODO
+list_t *list_new(int capacity) {
+    list_t *self = (list_t *)calloc(1, sizeof(list_t));
 
-#endif // STACK_NOIMPL
+    if (!isPointerValid(self)) {
+        return NULL;
+    }
+
+    if (list_init(self, capacity) == NULL) {
+        return NULL;
+    }
+
+    self->state = LAS_HEAP;
+
+    ASSERT_OK();
+
+    return self;
+}
+
+list_t *list_init(list_t *self, int capacity) {
+    if (!isPointerValid(self) || capacity == 0 || capacity >= LIST_HARD_CAP) {
+        return NULL;
+    }
+
+    #if LIST_USE_CANARY
+    self->leftCanary  = LIST_CANARY;
+    self->rightCanary = LIST_CANARY;
+    #endif
+
+    self->capacity = capacity;
+    self->size = 0;
+    self->state = LAS_EXTERNAL;
+    self->free = 1;
+    self->head = 0;
+    self->tail = 0;
+    self->inArrayMode = true;
+
+    #if LIST_USE_CANARY
+    self->buf = (list_node_t *)calloc(1, (1 + capacity) * sizeof(list_node_t) + sizeof(list_canary_t) * 2);
+    #else
+    self->buf = (list_node_t *)calloc(1 + capacity, sizeof(list_node_t));
+    #endif
+
+    if (!isPointerValid(self->buf)) {
+        return NULL;
+    }
+
+    #if LIST_USE_CANARY
+    self->buf = (list_node_t *)((list_canary_t *)self->buf + 1);
+
+    *list_leftBufCanary(self)  = LIST_CANARY;
+    *list_rightBufCanary(self) = LIST_CANARY;
+    #endif
+
+    list_clear(self);
+
+    ASSERT_OK();
+
+    return self;
+}
+
+void list_destroy(list_t *self) {
+    ASSERT_OK();
+
+    REQUIRE(self->state == LAS_HEAP);
+
+    self->state = LAS_EXTERNAL;
+
+    list_free(self);
+
+    free(self);
+}
+
+void list_free(list_t *self) {
+    ASSERT_OK();
+
+    REQUIRE(self->state == LAS_EXTERNAL);
+
+    #if LIST_USE_CANARY
+    free(list_leftBufCanary(self));
+
+    self->leftCanary = 0;
+    self->rightCanary = 0;
+    #else
+    free(self->buf);
+    #endif
+
+    self->buf = NULL;
+    self->size = 0;
+    self->capacity = 0;
+    self->state = LAS_FREED;
+    self->head = 0;
+    self->tail = 0;
+    self->free = 0;
+    self->inArrayMode = false;
+}
+
+bool list_insertBefore(list_t *self, int node, list_elem_t value) {
+    ASSERT_OK();
+
+    REQUIRE(0 <= node && node < self->size);
+
+    if (self->size >= self->capacity) {
+        if (list_resize(self, self->capacity * 2)) {
+            return true;
+        }
+    }
+
+    int next = list_nextFreeCell(self);
+
+    self->buf[next].value = value;
+
+    self->buf[next].prev = self->buf[node].prev;
+    self->buf[next].next = node;
+    self->buf[node].prev = next;
+
+    ASSERT_OK();
+
+    return false;
+}
+
+bool list_insertAfter(list_t *self, list_node_t *node, list_elem_t value);
+
+bool list_remove(list_t *self, list_node_t *node);
+
+bool list_findByIndex(list_t *self, int ind, list_elem_t *value);
+
+list_node_t *list_getNode(list_t *self, int node) {
+    ASSERT_OK();
+
+    if (node < 0 || node > self->capacity) return NULL;
+
+    return self->buf[node].prev == -1;
+}
+
+bool list_isNodeFree(list_t *self, int node) {
+    ASSERT_OK();
+
+    return list_getNode(self, node)->prev == -1;
+}
+
+
+bool list_enterArrayMode(list_t *self);
+
+bool list_resize(list_t *self, int capacity) {
+    ASSERT_OK();
+
+    if (capacity < self->capacity || capacity >= LIST_HARD_CAP) {
+        return true;
+    }
+
+    if (self->buf[self->capacity].prev == -1) {
+        self->buf[self->capacity].next = self->capacity + 1;
+    } else {
+        self->free = self->capacity + 1;
+    }
+
+    int oldCap = self->capacity;
+
+    #if LIST_USE_CANARY
+    list_node_t *newBuf = (list_node_t *)realloc(list_leftBufCanary(self), (1 + capacity) * sizeof(list_node_t) + 2 * sizeof(list_canary_t));
+    #else
+    list_node_t *newBuf = (list_node_t *)realloc(self->buf, (1 + capacity) * sizeof(list_node_t));
+    #endif
+
+    if (!isPointerValid(newBuf)) {
+        return true;
+    }
+
+    #if LIST_USE_CANARY
+    self->buf = (list_node_t *)((list_canary_t *)newBuf + 1);
+    #else
+    self->buf = newData;
+    #endif
+
+    self->capacity = capacity;
+
+    #if LIST_USE_CANARY
+    *list_leftBufCanary(self)  = LIST_CANARY;
+    *list_rightBufCanary(self) = LIST_CANARY;
+    #endif
+
+    for (int i = 1; i < self->capacity; ++i) {
+        self->buf[i].next = i + 1;
+        self->buf[i].prev = -1;
+    }
+
+    self->buf[self->capacity].next = self->free;
+    self->buf[self->capacity].prev = -1;
+
+    ASSERT_OK();
+
+    return false;
+}
+
+void list_clear(list_t *self) {
+    // TODO: clear values too?
+    self->buf[0].next = 0;
+    self->buf[0].prev = 0;
+
+    for (int i = 1; i < self->capacity; ++i) {
+        self->buf[i].next = i + 1;
+        self->buf[i].prev = -1;
+    }
+
+    self->buf[self->capacity].next = 1;
+    self->buf[self->capacity].prev = -1;
+}
+
+bool list_isEmpty(const list_t *self) {
+    ASSERT_OK();
+
+    return self->size == 0;
+}
+
+static int list_nextFreeCell(list_t *self) {
+    int nextFree = self->free;
+
+    self->free = self->buf[self->free].next;
+
+    return nextFree;
+}
+
+void list_dump(const list_t *self) {
+    char *dumpFileName = genDumpFileName();
+
+    FILE *dumpFile = fopen(dumpFileName, "wb");
+
+    fprintf(dumpFile, "digraph list_t {\n");
+    // TODO: dump
+    //fprintf(dumpFile, "1 -> 2 -> 3 -> 4\n");
+    fprintf(dumpFile, "}\n");
+
+    fclose(dumpFile);
+
+    char cmd[256] = "";
+
+    sprintf(cmd, "dot -O -Tsvg %.100s", dumpFileName);
+    system(cmd);
+    printf(">> %s\n", cmd);
+    sprintf(cmd, "start %.100s.svg", dumpFileName);
+    system(cmd);
+    printf(">> %s\n", cmd);
+
+    free(dumpFileName);
+}
+
+list_validity_e list_validate(const list_t *self) {
+    return LIST_VALID;  // TODO: validator
+}
+
+#define DESCRIBE_(value, descr)  case value: return "<" #value "> " descr;
+const char *list_validity_describe(list_validity_e self) {
+    switch (self) {
+        case LIST_VALID: return "ok";
+        DESCRIBE_(LIST_BADPTR,    "Bad pointer")
+        DESCRIBE_(LIST_BADSIZE,   "Bad size")
+        DESCRIBE_(LIST_BADCANARY, "Bad canary")
+        DESCRIBE_(LIST_LOOP,      "Loop")
+        DESCRIBE_(LIST_UAF,       "Use after free")
+
+        default: return "!CORRUPT VALIDITY!";
+    }
+}
+
+const char *list_allocState_describe(list_allocState_e self) {
+    switch (self) {
+        DESCRIBE_(LAS_EXTERNAL, "external")
+        DESCRIBE_(LAS_HEAP,     "heap")
+        DESCRIBE_(LAS_FREED,    "freed")
+
+        default: return "!CORRUPT ALLOCSTATE!";
+    }
+}
+#undef DESCRIBE_
+
+#if LIST_USE_CANARY
+static list_canary_t *list_leftBufCanary(const list_t *self) {
+    REQUIRE(isPointerValid(self));
+    REQUIRE(isPointerValid(self->buf));
+
+    return (list_canary_t *)self->buf - 1;
+}
+
+static list_canary_t *list_rightBufCanary(const list_t *self) {
+    REQUIRE(isPointerValid(self));
+    REQUIRE(isPointerValid(self->buf));
+
+    return (list_canary_t *)(self->buf + self->capacity + 1);
+}
+#endif
+
+bool isPointerValid(const void *ptr) {
+    if (ptr < (const void *)4096) {
+        // || ((size_t)ptr >> (sizeof(ptr) >= 8 ? 42 : 26)) != 0;
+        // On Linux, sometimes the valid memory may occupy the highest possible addresses,
+        // so we can't afford this heuristic check
+
+        return false;
+    }
+
+    // I won't include a unix-specific check, because the only one I could find is extremely
+    // inefficient and requires a non-const pointer
+
+    #if defined(_WIN32) && LIST_USE_WIN_PTRCHECK
+    // This one actually turned out to be incredibly slow, so I'll only include it at validation level 2, I guess
+
+    // (c) Ded32, TXLib
+    MEMORY_BASIC_INFORMATION mbi = {};
+    if (!VirtualQuery(ptr, &mbi, sizeof (mbi)))
+        return false;
+
+    if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS))
+        return false;  // Guard page -> bad ptr
+
+    DWORD readRights = PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY;
+
+    return (mbi.Protect & readRights) != 0;
+
+    #endif // defined(_WIN32) && LIST_USE_WIN_PTRCHECK
+
+    return true;
+}
+
+static char *genDumpFileName() {
+    char *name = (char *)calloc(100, sizeof(char));
+    REQUIRE(name != NULL);
+
+    time_t rawtime;
+    struct tm *timeinfo;
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    //strftime(name, 100, LIST_DUMP_FILE_FMT, timeinfo);
+    REQUIRE(strftime(name, 100, LIST_DUMP_FILE_FMT, timeinfo) != 0);  // We'll trust it's enough
+
+    return name;
+}
+
+#ifdef TEST
+void test_list(list_elem_t val1, list_elem_t val2, list_elem_t val3) {
+    list_t *lst = list_new(8);
+
+    list_dump(lst);
+
+    list_destroy(lst);
+}
+#endif
+
+#endif // LIST_NOIMPL
 
 #undef ASSERT_OK
 #undef REQUIRE

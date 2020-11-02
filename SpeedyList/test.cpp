@@ -22,7 +22,7 @@ static void printHelper(list_elem_t elem) {
 int main() {
     TEST_MAIN(
         ,
-        //test_list(1.23, 4.56, 7.89);
+        test_list(1.23, 4.56, 7.89);
         $g; TEST_MSG("Passed All."); $d;
         ,
     )

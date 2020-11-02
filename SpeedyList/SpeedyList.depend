@@ -1,0 +1,31 @@
+# depslib dependency file v1.0
+1604243924 source:d:\workspace\.mipt\s1\speedylist\test.cpp
+	"../libs/test.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<assert.h>
+	<math.h>
+	"list.h"
+
+1602668337 d:\workspace\.mipt\s1\libs\test.h
+	"TXLib.h"
+	<stdio.h>
+	<math.h>
+	<stdlib.h>
+	<assert.h>
+	<setjmp.h>
+	<signal.h>
+
+1604316834 d:\workspace\.mipt\s1\speedylist\list.h
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+	<time.h>
+	"../libs/checksum.h"
+	<windows.h>
+
+1603029642 d:\workspace\.mipt\s1\libs\checksum.h
+	<stdint.h>
+	<string.h>
+
