@@ -482,3 +482,10 @@ DEF_OP(0xf7, RAR , rar , 0, 0b0000000000000000, 0b00000000, {
         POP_FRAME_(&self->registers[ind - 1]);
     }
 })
+
+DEF_OP(0xff, MEOW, meow, 1, 0b0000000000010000, 0b11101111, {
+    for (unsigned ind = 0; ind < ARG_.dwl; ++ind) {
+        //txSpeak("ìÿó");
+        printf("meow\n");
+    }
+})

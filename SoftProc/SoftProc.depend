@@ -37,7 +37,7 @@
 	"aef_file.h"
 	"../Stack/stack.h"
 
-1603980947 d:\workspace\.mipt\s1\stack\stack.h
+1604241096 d:\workspace\.mipt\s1\stack\stack.h
 	<stdlib.h>
 	<stdio.h>
 	<string.h>
@@ -142,7 +142,8 @@
 	"program.h"
 	"general.h"
 
-1604081046 source:d:\workspace\.mipt\s1\softproc\program.cpp
+1604312906 source:d:\workspace\.mipt\s1\softproc\program.cpp
+	<TXLib.h>
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
@@ -155,5 +156,5 @@
 	<stdint.h>
 	"opcode_defs.h"
 
-1604082559 d:\workspace\.mipt\s1\softproc\opcode_defs.h
+1604313037 d:\workspace\.mipt\s1\softproc\opcode_defs.h
 

@@ -22,6 +22,17 @@ $mem_rndSeed = 2000  ; 4
 ;   regs: rz (i)
 ;
 $main:
+	cldb dwl:$mem_drawBuf
+	
+	push df:13
+	push df:7
+	push df:5
+	push df:0.49
+	call dwl:$drawCircle
+	
+	draw dwl:$mem_drawBuf
+	
+	end
 	;push dwl:2
 	in dwl:
 	pop  dwl:[$mem_rndSeed]

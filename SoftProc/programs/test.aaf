@@ -1,10 +1,6 @@
 ; Test program
 
-$var_1 = 123
-
-push bl:61
-pop bl:[$var_1]
-draw dwl:0
+meow dwl:5
 
 
 
@@ -16,40 +12,6 @@ end ; ==================================
 	pop dwl:ra
 	push df:[ra-10]
 	out df:
-	
-	
-end ; ==================================
-	
-	
-	in df:
-	call dwl:$main
-	out df:
-	end
-
-	nop
-	nop
-	nop
-
-$main:
-	pop df:ra
-
-$main_loop:
-	push df:ra
-	push df:1
-	sub df:
-	pop df:ra
-	
-	push df:ra
-	push df:0
-	cge df:
-	jt dwl:$main_loop
-	
-	push df:ra
-	push df:1
-	add df:
-	
-	ret
-	
 	
 	
 end  ; ===================================

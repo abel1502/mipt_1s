@@ -1,3 +1,6 @@
+//#define TX_USE_SPEAK
+//#include <TXLib.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>

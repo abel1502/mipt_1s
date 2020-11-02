@@ -1,0 +1,314 @@
+; Circle drawer
+
+
+; ===[ Constants ]===
+
+$screenWidth  = 28  ; Actually 56, but this is already converted into square pixels
+$screenHeight = 28
+
+$pixelFill0 = 32
+$pixelFill1 = 176 ;46
+$pixelFill2 = 177 ;61
+$pixelFill3 = 178 ;35
+$pixelFill4 = 219 ;36
+
+$mem_drawBuf = 0     ; 1568 (screenWidth * screenHeight * 2)
+$mem_rndSeed = 2000  ; 4
+
+; ===================
+
+;
+; ENTRYPOINT main() -> void
+;   regs: rz (i)
+;
+$main:
+	;push dwl:123
+	in dwl:
+	pop  dwl:[$mem_rndSeed]
+	
+	cldb dwl:$mem_drawBuf
+	
+	push df:0
+	push df:0
+	push dwl:$screenWidth
+	dec dwl:
+	i2d
+	push dwl:$screenHeight
+	dec dwl:
+	i2d
+	push bl:$pixelFill2
+	call dwl:$drawRect
+	
+	push df:0
+	push df:0
+	push dwl:$screenWidth
+	dec dwl:
+	i2d
+	push dwl:$screenHeight
+	dec dwl:
+	i2d
+	call dwl:$drawRooms
+	
+	draw dwl:$mem_drawBuf
+	
+	end
+
+
+
+;
+; drawRooms(bl:orientation, df:x1, df:y1, df:x2, df:y2) -> void
+;   regs: rm (x1), rn (y1), ro (x2), rp (y2), rq (split)
+;
+$drawRooms:
+	pop df:rp
+	pop df:ro
+	pop df:rn
+	pop df:rm
+	
+	dup
+	jt dwl:$drawRooms_splitY
+	
+	push df:ro
+	push df:rm
+	sub df:
+	push df:8
+	cl df:
+	jt dwl:$drawRooms_splitY
+		call dwl:$random
+		push df:ro
+		push df:rm
+		sub df:
+		push df:7
+		sub df:
+		d2i
+		mod dwl:
+		i2d
+		push df:rm
+		add df:
+		push df:4
+		add df:
+		pop df:rq
+		
+		neg df:
+		push df:1
+		add df:
+		dup
+		
+		push df:rm
+		push df:rn
+		push df:rq
+		push df:rp
+		sar
+		call dwl:$drawRooms
+		rar
+		
+		push df:rq
+		push df:rn
+		push df:ro
+		push df:rp
+		sar
+		call dwl:$drawRooms
+		rar
+		
+		; splitX
+		ret
+	
+	$drawRooms_splitY:
+	push df:rp
+	push df:rn
+	sub df:
+	push df:8
+	cl df:
+	jt dwl:$drawRooms_noSplit
+		call dwl:$random
+		push df:rp
+		push df:rn
+		sub df:
+		push df:7
+		sub df:
+		d2i
+		mod dwl:
+		i2d
+		push df:rn
+		add df:
+		push df:4
+		add df:
+		pop df:rq
+		
+		neg df:
+		push df:1
+		add df:
+		dup
+		
+		push df:rm
+		push df:rn
+		push df:ro
+		push df:rq
+		sar
+		call dwl:$drawRooms
+		rar
+		
+		push df:rm
+		push df:rq
+		push df:ro
+		push df:rp
+		sar
+		call dwl:$drawRooms
+		rar
+		
+		; splitY
+		ret
+	
+	$drawRooms_noSplit:
+	popv  ;?
+	call dwl:$random
+	push dwl:6
+	mod dwl:
+	jf dwl:$drawRooms_ret
+		push df:rm
+		inc df:
+		push df:rn
+		inc df:
+		push df:ro
+		dec df:
+		push df:rp
+		dec df:
+		push bl:$pixelFill0
+		call dwl:$drawRect
+	$drawRooms_ret:
+	ret
+
+
+
+
+;
+; drawRect(df:x1, df:y1, df:x2, df:y2, bl:pixel) -> void
+;   regs: ri (x1), rj (y1), rk (x2), rl (y2)
+;
+$drawRect:
+	rot bl:3
+	pop df:rl
+	pop df:rk
+	rot bl:3
+	pop df:rj
+	pop df:ri
+	
+	push df:rj
+	rot bl:2
+	
+	$drawRect_for_x:
+		rot bl:2
+		dup
+		pop df:rj
+		rot bl:2
+
+		$drawRect_for_y:
+			dup
+			push df:ri
+			push df:rj
+			rot bl:-3
+			
+			call dwl:$drawPixel
+
+			push df:rj
+			push df:1
+			add df:
+			dup
+			pop df:rj
+			
+			push df:rl
+			cle df:
+			jt dwl:$drawRect_for_y
+
+		push df:ri
+		push df:1
+		add df:
+		dup
+		pop df:ri
+
+		push df:rk
+		cle df:
+		jt dwl:$drawRect_for_x
+	
+	
+	ret
+
+
+
+; 
+; drawPixel(df:x, df:y, bl:pixel) -> void
+;   Draws a square pixel in the given coordinates
+;   regs: rg (pixel), rh (addr)
+; 
+$drawPixel:
+	rot bl:3             ; pixel, x, y
+	
+	;dup
+	;out df:
+	;rot dwl:2
+	;dup
+	;out df:
+	;rot dwl:2
+	
+	push dwl:$screenWidth
+	i2d
+	mul df:               ; pixel, x, sW*y
+	add df:               ; pixel, sW*y+x
+	push df:2             
+	mul df:               ; pixel, 2*(sW*y+x)
+	dup                   ; pixel, 2*(sW*y+x), 2*(sW*y+x)
+	push df:1             
+	add df:               ; pixel, 2*(sW*y+x), 2*(sW*y+x)+1
+
+	rot dwl:-3            ; 2*(sW*y+x), 2*(sW*y+x), pixel
+	pop bl:rg             ; 2*(sW*y+x), 2*(sW*y+x)
+
+	d2i
+	pop dwl:rh
+	push bl:rg
+	pop bl:[rh+$mem_drawBuf]
+
+	d2i
+	pop dwl:rh
+	push bl:rg
+	pop bl:[rh+$mem_drawBuf]
+
+	ret
+
+
+
+;
+; fabs(df:x) -> df
+;   Computes the |x|
+;   regs: -
+;
+$fabs:
+	dup
+	push df:0
+	cl df:
+	jf dwl:$fabs_ret
+
+	push df:-1
+	mul df:
+
+	$fabs_ret:
+	ret
+
+
+;
+; random() -> dwl
+;   Computes a pseudo-random number in [0, 1 << 16)
+;   regs: -
+;
+$random:
+	push dwl:[$mem_rndSeed]
+	push dwl:214013
+	mul dwl:
+	push dwl:2531011
+	add dwl:
+	push dwl:65536
+	div dwl:
+	dup
+	pop dwl:[$mem_rndSeed]
+	
+	ret

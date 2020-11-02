@@ -55,3 +55,5 @@
 0xF5 : cls  ()  # Clear screen
 0xF6 : sar  ()  # Save all regs
 0xF7 : rar  ()  # Restore all regs
+
+0xFF : meow (dwl:stack,read)
