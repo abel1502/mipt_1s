@@ -115,8 +115,10 @@ int main() {
             printf("%d -> %d -> %d: (%lg)\n", node->prev, arg, node->next, node->value);
         )
         CMD_CASE_("enterArrMode",
-            //list_enterArrayMode(lst);
-            printf("Not implemented yet.\n");
+            if (list_enterArrayMode(lst)) {
+                printf("Failed.\n");
+                continue;
+            }
             continue;
         )
         CMD_CASE_("clear",

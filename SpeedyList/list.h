@@ -647,7 +647,70 @@ bool list_setNodeFree(list_t *self, list_index_t node) {
     return false;
 }
 
-bool list_enterArrayMode(list_t *self);
+bool list_enterArrayMode(list_t *self) {
+    ASSERT_OK();
+
+    if (self->inArrayMode) {
+        return false;
+    }
+
+    #if LIST_USE_CANARY
+    list_node_t *newBuf = (list_node_t *)realloc(list_leftBufCanary(self), (1 + self->capacity) * sizeof(list_node_t) + 2 * sizeof(list_canary_t));
+    #else
+    list_node_t *newBuf = (list_node_t *)realloc(self->buf, (1 + self->capacity) * sizeof(list_node_t));
+    #endif
+
+    if (!isPointerValid(newBuf)) {
+        return true;
+    }
+
+    #if LIST_USE_CANARY
+    newBuf = (list_node_t *)((list_canary_t *)newBuf + 1);
+    #endif
+
+    list_node_t *curNode = list_getNode(self, 0);
+    REQUIRE(curNode != NULL);
+
+    int i = 0;
+
+    for (; i <= self->size; ++i) {
+        newBuf[i].value = curNode->value;
+        newBuf[i].prev = (i + self->size /* + 1 - 1 */) % (self->size + 1);
+        newBuf[i].next = (i + 1) % (self->size + 1);
+
+        curNode = list_getNode(self, curNode->next);
+        REQUIRE(curNode != NULL);
+    }
+
+    REQUIRE(curNode == list_getNode(self, 0));
+
+    self->free = self->size + 1;
+
+    curNode = list_getNode(self, self->free);
+
+    for (; i <= self->capacity; ++i) {
+        newBuf[i].prev = -1;
+        newBuf[i].next = (i + 1) % (self->capacity + 1);
+
+        curNode = list_getNode(self, curNode->next);
+        REQUIRE(curNode != NULL);
+    }
+
+    REQUIRE(curNode == list_getNode(self, 0));
+
+    self->buf = newBuf;
+
+    #if LIST_USE_CANARY
+    *list_leftBufCanary(self)  = LIST_CANARY;
+    *list_rightBufCanary(self) = LIST_CANARY;
+    #endif
+
+    self->inArrayMode = true;
+
+    ASSERT_OK();
+
+    return false;
+}
 
 bool list_resize(list_t *self, list_index_t capacity) {
     ASSERT_OK();
@@ -677,7 +740,7 @@ bool list_resize(list_t *self, list_index_t capacity) {
     #if LIST_USE_CANARY
     self->buf = (list_node_t *)((list_canary_t *)newBuf + 1);
     #else
-    self->buf = newData;
+    self->buf = newBuf;
     #endif
 
     self->capacity = capacity;
@@ -773,7 +836,7 @@ static void list_dumpInfoBox(const list_t *self, FILE *dumpFile) {
         DUMP_("   state           = %s" EOL_, list_allocState_describe(self->state));
         DUMP_("   inArrayMode     = %s" EOL_, self->inArrayMode ? "true" : "false");
 
-        DUMP_("   buf [0x%p] {"EOL_, self->buf);
+        DUMP_("   buf [0x%p] {" EOL_, self->buf);
         if (isPointerValid(self->buf)) {
             #if LIST_USE_CANARY
             list_canary_t lCan = *list_leftBufCanary(self);
@@ -789,7 +852,7 @@ static void list_dumpInfoBox(const list_t *self, FILE *dumpFile) {
         } else {
             DUMP_("     <corrupt>" EOL_);
         }
-        DUMP_("   }"EOL_);
+        DUMP_("   }" EOL_);
 
         #if LIST_USE_CANARY
         DUMP_("   right canary    = " CANARY_FMT_ EOL_, CANARY_ARG_(self->rightCanary));
