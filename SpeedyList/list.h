@@ -662,7 +662,7 @@ bool list_resize(list_t *self, list_index_t capacity) {
         self->free = self->capacity + 1;
     }
 
-    int oldCap = self->capacity;
+    // int oldCap = self->capacity;  // TODO: Why did I need this?
 
     #if LIST_USE_CANARY
     list_node_t *newBuf = (list_node_t *)realloc(list_leftBufCanary(self), (1 + capacity) * sizeof(list_node_t) + 2 * sizeof(list_canary_t));
@@ -692,7 +692,7 @@ bool list_resize(list_t *self, list_index_t capacity) {
         self->buf[i].prev = -1;
     }
 
-    self->buf[self->capacity].next = self->free;
+    self->buf[self->capacity].next = 0;
     self->buf[self->capacity].prev = -1;
 
     ASSERT_OK();
