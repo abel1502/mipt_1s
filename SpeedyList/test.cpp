@@ -9,10 +9,7 @@
 
 // ==== [ Stack inclusion ] ====
 typedef double list_elem_t;
-static void printHelper(list_elem_t elem) {
-    printf("%lg", elem);
-}
-#define LIST_ELEM_PRINT printHelper
+#define LIST_ELEM_FMT "%lg"
 #define LIST_VALIDATION_LEVEL 3
 #include "list.h"
 // =============================

@@ -9,9 +9,8 @@
  * - [typedef] (required) list_elem_t @n
  * The type of elements on which the list operates
  *
- * - [define]  (optional) LIST_ELEM_PRINT @n
- * Name of the helper function to print list elements during debug dump.
- * Signature: void LIST_ELEM_PRINT(list_elem_t). The dump prints raw bytes in hex alongside, so this may be left undefined.
+ * - [define]  (optional) LIST_ELEM_FMT @n
+ * Format string for list_elem_t (i.e. "%lg" for double, including the quotes)
  *
  * - [define]  (optional) LIST_VALIDATION_LEVEL @n
  * A number from 0 to 3, specifying, how much validation will be performed. Defaults to maximum.
@@ -745,6 +744,6 @@ void test_list(list_elem_t val1, list_elem_t val2, list_elem_t val3) {
 #undef LIST_USE_CANARY
 
 #undef LIST_VALIDATION_LEVEL
-#undef LIST_ELEM_PRINT
+#undef LIST_ELEM_FMT
 
 #endif // LIST_H_GUARD
