@@ -721,9 +721,15 @@ bool list_isEmpty(const list_t *self) {
 }
 
 static int list_nextFreeCell(list_t *self) {
+    ASSERT_OK();  // TODO: Remove?
+
+    REQUIRE(self->free != 0);
+
     int nextFree = self->free;
 
     self->free = self->buf[self->free].next;
+
+    ASSERT_OK();
 
     return nextFree;
 }
