@@ -701,6 +701,8 @@ bool list_resize(list_t *self, list_index_t capacity) {
 }
 
 void list_clear(list_t *self) {
+    ASSERT_OK();
+
     // TODO: clear values too?
     self->buf[0].next = 0;
     self->buf[0].prev = 0;
@@ -710,8 +712,13 @@ void list_clear(list_t *self) {
         self->buf[i].prev = -1;
     }
 
-    self->buf[self->capacity].next = 1;
+    self->buf[self->capacity].next = 0;
     self->buf[self->capacity].prev = -1;
+
+    self->inArrayMode = true;
+    self->size = 0;
+
+    ASSERT_OK();
 }
 
 bool list_isEmpty(const list_t *self) {
