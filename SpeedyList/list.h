@@ -620,15 +620,15 @@ bool list_findByIndex(const list_t *self, int ind, list_elem_t *value) {
 list_node_t *list_getNode(const list_t *self, list_index_t node) {
     ASSERT_OK();
 
-    if (node < 0 || node > self->capacity) return NULL;
+    if (node < 0 || node > self->capacity) return NULL;  // TODO: REQUIRE?
 
-    return self->buf[node].prev == -1;
+    return &self->buf[node];
 }
 
 bool list_isNodeFree(const list_t *self, list_index_t node) {
     ASSERT_OK();
 
-    return list_getNode(self, node)->prev == -1;
+    return list_getNode(self, node)->prev == -1;  // TODO: NULL check
 }
 
 bool list_setNodeFree(list_t *self, list_index_t node) {
