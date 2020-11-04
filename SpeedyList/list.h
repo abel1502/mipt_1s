@@ -259,7 +259,7 @@ bool list_remove(list_t *self, list_index_t node);
  *
  * @return true on error, false otherwise
  */
-bool list_findByIndex(list_t *self, int ind, list_elem_t *value);
+bool list_findByIndex(const list_t *self, int ind, list_elem_t *value);
 
 /**
  * Transforms a node-index into a node pointer
@@ -270,7 +270,7 @@ bool list_findByIndex(list_t *self, int ind, list_elem_t *value);
  *
  * @return &self->buf[node] or NULL if index is out of range
  */
-list_node_t *list_getNode(list_t *self, int node);
+list_node_t *list_getNode(const list_t *self, list_index_t node);
 
 /**
  * Test if a node is free
@@ -280,7 +280,7 @@ list_node_t *list_getNode(list_t *self, int node);
  *
  * @return true if node is free, false otherwise
  */
-bool list_isNodeFree(list_t *self, int node);
+bool list_isNodeFree(const list_t *self, list_index_t node);
 
 /**
  * Mark a node as free
@@ -555,25 +555,60 @@ bool list_insertAfter(list_t *self, list_index_t node, list_elem_t value) {
 }
 
 #undef LIST_INSERT_TPL_
+bool list_remove(list_t *self, list_index_t node) {
+    ASSERT_OK();
+
+    list_node_t *curNode = list_getNode(self, node);
+    if (curNode == NULL) {
+        return true;
     }
 
-    int next = list_nextFreeCell(self);
+    list_node_t *lNode = list_getNode(self, curNode->prev);
+    REQUIRE(lNode != NULL);
 
-    self->buf[next].value = value;
+    list_node_t *rNode = list_getNode(self, curNode->next);
+    REQUIRE(rNode != NULL);
 
-    self->buf[next].prev = self->buf[node].prev;
-    self->buf[next].next = node;
-    self->buf[node].prev = next;
+    lNode->next = curNode->next;
+    rNode->prev = curNode->prev;
+
+    if (list_setNodeFree(self, node)) {
+        return true;
+    }
+
+    self->size--;
 
     ASSERT_OK();
 
     return false;
 }
 
+bool list_findByIndex(const list_t *self, int ind, list_elem_t *value) {
+    ind = (ind % self->size + self->size) % self->size + 1;
 
-bool list_remove(list_t *self, list_node_t *node);
+    list_node_t *curNode = NULL;
 
-bool list_findByIndex(list_t *self, int ind, list_elem_t *value);
+    if (self->inArrayMode) {
+        curNode = list_getNode(self, ind);
+        REQUIRE(curNode != NULL);
+    } else {
+        curNode = list_getNode(self, 0);
+        REQUIRE(curNode != NULL);
+
+        for (int i = 0; i < ind; ++i) {
+            curNode = list_getNode(self, curNode->next);
+            REQUIRE(curNode != NULL);
+        }
+    }
+
+    if (curNode->prev == -1) {  // Free node
+        return true;
+    }
+
+    *value = curNode->value;
+
+    return false;
+}
 
 list_node_t *list_getNode(const list_t *self, list_index_t node) {
     ASSERT_OK();
