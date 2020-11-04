@@ -893,7 +893,30 @@ void list_dump(const list_t *self) {
 }
 
 list_validity_e list_validate(const list_t *self) {
-    return LIST_VALID;  // TODO: validator
+    if (!isPointerValid(self) || !isPointerValid(self->buf)) {
+        return LIST_BADPTR;
+    }
+
+    if (self->capacity == 0 || self->size > self->capacity || \
+        self->capacity >= LIST_HARD_CAP || !isPointerValid(self->buf + self->capacity)) {
+        return LIST_BADSIZE;
+    }
+
+    if (self->state == LAS_FREED) {
+        return LIST_UAF;
+    }
+
+    #if LIST_USE_CANARY
+    if (self->leftCanary != LIST_CANARY || self->rightCanary != LIST_CANARY || \
+        !isPointerValid(list_leftBufCanary(self)) || !isPointerValid(list_rightBufCanary(self)) || \
+        *list_leftBufCanary(self) != LIST_CANARY || *list_rightBufCanary(self) != LIST_CANARY) {
+        return LIST_BADCANARY;
+    }
+    #endif
+
+    // TODO: more validator
+
+    return LIST_VALID;
 }
 
 #define DESCRIBE_(value, descr)  case value: return "&lt;" #value "&gt; " descr;
