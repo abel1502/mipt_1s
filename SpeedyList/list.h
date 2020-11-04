@@ -113,9 +113,9 @@
 
 //--------------------------------------------------------------------------------
 
-static const int LIST_DUMP_LIMIT = 100;
 static const int LIST_HARD_CAP = (int)(((unsigned)-1) >> 3) / sizeof(list_elem_t);
 static const char LIST_DUMP_FILE_FMT[] = "dump/list-dump-%y%m%d-%H%M%S";
+static const int LIST_MAX_NODE_LABEL = 128;
 
 #ifndef __cplusplus
 typedef enum { false, true } bool;
@@ -327,6 +327,12 @@ void list_clear(list_t *self);
 bool list_isEmpty(const list_t *self);
 
 static int list_nextFreeCell(list_t *self);
+
+static void list_dumpInfoBox(const list_t *self, FILE *dumpFile);
+
+static void list_dumpNode(const list_t *self, list_index_t node, FILE *dumpFile);
+
+static void list_dumpGraph(const list_t *self, FILE *dumpFile);
 
 /**
  * Dump the list (for debug)
@@ -555,6 +561,7 @@ bool list_insertAfter(list_t *self, list_index_t node, list_elem_t value) {
 }
 
 #undef LIST_INSERT_TPL_
+
 bool list_remove(list_t *self, list_index_t node) {
     ASSERT_OK();
 
@@ -721,15 +728,155 @@ static int list_nextFreeCell(list_t *self) {
     return nextFree;
 }
 
+#define DUMP_(...)  fprintf(dumpFile, ##__VA_ARGS__)
+#define EOL_  "<br align=\"left\"/>"
+
+static void list_dumpInfoBox(const list_t *self, FILE *dumpFile) {
+    DUMP_("info [\n"
+          "shape=note\n"
+          "fontname=Consolas\n"
+          "margin=0.1\n");
+
+    DUMP_("label=<\n");
+
+
+    #ifdef LIST_ELEM_FMT
+    DUMP_("<font color=\"crimson\">[WARNING: LIST_ELEM_FMT is specified, so the dump may fail through the user\'s fault.]  </font>" EOL_);
+    #endif
+
+    #define CANARY_FMT_       "<font color=\"%s\">0x%016llX</font>"
+    #define CANARY_ARG_(VAL)  (VAL) == LIST_CANARY ? "green" : "crimson", (VAL)
+
+    list_validity_e validity = list_validate(self);
+    DUMP_("list_t (<font color=\"%s\">%s</font>) [0x%p] {" EOL_, validity == LIST_VALID ? "green" : "crimson", list_validity_describe(validity), self);
+    if (isPointerValid(self)) {
+        #if LIST_USE_CANARY
+        DUMP_("   left canary     = " CANARY_FMT_ EOL_, CANARY_ARG_(self->leftCanary));
+        #endif
+
+        DUMP_("   size            = %d" EOL_, self->size);
+        DUMP_("   capacity        = %d (out of %d)" EOL_, self->capacity, LIST_HARD_CAP);
+        DUMP_("   free            = #%d" EOL_, self->free);
+        DUMP_("   state           = %s" EOL_, list_allocState_describe(self->state));
+        DUMP_("   inArrayMode     = %s" EOL_, self->inArrayMode ? "true" : "false");
+
+        DUMP_("   buf [0x%p] {"EOL_, self->buf);
+        if (isPointerValid(self->buf)) {
+            #if LIST_USE_CANARY
+            list_canary_t lCan = *list_leftBufCanary(self);
+            DUMP_("     l. canary     = " CANARY_FMT_ EOL_, CANARY_ARG_(lCan));
+            #endif
+
+            DUMP_("     ..." EOL_);
+
+            #if LIST_USE_CANARY
+            list_canary_t rCan = *list_rightBufCanary(self);
+            DUMP_("     r. canary     = " CANARY_FMT_ EOL_, CANARY_ARG_(rCan));
+            #endif
+        } else {
+            DUMP_("     <corrupt>" EOL_);
+        }
+        DUMP_("   }"EOL_);
+
+        #if LIST_USE_CANARY
+        DUMP_("   right canary    = " CANARY_FMT_ EOL_, CANARY_ARG_(self->rightCanary));
+        #endif
+    } else {
+        DUMP_("   <corrupt>" EOL_);
+    }
+    DUMP_("}" EOL_);
+
+    #undef CANARY_FMT_
+    #undef CANARY_ARG_
+
+    DUMP_(">\n");
+
+    DUMP_("]\n");
+}
+
+static void list_dumpNode(const list_t *self, list_index_t node, FILE *dumpFile) {
+    REQUIRE(self != NULL);
+
+    list_node_t *nodePtr = list_getNode(self, node);
+
+    const char *fillColor = "white";
+    char label[LIST_MAX_NODE_LABEL + 1] = "";
+
+    if (nodePtr == NULL) {
+        fillColor = "crimson";
+
+        strcpy(label, "<b>NULL</b>");
+    } else if (list_isNodeFree(self, node)) {
+        fillColor = "limegreen";
+
+        #ifdef LIST_ELEM_FMT
+        int res = snprintf(label, LIST_MAX_NODE_LABEL + 1, "[%d] <b>" LIST_ELEM_FMT "</b>", node, nodePtr->value);
+        #else
+        int res = snprintf(label, LIST_MAX_NODE_LABEL + 1, "[%d]", node);
+        #endif
+        REQUIRE(0 <= res && res <= LIST_MAX_NODE_LABEL);
+
+        DUMP_("%d -> %d [color=green]\n", node, nodePtr->next);
+    } else if (node == 0) {
+        fillColor = "#FF6900";
+
+        #ifdef LIST_ELEM_FMT
+        int res = snprintf(label, LIST_MAX_NODE_LABEL + 1, "[0] <b>" LIST_ELEM_FMT "</b>", nodePtr->value);
+        #else
+        int res = snprintf(label, LIST_MAX_NODE_LABEL + 1, "[0]");
+        #endif
+        REQUIRE(0 <= res && res <= LIST_MAX_NODE_LABEL);
+
+        DUMP_("%d -> %d [color=blue]\n", nodePtr->prev, node);
+        DUMP_("%d -> %d [color=red]\n", node, nodePtr->next);
+    } else {
+        fillColor = "#0096FF";
+
+        #ifdef LIST_ELEM_FMT
+        int res = snprintf(label, LIST_MAX_NODE_LABEL + 1, "[%d] <b>" LIST_ELEM_FMT "</b>", node, nodePtr->value);
+        #else
+        int res = snprintf(label, LIST_MAX_NODE_LABEL + 1, "[%d]", node);
+        #endif
+        REQUIRE(0 <= res && res <= LIST_MAX_NODE_LABEL);
+
+        DUMP_("%d -> %d [color=blue]\n", nodePtr->prev, node);
+        DUMP_("%d -> %d [color=red]\n", node, nodePtr->next);
+    }
+
+    DUMP_("%d [fontname=Consolas margin=\"0.12,0\" shape=box style=filled color=black fillcolor=\"%s\" label=<%s>]\n", node, fillColor, label);
+}
+
+static void list_dumpGraph(const list_t *self, FILE *dumpFile) {
+    REQUIRE(dumpFile != NULL);
+
+    DUMP_("digraph list_t {\n");
+
+    DUMP_("graph [rankdir=LR splines=true pack=true]\n");
+
+    list_dumpInfoBox(self, dumpFile);
+
+    DUMP_("subgraph clusterBuf {\n");
+    if (self == NULL || self->buf == NULL) {
+        DUMP_("\"<corrupt>\" [shape=box style=filled color=crimson]\n");
+    } else {
+        for (list_index_t node = 0; node <= self->capacity; ++node) {
+            list_dumpNode(self, node, dumpFile);
+        }
+    }
+    DUMP_("}\n");
+
+    DUMP_("}\n");
+}
+
+#undef EOL_
+#undef DUMP_
+
 void list_dump(const list_t *self) {
     char *dumpFileName = genDumpFileName();
 
     FILE *dumpFile = fopen(dumpFileName, "wb");
 
-    fprintf(dumpFile, "digraph list_t {\n");
-    // TODO: dump
-    //fprintf(dumpFile, "1 -> 2 -> 3 -> 4\n");
-    fprintf(dumpFile, "}\n");
+    list_dumpGraph(self, dumpFile);
 
     fclose(dumpFile);
 
@@ -737,10 +884,10 @@ void list_dump(const list_t *self) {
 
     sprintf(cmd, "dot -O -Tsvg %.100s", dumpFileName);
     system(cmd);
-    printf(">> %s\n", cmd);
+    //printf(">> %s\n", cmd);
     sprintf(cmd, "start %.100s.svg", dumpFileName);
     system(cmd);
-    printf(">> %s\n", cmd);
+    //printf(">> %s\n", cmd);
 
     free(dumpFileName);
 }
@@ -749,7 +896,7 @@ list_validity_e list_validate(const list_t *self) {
     return LIST_VALID;  // TODO: validator
 }
 
-#define DESCRIBE_(value, descr)  case value: return "<" #value "> " descr;
+#define DESCRIBE_(value, descr)  case value: return "&lt;" #value "&gt; " descr;
 const char *list_validity_describe(list_validity_e self) {
     switch (self) {
         case LIST_VALID: return "ok";
@@ -850,7 +997,18 @@ static char *genDumpFileName() {
 void test_list(list_elem_t val1, list_elem_t val2, list_elem_t val3) {
     list_t *lst = list_new(8);
 
-    list_dump(lst);
+    TEST_ASSERT(lst != NULL);
+
+    TEST_ASSERT(!list_insertBefore(lst, 0, val1));
+    TEST_ASSERT(!list_insertBefore(lst, 0, val2));
+    TEST_ASSERT(!list_insertAfter(lst, 0, val2));
+
+    //list_dump(lst);
+    //system("pause");
+
+    TEST_ASSERT(!list_remove(lst, 1));
+
+    //list_dump(lst);
 
     list_destroy(lst);
 }
