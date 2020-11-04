@@ -487,15 +487,64 @@ void list_free(list_t *self) {
     self->inArrayMode = false;
 }
 
+#define LIST_INSERT_TPL_(RLNODE_INIT_CODE) \
+    ASSERT_OK(); \
+    \
+    if (self->size >= self->capacity) { \
+        if (list_resize(self, self->capacity * 2)) { \
+            return true; \
+        } \
+    } \
+    \
+    RLNODE_INIT_CODE \
+    \
+    list_index_t cur = list_nextFreeCell(self); \
+    \
+    list_node_t *curNode = list_getNode(self, cur); \
+    REQUIRE(curNode != NULL); \
+    \
+    if (oldLNode->next != 0) { \
+        self->inArrayMode = false; \
+    } \
+    \
+    curNode->value = value; \
+    \
+    curNode->next = oldLNode->next; \
+    curNode->prev = oldRNode->prev; \
+    oldLNode->next = cur; \
+    oldRNode->prev = cur; \
+    \
+    self->size++; \
+    \
+    ASSERT_OK(); \
+    \
+    return false;
 
 bool list_insertBefore(list_t *self, list_index_t node, list_elem_t value) {
-    REQUIRE(0 <= node && node < self->size);
-
-    if (self->size >= self->capacity) {
-        if (list_resize(self, self->capacity * 2)) {
-bool list_insertAfter(list_t *self, list_index_t node, list_elem_t value) {
+    LIST_INSERT_TPL_(
+        list_node_t *oldRNode = list_getNode(self, node);
+        if (oldRNode == NULL || oldRNode->prev == -1) {
             return true;
         }
+
+        list_node_t *oldLNode = list_getNode(self, oldRNode->prev);
+        REQUIRE(oldLNode != NULL);
+    )
+}
+
+bool list_insertAfter(list_t *self, list_index_t node, list_elem_t value) {
+    LIST_INSERT_TPL_(
+        list_node_t *oldLNode = list_getNode(self, node);
+        if (oldLNode == NULL || oldLNode->prev == -1) {
+            return true;
+        }
+
+        list_node_t *oldRNode = list_getNode(self, oldLNode->next);
+        REQUIRE(oldRNode != NULL);
+    )
+}
+
+#undef LIST_INSERT_TPL_
     }
 
     int next = list_nextFreeCell(self);
