@@ -16,6 +16,9 @@
  * A number from 0 to 3, specifying, how much validation will be performed. Defaults to maximum.
  * 0 - no integrity checks; 1 - only the fast integrity checks; 2 - all integrity checks that don't affect the asymptotical time; 3 - all integrity checks.
  *
+ * - [define]  (optional) LIST_DUMPNAME @n
+ * If defined, specifies dump file name (NO EXTENTION!). Otherwise, a default name will be auto-generated based on current time whenever list_dump is called
+ *
  * - ... <TODO>
  *
  * @warning Erroneous above-stated definitions may result in compilation or even runtime errors,
@@ -714,6 +717,13 @@ static char *genDumpFileName() {
     char *name = (char *)calloc(100, sizeof(char));
     REQUIRE(name != NULL);
 
+    #ifdef LIST_DUMPNAME
+    #define Q0_(x) Q1_(x)
+    #define Q1_(x) #x
+    strcpy(name, "dump/" Q0_(LIST_DUMPNAME));
+    #undef Q1_
+    #undef Q0_
+    #else
     time_t rawtime;
     struct tm *timeinfo;
 
@@ -722,6 +732,7 @@ static char *genDumpFileName() {
 
     //strftime(name, 100, LIST_DUMP_FILE_FMT, timeinfo);
     REQUIRE(strftime(name, 100, LIST_DUMP_FILE_FMT, timeinfo) != 0);  // We'll trust it's enough
+    #endif // LIST_DUMPNAME
 
     return name;
 }
@@ -745,5 +756,6 @@ void test_list(list_elem_t val1, list_elem_t val2, list_elem_t val3) {
 
 #undef LIST_VALIDATION_LEVEL
 #undef LIST_ELEM_FMT
+#undef LIST_DUMPNAME
 
 #endif // LIST_H_GUARD

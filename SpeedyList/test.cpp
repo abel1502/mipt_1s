@@ -11,6 +11,7 @@
 typedef double list_elem_t;
 #define LIST_ELEM_FMT "%lg"
 #define LIST_VALIDATION_LEVEL 3
+#define LIST_DUMPNAME list_dump_test
 #include "list.h"
 // =============================
 
