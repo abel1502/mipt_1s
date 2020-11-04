@@ -126,6 +126,7 @@ static const list_canary_t LIST_CANARY = ((list_canary_t)-1) & 0xBADC0DEDEADB1AD
 
 typedef struct list_s list_t;
 typedef struct list_node_s list_node_t;
+typedef int list_index_t;
 
 /**
  * An enum describing the list's allocation state
@@ -145,14 +146,12 @@ struct list_s {
     #endif
 
     list_node_t *buf;          ///< Actual list nodes on the heap
-    int size;                  ///< List's current size
-    int capacity;              ///< List's maximal size
+    list_index_t size;         ///< List's current size
+    list_index_t capacity;     ///< List's maximal size
     bool inArrayMode;          ///< Whether the list is in a sped-up mode for lookups
     list_allocState_e state;   ///< List allocation state
 
-    int head;                  ///< Head index
-    int tail;                  ///< Tail index
-    int free;                  ///< First free element's index
+    list_index_t free;         ///< First free element's index
 
     #if LIST_USE_CANARY
     list_canary_t rightCanary; ///< Right canary
@@ -163,9 +162,9 @@ struct list_s {
  * A node of the list
  */
 struct list_node_s {
-    list_elem_t value;
-    int prev;
-    int next;
+    list_elem_t value;  ///< Node's actual value
+    list_index_t prev;  ///< Previous node (or -1 for free nodes)
+    list_index_t next;  ///< Next node
 };
 
 /**
@@ -188,7 +187,7 @@ typedef enum {
  *
  * @return List instance, NULL on error
  */
-list_t *list_new(int capacity);
+list_t *list_new(list_index_t capacity);
 
 /**
  * List constructor (external allocation)
@@ -198,7 +197,7 @@ list_t *list_new(int capacity);
  *
  * @return `self`, NULL on error
  */
-list_t *list_init(list_t *self, int capacity);
+list_t *list_init(list_t *self, list_index_t capacity);
 
 /**
  * List destructor (internal allocation)
@@ -223,7 +222,7 @@ void list_free(list_t *self);
  *
  * @return true on error, false otherwise
  */
-bool list_insertBefore(list_t *self, int node, list_elem_t value);
+bool list_insertBefore(list_t *self, list_index_t node, list_elem_t value);
 
 /**
  * Insert `value` to the list
@@ -234,7 +233,7 @@ bool list_insertBefore(list_t *self, int node, list_elem_t value);
  *
  * @return true on error, false otherwise
  */
-bool list_insertAfter(list_t *self, int node, list_elem_t value);
+bool list_insertAfter(list_t *self, list_index_t node, list_elem_t value);
 
 /**
  * Remove `node` from the list
@@ -244,7 +243,7 @@ bool list_insertAfter(list_t *self, int node, list_elem_t value);
  *
  * @return true on error, false otherwise
  */
-bool list_remove(list_t *self, int node);
+bool list_remove(list_t *self, list_index_t node);
 
 /**
  * Find a list node by its list-index
@@ -297,7 +296,7 @@ bool list_enterArrayMode(list_t *self);
  *
  * @return true on error, false otherwise
  */
-bool list_resize(list_t *self, int capacity);
+bool list_resize(list_t *self, list_index_t capacity);
 
 /**
  * Clear the list
@@ -394,7 +393,7 @@ void test_list(list_elem_t val1, list_elem_t val2, list_elem_t val3);
 
 #ifndef LIST_NOIMPL
 
-list_t *list_new(int capacity) {
+list_t *list_new(list_index_t capacity) {
     list_t *self = (list_t *)calloc(1, sizeof(list_t));
 
     if (!isPointerValid(self)) {
@@ -412,7 +411,7 @@ list_t *list_new(int capacity) {
     return self;
 }
 
-list_t *list_init(list_t *self, int capacity) {
+list_t *list_init(list_t *self, list_index_t capacity) {
     if (!isPointerValid(self) || capacity == 0 || capacity >= LIST_HARD_CAP) {
         return NULL;
     }
@@ -426,8 +425,6 @@ list_t *list_init(list_t *self, int capacity) {
     self->size = 0;
     self->state = LAS_EXTERNAL;
     self->free = 1;
-    self->head = 0;
-    self->tail = 0;
     self->inArrayMode = true;
 
     #if LIST_USE_CANARY
@@ -484,19 +481,17 @@ void list_free(list_t *self) {
     self->size = 0;
     self->capacity = 0;
     self->state = LAS_FREED;
-    self->head = 0;
-    self->tail = 0;
     self->free = 0;
     self->inArrayMode = false;
 }
 
-bool list_insertBefore(list_t *self, int node, list_elem_t value) {
-    ASSERT_OK();
 
+bool list_insertBefore(list_t *self, list_index_t node, list_elem_t value) {
     REQUIRE(0 <= node && node < self->size);
 
     if (self->size >= self->capacity) {
         if (list_resize(self, self->capacity * 2)) {
+bool list_insertAfter(list_t *self, list_index_t node, list_elem_t value) {
             return true;
         }
     }
@@ -514,13 +509,12 @@ bool list_insertBefore(list_t *self, int node, list_elem_t value) {
     return false;
 }
 
-bool list_insertAfter(list_t *self, list_node_t *node, list_elem_t value);
 
 bool list_remove(list_t *self, list_node_t *node);
 
 bool list_findByIndex(list_t *self, int ind, list_elem_t *value);
 
-list_node_t *list_getNode(list_t *self, int node) {
+list_node_t *list_getNode(const list_t *self, list_index_t node) {
     ASSERT_OK();
 
     if (node < 0 || node > self->capacity) return NULL;
@@ -528,7 +522,7 @@ list_node_t *list_getNode(list_t *self, int node) {
     return self->buf[node].prev == -1;
 }
 
-bool list_isNodeFree(list_t *self, int node) {
+bool list_isNodeFree(const list_t *self, list_index_t node) {
     ASSERT_OK();
 
     return list_getNode(self, node)->prev == -1;
@@ -537,7 +531,7 @@ bool list_isNodeFree(list_t *self, int node) {
 
 bool list_enterArrayMode(list_t *self);
 
-bool list_resize(list_t *self, int capacity) {
+bool list_resize(list_t *self, list_index_t capacity) {
     ASSERT_OK();
 
     if (capacity < self->capacity || capacity >= LIST_HARD_CAP) {
@@ -575,7 +569,7 @@ bool list_resize(list_t *self, int capacity) {
     *list_rightBufCanary(self) = LIST_CANARY;
     #endif
 
-    for (int i = 1; i < self->capacity; ++i) {
+    for (list_index_t i = 1; i < self->capacity; ++i) {
         self->buf[i].next = i + 1;
         self->buf[i].prev = -1;
     }

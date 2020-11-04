@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1604243924 source:d:\workspace\.mipt\s1\speedylist\test.cpp
+1604512325 source:d:\workspace\.mipt\s1\speedylist\test.cpp
 	"../libs/test.h"
 	<stdio.h>
 	<stdlib.h>
@@ -17,7 +17,7 @@
 	<setjmp.h>
 	<signal.h>
 
-1604316834 d:\workspace\.mipt\s1\speedylist\list.h
+1604513625 d:\workspace\.mipt\s1\speedylist\list.h
 	<stdlib.h>
 	<stdio.h>
 	<string.h>
