@@ -283,6 +283,16 @@ list_node_t *list_getNode(list_t *self, int node);
 bool list_isNodeFree(list_t *self, int node);
 
 /**
+ * Mark a node as free
+ *
+ * @param [in/out] self   List instance
+ * @param [in]     node   The node to mark
+ *
+ * @return true on error, false otherwise
+ */
+bool list_setNodeFree(list_t *self, list_index_t node);
+
+/**
  * Transforms the list in such a way that lookups by index now take O(1) time
  *
  * @warning Works in O(n log n)
@@ -579,6 +589,21 @@ bool list_isNodeFree(const list_t *self, list_index_t node) {
     return list_getNode(self, node)->prev == -1;
 }
 
+bool list_setNodeFree(list_t *self, list_index_t node) {
+    ASSERT_OK();
+
+    list_node_t *curNode = list_getNode(self, node);
+
+    if (curNode == NULL) {
+        return true;
+    }
+
+    curNode->next = self->free;
+    curNode->prev = -1;
+    self->free = node;
+
+    return false;
+}
 
 bool list_enterArrayMode(list_t *self);
 
