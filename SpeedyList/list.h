@@ -853,6 +853,7 @@ void list_clear(list_t *self) {
     self->buf[self->capacity].next = 0;
     self->buf[self->capacity].prev = -1;
 
+    self->free = 1;
     self->inArrayMode = true;
     self->size = 0;
 
