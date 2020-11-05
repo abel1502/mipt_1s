@@ -79,14 +79,56 @@ int main() {
                 continue;
             }
         )
+        CMD_CASE_("pushFront",
+            double val = -1;
+            CMD_GETARG_("%lg", val);
+
+            if (list_pushFront(lst, val)) {
+                printf("Failed.\n");
+                continue;
+            }
+        )
+        CMD_CASE_("pushBack",
+            double val = -1;
+            CMD_GETARG_("%lg", val);
+
+            if (list_pushBack(lst, val)) {
+                printf("Failed.\n");
+                continue;
+            }
+        )
         CMD_CASE_("remove",
             int arg = -1;
             CMD_GETARG_("%d", arg);
 
-            if (list_remove(lst, arg)) {
+            double value = -1;
+
+            if (list_remove(lst, arg, &value)) {
                 printf("Failed.\n");
                 continue;
             }
+
+            printf("%lg\n", value);
+        )
+        CMD_CASE_("popFront",
+            double value = -1;
+
+            if (list_popFront(lst, &value)) {
+                printf("Failed.\n");
+                continue;
+            }
+
+            printf("%lg\n", value);
+        )
+        CMD_CASE_("popBack",
+            double value = -1;
+
+            if (list_popBack(lst, &value)) {
+                printf("Failed.\n");
+                continue;
+            }
+
+            printf("%lg\n", value);
         )
         CMD_CASE_("findByInd",
             int arg = -1;
@@ -137,7 +179,11 @@ int main() {
             printf("Commands: \n"
                    "  insertAft <node> <val>\n"
                    "  insertBef <node> <val>\n"
+                   "  pushFront <val>\n"
+                   "  pushBack <val>\n"
                    "  remove <node>\n"
+                   "  popFront\n"
+                   "  popBack\n"
                    "  findByInd <ind>\n"
                    "  getVal <node>\n"
                    "  enterArrMode\n"

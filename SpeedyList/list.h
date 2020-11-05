@@ -238,14 +238,55 @@ bool list_insertBefore(list_t *self, list_index_t node, list_elem_t value);
 bool list_insertAfter(list_t *self, list_index_t node, list_elem_t value);
 
 /**
+ * Insert `value` to the tail of the list
+ *
+ * @param [in/out] self   List instance
+ * @param [in]     value  The value to insert
+ *
+ * @return true on error, false otherwise
+ */
+bool list_pushBack(list_t *self, list_elem_t value);
+
+/**
+ * Insert `value` to the head of the list
+ *
+ * @param [in/out] self   List instance
+ * @param [in]     value  The value to insert
+ *
+ * @return true on error, false otherwise
+ */
+bool list_pushFront(list_t *self, list_elem_t value);
+
+/**
  * Remove `node` from the list
  *
  * @param [in/out] self   List instance
  * @param [in]     node   The node to remove
+ * @param [out]    value  The destination for the element's value (or NULL)
  *
  * @return true on error, false otherwise
  */
-bool list_remove(list_t *self, list_index_t node);
+bool list_remove(list_t *self, list_index_t node, list_elem_t *value);
+
+/**
+ * Insert `value` to the tail of the list
+ *
+ * @param [in/out] self   List instance
+ * @param [out]    value  The destination for the element's value (or NULL)
+ *
+ * @return true on error, false otherwise
+ */
+bool list_popBack(list_t *self, list_elem_t *value);
+
+/**
+ * Insert `value` to the head of the list
+ *
+ * @param [in/out] self   List instance
+ * @param [out]    value  The destination for the element's value (or NULL)
+ *
+ * @return true on error, false otherwise
+ */
+bool list_popFront(list_t *self, list_elem_t *value);
 
 /**
  * Find a list node by its list-index
@@ -562,12 +603,24 @@ bool list_insertAfter(list_t *self, list_index_t node, list_elem_t value) {
 
 #undef LIST_INSERT_TPL_
 
-bool list_remove(list_t *self, list_index_t node) {
+bool list_pushBack(list_t *self, list_elem_t value) {
+    return list_insertBefore(self, 0, value);
+}
+
+bool list_pushFront(list_t *self, list_elem_t value) {
+    return list_insertAfter(self, 0, value);
+}
+
+bool list_remove(list_t *self, list_index_t node, list_elem_t *value) {
     ASSERT_OK();
 
     list_node_t *curNode = list_getNode(self, node);
-    if (curNode == NULL) {
+    if (curNode == NULL || curNode->prev == -1 || node == 0) {
         return true;
+    }
+
+    if (value != NULL) {
+        *value = curNode->value;
     }
 
     list_node_t *lNode = list_getNode(self, curNode->prev);
@@ -588,6 +641,28 @@ bool list_remove(list_t *self, list_index_t node) {
     ASSERT_OK();
 
     return false;
+}
+
+bool list_popBack(list_t *self, list_elem_t *value) {
+    ASSERT_OK();
+
+    list_node_t *curNode = list_getNode(self, 0);
+    if (curNode == NULL) {
+        return true;
+    }
+
+    return list_remove(self, curNode->prev, value);
+}
+
+bool list_popFront(list_t *self, list_elem_t *value) {
+    ASSERT_OK();
+
+    list_node_t *curNode = list_getNode(self, 0);
+    if (curNode == NULL) {
+        return true;
+    }
+
+    return list_remove(self, curNode->next, value);
 }
 
 bool list_findByIndex(const list_t *self, int ind, list_elem_t *value) {
