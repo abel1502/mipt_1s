@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
         verbose = true;
         ,
         test_solveSE();
-        $g; TEST_MSG("Passed All."); $d;
+        TEST_SMSG("Passed All.");
         ,
     )
 

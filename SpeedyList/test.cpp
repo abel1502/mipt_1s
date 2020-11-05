@@ -23,8 +23,8 @@ const char CMD_FMT[] = "%100s";
 int main() {
     TEST_MAIN(
         ,
-        test_list(1.23, 4.56, 7.89);
-        $g; TEST_MSG("Passed All."); $d;
+        test_list(765.01, 433.02, 243.03, 678.04);
+        TEST_SMSG("Passed All.");
         ,
     )
 

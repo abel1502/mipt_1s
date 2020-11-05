@@ -56,23 +56,29 @@ static jmp_buf __cleanup_env;
 
 #define TEST_EXIT()         MACROFUNC(longjmp(__cleanup_env, 1);)
 
-#define TEST_MSG(msg, ...)  MACROFUNC(printf("[TEST (%s#%d)] " msg "\n", __FILE__, __LINE__, ##__VA_ARGS__);)
+#define TEST_PMSG(msg, ...)   MACROFUNC(printf(msg, ##__VA_ARGS__);)
+#define TEST_PSMSG(msg, ...)  MACROFUNC($g; TEST_PMSG(msg, ##__VA_ARGS__); $d;)
+#define TEST_PFMSG(msg, ...)  MACROFUNC($r; TEST_PMSG(msg, ##__VA_ARGS__); $d;)
+
+#define TEST_MSG(msg, ...)   MACROFUNC(printf("[TEST (%s#%d)] " msg "\n", __FILE__, __LINE__, ##__VA_ARGS__);)
+#define TEST_SMSG(msg, ...)  MACROFUNC($g; TEST_MSG(msg, ##__VA_ARGS__); $d;)
+#define TEST_FMSG(msg, ...)  MACROFUNC($r; TEST_MSG(msg, ##__VA_ARGS__); $d;)
 
 #define TEST_SETUP(stmt)    MACROFUNC(TEST_MSG("Setting up {%s}", #stmt); stmt)
 
 #define TEST_ASSERT(stmt)   MACROFUNC( \
     if (!(stmt)) { \
-        $r; TEST_MSG("[!] Assertion (%s) failed", #stmt); $d; TEST_EXIT(); \
+        TEST_FMSG("[!] Assertion (%s) failed", #stmt); TEST_EXIT(); \
     } else { \
-        printf("."); \
+        TEST_PMSG("."); \
     } \
 )
 
 #define TEST_ASSERT_M(stmt, msg, ...) MACROFUNC( \
     if (!(stmt)) { \
-        $r; TEST_MSG("[!] Assertion (%s) failed with message " #msg, #stmt, ##__VA_ARGS__); $d; TEST_EXIT(); \
+        TEST_FMSG("[!] Assertion (%s) failed with message " #msg, #stmt, ##__VA_ARGS__); TEST_EXIT(); \
     } else { \
-        printf("."); \
+        TEST_PMSG("."); \
     } \
 )
 

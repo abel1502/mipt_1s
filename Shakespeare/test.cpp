@@ -23,7 +23,7 @@ int main() {
         test_sortLines(&test_lines);
         test_cmpLines();
         test_isRelevant();
-        $g; TEST_MSG("Passed All."); $d;
+        TEST_SMSG("Passed All.");
         ,
         freeLines(&test_lines);
     )

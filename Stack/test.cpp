@@ -24,7 +24,7 @@ int main() {
         ,
         test_crc32();
         test_stack(1.23, 4.56, 7.89);
-        $g; TEST_MSG("Passed All."); $d;
+        TEST_SMSG("Passed All.");
         ,
     )
 
