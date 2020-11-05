@@ -666,6 +666,10 @@ bool list_popFront(list_t *self, list_elem_t *value) {
 }
 
 bool list_findByIndex(const list_t *self, int ind, list_elem_t *value) {
+    if (self->size == 0) {
+        return true;
+    }
+
     ind = (ind % self->size + self->size) % self->size + 1;
 
     list_node_t *curNode = NULL;
