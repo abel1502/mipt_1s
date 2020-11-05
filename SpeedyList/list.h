@@ -115,7 +115,7 @@
 
 static const int LIST_HARD_CAP = (int)(((unsigned)-1) >> 3) / sizeof(list_elem_t);
 static const char LIST_DUMP_FILE_FMT[] = "dump/list-dump-%y%m%d-%H%M%S";
-static const int LIST_MAX_NODE_LABEL = 128;
+static const int LIST_MAX_LABEL_BUFSIZE = 128;
 
 #ifndef __cplusplus
 typedef enum { false, true } bool;
@@ -876,50 +876,51 @@ static void list_dumpNode(const list_t *self, list_index_t node, FILE *dumpFile)
     list_node_t *nodePtr = list_getNode(self, node);
 
     const char *fillColor = "white";
-    char label[LIST_MAX_NODE_LABEL + 1] = "";
 
     if (nodePtr == NULL) {
         fillColor = "crimson";
-
-        strcpy(label, "<b>NULL</b>");
     } else if (list_isNodeFree(self, node)) {
         fillColor = "limegreen";
 
-        #ifdef LIST_ELEM_FMT
-        int res = snprintf(label, LIST_MAX_NODE_LABEL + 1, "[%d] <b>" LIST_ELEM_FMT "</b>", node, nodePtr->value);
-        #else
-        int res = snprintf(label, LIST_MAX_NODE_LABEL + 1, "[%d]", node);
-        #endif
-        REQUIRE(0 <= res && res <= LIST_MAX_NODE_LABEL);
-
-        DUMP_("%d -> %d [color=green]\n", node, nodePtr->next);
-    } else if (node == 0) {
-        fillColor = "#FF6900";
-
-        #ifdef LIST_ELEM_FMT
-        int res = snprintf(label, LIST_MAX_NODE_LABEL + 1, "[0] <b>" LIST_ELEM_FMT "</b>", nodePtr->value);
-        #else
-        int res = snprintf(label, LIST_MAX_NODE_LABEL + 1, "[0]");
-        #endif
-        REQUIRE(0 <= res && res <= LIST_MAX_NODE_LABEL);
-
-        DUMP_("%d -> %d [color=blue]\n", nodePtr->prev, node);
-        DUMP_("%d -> %d [color=red]\n", node, nodePtr->next);
+        //DUMP_("%d:cur:s -> %d:prev:w [color=green]\n", node, nodePtr->next);
+        DUMP_("%d:se -> %d:sw [color=green]\n", node, nodePtr->next);
     } else {
-        fillColor = "#0096FF";
+        fillColor = node == 0 ? "#FF6900" : "#0096FF";
 
-        #ifdef LIST_ELEM_FMT
-        int res = snprintf(label, LIST_MAX_NODE_LABEL + 1, "[%d] <b>" LIST_ELEM_FMT "</b>", node, nodePtr->value);
-        #else
-        int res = snprintf(label, LIST_MAX_NODE_LABEL + 1, "[%d]", node);
-        #endif
-        REQUIRE(0 <= res && res <= LIST_MAX_NODE_LABEL);
-
-        DUMP_("%d -> %d [color=blue]\n", nodePtr->prev, node);
-        DUMP_("%d -> %d [color=red]\n", node, nodePtr->next);
+        //DUMP_("%d:cur:s -> %d:prev:w [color=blue]\n", nodePtr->prev, node);
+        //DUMP_("%d:next:e -> %d:cur:s [color=red]\n", node, nodePtr->next);
+        DUMP_("%d:se -> %d:sw [color=blue]\n", nodePtr->prev, node);
+        DUMP_("%d:se -> %d:sw [color=blue]\n", node, nodePtr->next);
     }
 
-    DUMP_("%d [fontname=Consolas margin=\"0.12,0\" shape=box style=filled color=black fillcolor=\"%s\" label=<%s>]\n", node, fillColor, label);
+    char val[LIST_MAX_LABEL_BUFSIZE] = "";
+
+    if (nodePtr == NULL) {
+        strcpy(val, "NULL");
+    } else {
+        #ifdef LIST_ELEM_FMT
+        snprintf(val, LIST_MAX_LABEL_BUFSIZE, LIST_ELEM_FMT, nodePtr->value);
+        #else
+        strcpy(val, "0x");
+        for (unsigned i = 0; i < sizeof(list_elem_t); i++) {
+            snprintf(val, LIST_MAX_LABEL_BUFSIZE, "%s%02hhX", val, *((unsigned char *)&nodePtr->value + i));
+            //printf(">%s\n", val);
+        }
+        #endif
+    }
+
+    // margin=\"0.12,0\"
+    DUMP_("%d [fontname=Consolas width=0 height=0 margin=0 shape=plaintext style=filled color=black fillcolor=\"%s\" label=<"
+          "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">"
+            "<tr>"
+              "<td colspan=\"3\">%s</td>"
+            "</tr><tr>"
+              "<td port=\"prev\">%d</td>"
+              "<td port=\"cur\">%d</td>"    // Physical addr
+              //"<td>(%d)</td>"  // Logical addr
+              "<td port=\"next\">%d</td>"
+            "</tr></table>"
+          ">]\n", node, fillColor, val, nodePtr != NULL ? nodePtr->prev : -1, node, nodePtr != NULL ? nodePtr->next : -1);
 }
 
 static void list_dumpGraph(const list_t *self, FILE *dumpFile) {
@@ -927,11 +928,11 @@ static void list_dumpGraph(const list_t *self, FILE *dumpFile) {
 
     DUMP_("digraph list_t {\n");
 
-    DUMP_("graph [rankdir=LR splines=true pack=true]\n");
+    DUMP_("graph [rankdir=LR splines=spline pack=true concentrate=true]\n");
 
     list_dumpInfoBox(self, dumpFile);
 
-    DUMP_("subgraph clusterBuf {\n");
+    DUMP_("subgraph buf { \n");
     if (self == NULL || self->buf == NULL) {
         DUMP_("\"<corrupt>\" [shape=box style=filled color=crimson]\n");
     } else {
