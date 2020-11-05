@@ -445,7 +445,7 @@ static char *genDumpFileName();
 bool isPointerValid(const void *ptr);
 
 #ifdef TEST
-void test_list(list_elem_t val1, list_elem_t val2, list_elem_t val3);
+void test_list(list_elem_t val1, list_elem_t val2, list_elem_t val3, list_elem_t val4);
 #endif
 
 //--------------------------------------------------------------------------------
@@ -1169,23 +1169,179 @@ static char *genDumpFileName() {
 }
 
 #ifdef TEST
-void test_list(list_elem_t val1, list_elem_t val2, list_elem_t val3) {
-    list_t *lst = list_new(8);
+static void test_list_constructors() {
+    TEST_PMSG("Constructors:");
 
+    list_t *lst = NULL;
+    list_t lstInstance = {};
+
+    lst = list_init(&lstInstance, 8);
+    TEST_ASSERT(lst != NULL && lst == &lstInstance);
+    TEST_ASSERT(list_validate(lst) == LIST_VALID);
+    TEST_ASSERT(lst->state == LAS_EXTERNAL);
+    list_free(lst);
+
+    lst = list_new(8);
+    TEST_ASSERT(lst != NULL);
+    TEST_ASSERT(list_validate(lst) == LIST_VALID);
+    TEST_ASSERT(lst->state == LAS_HEAP);
+    list_destroy(lst);
+
+    TEST_PSMSG("OK\n");
+}
+
+static void test_list_size(list_elem_t val) {
+    TEST_PMSG("Size:");
+
+    list_t *lst = NULL;
+    lst = list_new(8);
     TEST_ASSERT(lst != NULL);
 
-    TEST_ASSERT(!list_insertBefore(lst, 0, val1));
-    TEST_ASSERT(!list_insertBefore(lst, 0, val2));
-    TEST_ASSERT(!list_insertAfter(lst, 0, val2));
+    TEST_ASSERT(!list_isNodeFree(lst, 0));
+    TEST_ASSERT(list_isNodeFree(lst, 1));
 
-    //list_dump(lst);
-    //system("pause");
 
-    TEST_ASSERT(!list_remove(lst, 1));
+    TEST_ASSERT(list_isEmpty(lst));
+    TEST_ASSERT(lst->size == 0);
+    TEST_ASSERT(lst->capacity == 8);
 
-    //list_dump(lst);
+    TEST_ASSERT(!list_insertBefore(lst, 0, val));
+
+    TEST_ASSERT(!list_isNodeFree(lst, 0));
+    TEST_ASSERT(!list_isNodeFree(lst, 1));
+
+    TEST_ASSERT(!list_isEmpty(lst));
+    TEST_ASSERT(lst->size == 1);
+    TEST_ASSERT(lst->capacity == 8);
+
+    TEST_ASSERT(!list_resize(lst, 99));
+    TEST_ASSERT(!list_isEmpty(lst));
+    TEST_ASSERT(lst->size == 1);
+    TEST_ASSERT(lst->capacity == 99);
+
+    TEST_ASSERT_M(list_resize(lst, 50), "Downwards resize should be prohibited");
+    TEST_ASSERT(!list_isEmpty(lst));
+    TEST_ASSERT(lst->size == 1);
+    TEST_ASSERT(lst->capacity == 99);
+
+    list_clear(lst);
+    TEST_ASSERT(list_isEmpty(lst));
+    TEST_ASSERT(lst->size == 0);
+    TEST_ASSERT(lst->capacity == 99);
+
+    TEST_ASSERT(!list_insertAfter(lst, 0, val));
+    TEST_ASSERT(!list_insertAfter(lst, 0, val));
+
+    TEST_ASSERT(!list_isEmpty(lst));
+    TEST_ASSERT(lst->size == 2);
+    TEST_ASSERT(lst->capacity == 99);
+
+    TEST_ASSERT(!list_isNodeFree(lst, 0));
+    TEST_ASSERT(!list_isNodeFree(lst, 1));
+    TEST_ASSERT(list_isNodeFree(lst, 50));
+
+    TEST_ASSERT(!list_remove(lst, 1, NULL));
+    TEST_ASSERT(lst->size == 1);
+    TEST_ASSERT(lst->capacity == 99);
 
     list_destroy(lst);
+
+    TEST_PSMSG("OK\n");
+}
+
+static void test_list_operations(list_elem_t val1, list_elem_t val2, list_elem_t val3, list_elem_t val4) {
+    TEST_PMSG("Regular operations:");
+
+    list_t *lst = NULL;
+    lst = list_new(8);
+    TEST_ASSERT(lst != NULL);
+
+    TEST_ASSERT(!list_pushBack(lst, val1));
+    TEST_ASSERT(!list_pushFront(lst, val2));
+    TEST_ASSERT(!list_insertAfter(lst, 2, val3));
+    TEST_ASSERT(!list_insertBefore(lst, 1, val4));
+
+    // 2 3 4 1
+
+    list_node_t *curNode = list_getNode(lst, 0);
+    TEST_ASSERT(curNode != NULL);
+
+    #define CHECK_NEXT_(EXPECTED) \
+        curNode = list_getNode(lst, curNode->next); \
+        TEST_ASSERT(curNode != NULL); \
+        TEST_ASSERT(curNode->value == EXPECTED);
+
+    CHECK_NEXT_(val2);
+    CHECK_NEXT_(val3);
+    CHECK_NEXT_(val4);
+    CHECK_NEXT_(val1);
+
+    #undef CHECK_NEXT_
+
+    TEST_ASSERT(curNode->next == 0);
+
+    list_elem_t val = val1;
+
+    #define CHECK_NEXT_(FUNCCALL, EXPECTED) \
+        TEST_ASSERT(!FUNCCALL); \
+        TEST_ASSERT(val == EXPECTED);
+
+    CHECK_NEXT_(list_popFront(lst, &val), val2);
+    CHECK_NEXT_(list_popBack(lst, &val), val1);
+    CHECK_NEXT_(list_remove(lst, 3, &val), val3);
+    CHECK_NEXT_(list_remove(lst, 4, NULL), val3);  // With a null pointer, it should succeed but not overwrite anything
+
+    #undef CHECK_NEXT_
+
+    TEST_ASSERT_M(list_remove(lst, 5, NULL), "Removal of a free element should fail");
+    TEST_ASSERT_M(list_remove(lst, 1, NULL), "Removal of a removed element should fail");
+    TEST_ASSERT_M(list_remove(lst, 0, NULL), "Removal of the 0-element should fail");
+
+    list_destroy(lst);
+
+    TEST_PSMSG("OK\n");
+}
+
+static void test_list_lookup(list_elem_t val1, list_elem_t val2, list_elem_t val3, list_elem_t val4) {
+    TEST_PMSG("Lookup:");
+
+    list_t *lst = NULL;
+    lst = list_new(8);
+    TEST_ASSERT(lst != NULL);
+
+    TEST_ASSERT(!list_pushBack(lst, val1));
+    TEST_ASSERT(!list_pushBack(lst, val2));
+    TEST_ASSERT(!list_pushFront(lst, val3));
+
+    list_elem_t val = val4;
+
+    #define CHECK_(IND, EXP) \
+        TEST_ASSERT(!list_findByIndex(lst, IND, &val)); \
+        TEST_ASSERT(val == EXP);
+
+    CHECK_(0, val3);
+    CHECK_(1, val1);
+    CHECK_(2, val2);
+    CHECK_(-2, val1);
+    CHECK_(3, val3);
+    CHECK_(91, val1);
+
+    #undef CHECK_
+
+    list_clear(lst);
+
+    TEST_ASSERT_M(list_findByIndex(lst, 0, &val), "Lookup should fail on an empty list");
+
+    list_destroy(lst);
+
+    TEST_PSMSG("OK\n");
+}
+
+void test_list(list_elem_t val1, list_elem_t val2, list_elem_t val3, list_elem_t val4) {\
+    test_list_constructors();
+    test_list_size(val1);
+    test_list_operations(val1, val2, val3, val4);
+    test_list_lookup(val1, val2, val3, val4);
 }
 #endif
 
