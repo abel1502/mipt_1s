@@ -754,9 +754,9 @@ bool list_enterArrayMode(list_t *self) {
     }
 
     #if LIST_USE_CANARY
-    list_node_t *newBuf = (list_node_t *)realloc(list_leftBufCanary(self), (1 + self->capacity) * sizeof(list_node_t) + 2 * sizeof(list_canary_t));
+    list_node_t *newBuf = (list_node_t *)calloc(1, (1 + self->capacity) * sizeof(list_node_t) + 2 * sizeof(list_canary_t));
     #else
-    list_node_t *newBuf = (list_node_t *)realloc(self->buf, (1 + self->capacity) * sizeof(list_node_t));
+    list_node_t *newBuf = (list_node_t *)calloc(1 + self->capacity,  sizeof(list_node_t));
     #endif
 
     if (!isPointerValid(newBuf)) {
