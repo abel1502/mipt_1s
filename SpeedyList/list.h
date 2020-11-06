@@ -1371,6 +1371,12 @@ static void test_list_operations(list_elem_t val1, list_elem_t val2, list_elem_t
     TEST_ASSERT_M(list_remove(lst, 1, NULL), "Removal of a removed element should fail");
     TEST_ASSERT_M(list_remove(lst, 0, NULL), "Removal of the 0-element should fail");
 
+    list_clear(lst);
+
+    for (int i = 0; i < 24; ++i) {
+        TEST_ASSERT_M(!list_pushBack(lst, val1), "Resize seems to malfunction");
+    }
+
     list_destroy(lst);
 
     TEST_PSMSG("OK\n");
@@ -1411,11 +1417,67 @@ static void test_list_lookup(list_elem_t val1, list_elem_t val2, list_elem_t val
     TEST_PSMSG("OK\n");
 }
 
+static void test_list_arrayMode(list_elem_t val1, list_elem_t val2, list_elem_t val3, list_elem_t val4) {
+    TEST_PMSG("Array Mode:");
+
+    list_t *lst = NULL;
+    lst = list_new(8);
+    TEST_ASSERT(lst != NULL);
+
+    TEST_ASSERT_M(lst->inArrayMode, "Empty list should be in array mode");
+    TEST_ASSERT_M(!list_enterArrayMode(lst), "List should be able to enter arr. mode if it's in it already");
+
+    TEST_ASSERT(!list_pushBack(lst, val1));
+    TEST_ASSERT(!list_pushFront(lst, val2));
+    TEST_ASSERT(!list_insertAfter(lst, 2, val3));
+    TEST_ASSERT(!list_insertBefore(lst, 1, val4));
+
+    // PHYS 1 2 3 4
+    // LOG  2 3 4 1
+
+    TEST_ASSERT_M(!lst->inArrayMode, "The list should have lost its array mode");
+
+    TEST_ASSERT(!list_enterArrayMode(lst));
+    TEST_ASSERT(lst->inArrayMode);
+
+    list_node_t *curNode = NULL;
+
+    #define CHECK_(EXPECTED, IND) \
+        curNode = list_getNode(lst, IND); \
+        TEST_ASSERT(curNode != NULL); \
+        TEST_ASSERT(curNode->value == EXPECTED);
+
+    CHECK_(val2, 1);
+    CHECK_(val3, 2);
+    CHECK_(val4, 3);
+    CHECK_(val1, 4);
+
+    #undef CHECK_
+
+    TEST_ASSERT_M(lst->inArrayMode, "Lookups shouldn't have interfered with array mode");
+
+    TEST_ASSERT(!list_pushBack(lst, val1));
+    TEST_ASSERT(!list_pushFront(lst, val2));
+    TEST_ASSERT(!list_insertAfter(lst, 2, val3));
+    TEST_ASSERT(!list_insertBefore(lst, 1, val4));
+
+    TEST_ASSERT(!lst->inArrayMode);
+
+    list_clear(lst);
+
+    TEST_ASSERT_M(lst->inArrayMode, "Clear should reset inArrayMode to true");
+
+    list_destroy(lst);
+
+    TEST_PSMSG("OK\n");
+}
+
 void test_list(list_elem_t val1, list_elem_t val2, list_elem_t val3, list_elem_t val4) {\
     test_list_constructors();
     test_list_size(val1);
     test_list_operations(val1, val2, val3, val4);
     test_list_lookup(val1, val2, val3, val4);
+    test_list_arrayMode(val1, val2, val3, val4);
 }
 #endif
 
