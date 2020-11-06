@@ -60,9 +60,9 @@
 #endif
 
 #if (LIST_VALIDATION_LEVEL >= 3)
-//
+#define LIST_LINEAR_VALIDATION 1
 #else
-//
+#define LIST_LINEAR_VALIDATION 0
 #endif
 
 
@@ -184,6 +184,8 @@ typedef enum {
     LIST_BADSIZE,    ///< Size or capacity is corrupt
     LIST_BADCANARY,  ///< A canary is corrupt
     LIST_LOOP,       ///< The list contains a loop
+    LIST_BADPREV,    ///< Inappropriate prev value
+    LIST_BADNEXT,    ///< Inappropriate next value
     LIST_UAF         ///< Use after free
 } list_validity_e;
 
@@ -1085,12 +1087,63 @@ list_validity_e list_validate(const list_t *self) {
     }
     #endif
 
-    // TODO: more validator
+    #define GET_NEXT_() \
+        curNode = list_getNode(self, curInd); \
+        if (curNode == NULL) { \
+            return LIST_BADNEXT; \
+        }
+
+    #ifdef LIST_LINEAR_VALIDATION
+    list_node_t *curNode = NULL;
+    list_index_t curInd = 0;
+
+    GET_NEXT_();
+    int i = 0;
+    for (i = 0; i < self->size + 5; ++i) {
+        list_index_t prevInd = curInd;
+
+        curInd = curNode->next;
+        GET_NEXT_();
+
+        if (curNode->prev != prevInd) {
+            return LIST_BADPREV;
+        }
+
+        if (curInd == 0) {
+            break;
+        }
+    }
+
+    if (i != self->size || curInd != 0) {
+        printf("SSS %d %d\n", curInd, i);
+        return LIST_LOOP;
+    }
+
+    curInd = self->free;
+    GET_NEXT_();
+
+    for (i = 0; i < self->capacity - self->size + 5 && curInd != 0; ++i) {
+        if (curNode->prev != -1) {
+            return LIST_BADPREV;
+        }
+
+        curInd = curNode->next;
+        GET_NEXT_();
+    }
+
+    #undef GET_NEXT_
+
+    if (i != self->capacity - self->size || curInd != 0) {
+        printf("CCC %d %d\n", curInd, i);
+        return LIST_LOOP;
+    }
+
+    #endif // LIST_LINEAR_VALIDATION
 
     return LIST_VALID;
 }
 
-#define DESCRIBE_(value, descr)  case value: return "&lt;" #value "&gt; " descr;
+#define DESCRIBE_(value, descr)  case value: return "&lt;" #value "&gt; " descr " ";
 const char *list_validity_describe(list_validity_e self) {
     switch (self) {
         case LIST_VALID: return "ok";
@@ -1098,6 +1151,8 @@ const char *list_validity_describe(list_validity_e self) {
         DESCRIBE_(LIST_BADSIZE,   "Bad size")
         DESCRIBE_(LIST_BADCANARY, "Bad canary")
         DESCRIBE_(LIST_LOOP,      "Loop")
+        DESCRIBE_(LIST_BADPREV,   "Corrupt prev value")
+        DESCRIBE_(LIST_BADNEXT,   "Corrupt next value")
         DESCRIBE_(LIST_UAF,       "Use after free")
 
         default: return "!CORRUPT VALIDITY!";
@@ -1369,6 +1424,7 @@ void test_list(list_elem_t val1, list_elem_t val2, list_elem_t val3, list_elem_t
 #undef ASSERT_OK
 #undef REQUIRE
 
+#undef LIST_LINEAR_VALIDATION
 #undef LIST_USE_CANARY
 
 #undef LIST_VALIDATION_LEVEL
