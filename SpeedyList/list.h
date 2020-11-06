@@ -721,9 +721,13 @@ list_node_t *list_getNode(const list_t *self, list_index_t node) {
 }
 
 bool list_isNodeFree(const list_t *self, list_index_t node) {
-    ASSERT_OK();
+    REQUIRE(self != NULL);
 
-    return list_getNode(self, node)->prev == -1;  // TODO: NULL check
+    list_node_t *curNode = list_getNode(self, node);
+
+    REQUIRE(curNode != NULL);
+
+    return curNode->prev == -1;
 }
 
 static bool list_setNodeFree_(list_t *self, list_index_t node) {
