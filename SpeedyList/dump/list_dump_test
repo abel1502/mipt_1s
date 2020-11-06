@@ -4,25 +4,24 @@ info [
 shape=note
 fontname=Consolas
 margin=0.1
-label=<
-<font color="crimson">[WARNING: LIST_ELEM_FMT is specified, so the dump may fail through the user's fault.]  </font><br align="left"/>list_t (<font color="green">ok</font>) [0x00000000016d6510] {<br align="left"/>   left canary     = <font color="green">0x0BADC0DEDEADB1AD</font><br align="left"/>   size            = 4<br align="left"/>   capacity        = 8 (out of 67108863)<br align="left"/>   free            = #5<br align="left"/>   state           = &lt;LAS_HEAP&gt; heap<br align="left"/>   inArrayMode     = false<br align="left"/>   buf [0x0000000002e92ec8] {<br align="left"/>     l. canary     = <font color="green">0x0BADC0DEDEADB1AD</font><br align="left"/>     ...<br align="left"/>     r. canary     = <font color="green">0x0BADC0DEDEADB1AD</font><br align="left"/>   }<br align="left"/>   right canary    = <font color="green">0x0BADC0DEDEADB1AD</font><br align="left"/>}<br align="left"/>>
+label=<<font color="crimson">[WARNING: LIST_ELEM_FMT is specified, so the dump may fail through the user's fault.]  </font><br align="left"/>list_t (<font color="green">ok</font>) [0x00000000001b6510] {<br align="left"/>   left canary     = <font color="green">0x0BADC0DEDEADB1AD</font><br align="left"/>   size            = 4<br align="left"/>   capacity        = 8 (out of 67108863)<br align="left"/>   free            = #5<br align="left"/>   state           = &lt;LAS_HEAP&gt; heap <br align="left"/>   inArrayMode     = true<br align="left"/>   buf [0x0000000002e62f78] {<br align="left"/>     l. canary     = <font color="green">0x0BADC0DEDEADB1AD</font><br align="left"/>     ...<br align="left"/>     r. canary     = <font color="green">0x0BADC0DEDEADB1AD</font><br align="left"/>   }<br align="left"/>   right canary    = <font color="green">0x0BADC0DEDEADB1AD</font><br align="left"/>}<br align="left"/>>
 ]
 subgraph buf { 
-1:se -> 0:sw [color=blue]
-0:se -> 2:sw [color=blue]
-0 [fontname=Consolas width=0 height=0 margin=0 shape=plaintext style=filled color=black fillcolor="#FF6900" label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="3">0</td></tr><tr><td port="prev">1</td><td port="cur">0</td><td port="next">2</td></tr></table>>]
-4:se -> 1:sw [color=blue]
-1:se -> 0:sw [color=blue]
-1 [fontname=Consolas width=0 height=0 margin=0 shape=plaintext style=filled color=black fillcolor="#0096FF" label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="3">765.01</td></tr><tr><td port="prev">4</td><td port="cur">1</td><td port="next">0</td></tr></table>>]
-0:se -> 2:sw [color=blue]
+4:se -> 0:sw [color=blue]
+0:se -> 1:sw [color=blue]
+0 [fontname=Consolas width=0 height=0 margin=0 shape=plaintext style=filled color=black fillcolor="#FF6900" label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="3">0</td></tr><tr><td port="prev">4</td><td port="cur">0</td><td port="next">1</td></tr></table>>]
+0:se -> 1:sw [color=blue]
+1:se -> 2:sw [color=blue]
+1 [fontname=Consolas width=0 height=0 margin=0 shape=plaintext style=filled color=black fillcolor="#0096FF" label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="3">433.02</td></tr><tr><td port="prev">0</td><td port="cur">1</td><td port="next">2</td></tr></table>>]
+1:se -> 2:sw [color=blue]
 2:se -> 3:sw [color=blue]
-2 [fontname=Consolas width=0 height=0 margin=0 shape=plaintext style=filled color=black fillcolor="#0096FF" label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="3">433.02</td></tr><tr><td port="prev">0</td><td port="cur">2</td><td port="next">3</td></tr></table>>]
+2 [fontname=Consolas width=0 height=0 margin=0 shape=plaintext style=filled color=black fillcolor="#0096FF" label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="3">243.03</td></tr><tr><td port="prev">1</td><td port="cur">2</td><td port="next">3</td></tr></table>>]
 2:se -> 3:sw [color=blue]
 3:se -> 4:sw [color=blue]
-3 [fontname=Consolas width=0 height=0 margin=0 shape=plaintext style=filled color=black fillcolor="#0096FF" label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="3">243.03</td></tr><tr><td port="prev">2</td><td port="cur">3</td><td port="next">4</td></tr></table>>]
+3 [fontname=Consolas width=0 height=0 margin=0 shape=plaintext style=filled color=black fillcolor="#0096FF" label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="3">678.04</td></tr><tr><td port="prev">2</td><td port="cur">3</td><td port="next">4</td></tr></table>>]
 3:se -> 4:sw [color=blue]
-4:se -> 1:sw [color=blue]
-4 [fontname=Consolas width=0 height=0 margin=0 shape=plaintext style=filled color=black fillcolor="#0096FF" label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="3">1008.04</td></tr><tr><td port="prev">3</td><td port="cur">4</td><td port="next">1</td></tr></table>>]
+4:se -> 0:sw [color=blue]
+4 [fontname=Consolas width=0 height=0 margin=0 shape=plaintext style=filled color=black fillcolor="#0096FF" label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="3">765.01</td></tr><tr><td port="prev">3</td><td port="cur">4</td><td port="next">0</td></tr></table>>]
 5:se -> 6:sw [color=green]
 5 [fontname=Consolas width=0 height=0 margin=0 shape=plaintext style=filled color=black fillcolor="limegreen" label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="3">0</td></tr><tr><td port="prev">-1</td><td port="cur">5</td><td port="next">6</td></tr></table>>]
 6:se -> 7:sw [color=green]

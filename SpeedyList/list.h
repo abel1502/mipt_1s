@@ -87,20 +87,24 @@
 
 #if (LIST_VALIDATION_LEVEL > 0)
 
-#define ASSERT_OK()  MACROFUNC(                                                        \
-    if (list_validate(self) != LIST_VALID) {                                         \
-        fprintf(stderr, "==============[ !!! CRITICAL FAILURE !!! ]==============\n"); \
-        fprintf(stderr, "              (or not, but suck it anyway)              \n"); \
-        fprintf(stderr, "[%s#%d]\n\n", __FILE__, __LINE__);                            \
-        list_dump(self);                                                              \
-        fprintf(stderr, "========================================================\n"); \
-        abort();                                                                       \
+#define ASSERT_OK()  MACROFUNC(                                                            \
+    if (list_validate(self) != LIST_VALID) {                                               \
+        if (bypassNextChecks_ > 0) {                                                       \
+            bypassNextChecks_--;                                                           \
+        } else {                                                                           \
+            fprintf(stderr, "==============[ !!! CRITICAL FAILURE !!! ]==============\n"); \
+            fprintf(stderr, "              (or not, but suck it anyway)              \n"); \
+            fprintf(stderr, "[%s#%d %s]\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);    \
+            list_dump(self);                                                               \
+            fprintf(stderr, "========================================================\n"); \
+            abort();                                                                       \
+        }                                                                                  \
     } )
 
-#define REQUIRE(stmt)  MACROFUNC(                                                              \
-    if (!(stmt)) {                                                                             \
-        fprintf(stderr, "\nRequirement (%s) not met in (%s#%d)\n", #stmt, __FILE__, __LINE__); \
-        abort();                                                                               \
+#define REQUIRE(stmt)  MACROFUNC(                                                                                        \
+    if (!(stmt)) {                                                                                                       \
+        fprintf(stderr, "\nRequirement (%s) not met in [%s#%d %s]\n", #stmt, __FILE__, __LINE__, __PRETTY_FUNCTION__); \
+        abort();                                                                                                         \
     } )
 
 #else
@@ -116,6 +120,8 @@
 static const int LIST_HARD_CAP = (int)(((unsigned)-1) >> 3) / sizeof(list_elem_t);
 static const char LIST_DUMP_FILE_FMT[] = "dump/list-dump-%y%m%d-%H%M%S";
 static const int LIST_MAX_LABEL_BUFSIZE = 128;
+
+static int bypassNextChecks_ = 0;
 
 #ifndef __cplusplus
 typedef enum { false, true } bool;
@@ -503,7 +509,11 @@ list_t *list_init(list_t *self, list_index_t capacity) {
     *list_rightBufCanary(self) = LIST_CANARY;
     #endif
 
+    bypassNextChecks_ += 1;
+
     list_clear(self);
+
+    REQUIRE(bypassNextChecks_ == 0);
 
     ASSERT_OK();
 
