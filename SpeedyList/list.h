@@ -713,9 +713,9 @@ bool list_findByIndex(const list_t *self, int ind, list_elem_t *value) {
 }
 
 list_node_t *list_getNode(const list_t *self, list_index_t node) {
-    ASSERT_OK();
+    REQUIRE(self != NULL);
 
-    if (node < 0 || node > self->capacity) return NULL;  // TODO: REQUIRE?
+    if (node < 0 || node > self->capacity) return NULL;
 
     return &self->buf[node];
 }
