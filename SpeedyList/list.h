@@ -897,8 +897,6 @@ static int list_nextFreeCell_(list_t *self) {
 
     self->free = self->buf[self->free].next;
 
-    ASSERT_OK();
-
     return nextFree;
 }
 
@@ -911,7 +909,7 @@ static void list_dumpInfoBox(const list_t *self, FILE *dumpFile) {
           "fontname=Consolas\n"
           "margin=0.1\n");
 
-    DUMP_("label=<\n");
+    DUMP_("label=<");
 
 
     #ifdef LIST_ELEM_FMT
