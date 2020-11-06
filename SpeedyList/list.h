@@ -329,6 +329,7 @@ list_node_t *list_getNode(const list_t *self, list_index_t node);
  */
 bool list_isNodeFree(const list_t *self, list_index_t node);
 
+#ifndef LIST_NOIMPL
 /**
  * Mark a node as free
  *
@@ -337,7 +338,8 @@ bool list_isNodeFree(const list_t *self, list_index_t node);
  *
  * @return true on error, false otherwise
  */
-bool list_setNodeFree(list_t *self, list_index_t node);
+static bool list_setNodeFree_(list_t *self, list_index_t node);
+#endif
 
 /**
  * Transforms the list in such a way that lookups by index now take O(1) time
@@ -373,13 +375,15 @@ void list_clear(list_t *self);
  */
 bool list_isEmpty(const list_t *self);
 
-static int list_nextFreeCell(list_t *self);
+#ifndef LIST_NOIMPL
+static int list_nextFreeCell_(list_t *self);
 
 static void list_dumpInfoBox(const list_t *self, FILE *dumpFile);
 
 static void list_dumpNode(const list_t *self, list_index_t node, FILE *dumpFile);
 
 static void list_dumpGraph(const list_t *self, FILE *dumpFile);
+#endif
 
 /**
  * Dump the list (for debug)
@@ -565,7 +569,7 @@ void list_free(list_t *self) {
     \
     RLNODE_INIT_CODE \
     \
-    list_index_t cur = list_nextFreeCell(self); \
+    list_index_t cur = list_nextFreeCell_(self); \
     \
     list_node_t *curNode = list_getNode(self, cur); \
     REQUIRE(curNode != NULL); \
@@ -642,7 +646,7 @@ bool list_remove(list_t *self, list_index_t node, list_elem_t *value) {
     lNode->next = curNode->next;
     rNode->prev = curNode->prev;
 
-    if (list_setNodeFree(self, node)) {
+    if (list_setNodeFree_(self, node)) {
         return true;
     }
 
@@ -720,8 +724,8 @@ bool list_isNodeFree(const list_t *self, list_index_t node) {
     return list_getNode(self, node)->prev == -1;  // TODO: NULL check
 }
 
-bool list_setNodeFree(list_t *self, list_index_t node) {
-    ASSERT_OK();
+static bool list_setNodeFree_(list_t *self, list_index_t node) {
+    REQUIRE(self != NULL);
 
     list_node_t *curNode = list_getNode(self, node);
 
@@ -880,8 +884,8 @@ bool list_isEmpty(const list_t *self) {
     return self->size == 0;
 }
 
-static int list_nextFreeCell(list_t *self) {
-    ASSERT_OK();  // TODO: Remove?
+static int list_nextFreeCell_(list_t *self) {
+    REQUIRE(self != NULL);
 
     REQUIRE(self->free != 0);
 
