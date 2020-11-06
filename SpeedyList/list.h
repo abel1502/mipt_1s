@@ -346,7 +346,7 @@ static bool list_setNodeFree_(list_t *self, list_index_t node);
 /**
  * Transforms the list in such a way that lookups by index now take O(1) time
  *
- * @warning Works in O(n log n)
+ * @warning Works in O(n)
  * @warning Highly volatile, will automatically cancel upon any insertion/deletion, except head ones
  */
 bool list_enterArrayMode(list_t *self);
@@ -797,6 +797,13 @@ bool list_enterArrayMode(list_t *self) {
 
     REQUIRE(curNode == list_getNode(self, 0));
 
+    #if LIST_USE_CANARY
+    free(list_leftBufCanary(self));
+    #else
+    free(self->buf);
+    #endif
+
+
     self->buf = newBuf;
 
     #if LIST_USE_CANARY
@@ -901,7 +908,7 @@ static int list_nextFreeCell_(list_t *self) {
 }
 
 #define DUMP_(...)  fprintf(dumpFile, ##__VA_ARGS__)
-#define EOL_  "<br align=\"left\"/>"
+#define EOL_        "<br align=\"left\"/>"
 
 static void list_dumpInfoBox(const list_t *self, FILE *dumpFile) {
     DUMP_("info [\n"
@@ -1087,13 +1094,14 @@ list_validity_e list_validate(const list_t *self) {
     }
     #endif
 
+    #ifdef LIST_LINEAR_VALIDATION
+
     #define GET_NEXT_() \
         curNode = list_getNode(self, curInd); \
         if (curNode == NULL) { \
             return LIST_BADNEXT; \
         }
 
-    #ifdef LIST_LINEAR_VALIDATION
     list_node_t *curNode = NULL;
     list_index_t curInd = 0;
 
@@ -1115,7 +1123,6 @@ list_validity_e list_validate(const list_t *self) {
     }
 
     if (i != self->size || curInd != 0) {
-        printf("SSS %d %d\n", curInd, i);
         return LIST_LOOP;
     }
 
@@ -1134,7 +1141,6 @@ list_validity_e list_validate(const list_t *self) {
     #undef GET_NEXT_
 
     if (i != self->capacity - self->size || curInd != 0) {
-        printf("CCC %d %d\n", curInd, i);
         return LIST_LOOP;
     }
 
