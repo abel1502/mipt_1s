@@ -814,17 +814,17 @@ bool list_enterArrayMode(list_t *self) {
 bool list_resize(list_t *self, list_index_t capacity) {
     ASSERT_OK();
 
-    if (capacity < self->capacity || capacity >= LIST_HARD_CAP) {
+    if (capacity <= self->capacity || capacity >= LIST_HARD_CAP) {
         return true;
     }
 
-    if (self->buf[self->capacity].prev == -1) {
+    /*if (self->buf[self->capacity].prev == -1) {
         self->buf[self->capacity].next = self->capacity + 1;
     } else {
         self->free = self->capacity + 1;
-    }
+    }*/
 
-    // int oldCap = self->capacity;  // TODO: Why did I need this?
+    int oldCap = self->capacity;
 
     #if LIST_USE_CANARY
     list_node_t *newBuf = (list_node_t *)realloc(list_leftBufCanary(self), (1 + capacity) * sizeof(list_node_t) + 2 * sizeof(list_canary_t));
@@ -849,13 +849,11 @@ bool list_resize(list_t *self, list_index_t capacity) {
     *list_rightBufCanary(self) = LIST_CANARY;
     #endif
 
-    for (list_index_t i = 1; i < self->capacity; ++i) {
-        self->buf[i].next = i + 1;
-        self->buf[i].prev = -1;
+    for (list_index_t i = oldCap + 1; i <= self->capacity; ++i) {
+        if (list_setNodeFree_(self, i)) {
+            return true;
+        }
     }
-
-    self->buf[self->capacity].next = 0;
-    self->buf[self->capacity].prev = -1;
 
     ASSERT_OK();
 
