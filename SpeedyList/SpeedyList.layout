@@ -4,12 +4,12 @@
 	<ActiveTarget name="Test" />
 	<File name="test.cpp" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="198" topLine="0" />
+			<Cursor1 position="952" topLine="36" />
 		</Cursor>
 	</File>
 	<File name="list.h" open="1" top="1" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="31378" topLine="766" />
+			<Cursor1 position="22536" topLine="851" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

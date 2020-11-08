@@ -50,15 +50,27 @@ none
 
 #include <cstdio>
 #include <cstdlib>
-#include <cassert>
+#include <typeinfo>
 
-#ifndef ALGO_DEBUG
-#define NDEBUG
+#ifdef ALGO_DEBUG
+#include <cassert>
+#else
+/*#include <cassert>
+#define assert0(stmt) if (!(stmt)) { printf("!!!!!!!!!\n"); exit(0); }*/
+#define assert(stmt)
 #endif
 
 
+
+/*
+ It turned out that nullptr 'this' doesn't work on CF, so I'll have to either implement an abstract base AVL node class
+ from which will inherit a class for regular nodes and a stub class - but that would probably be extremely slow - or
+ maintain a crotchy flag "isStub" on every instance of AVLNode - which is probably what I'll stick to doing. Sorry, though.
+*/
+
 namespace abel {
     template <typename T> class AVLTree;  // Forward declaration for befriending
+
 
     template <typename T>
     class AVLNode {
@@ -67,22 +79,26 @@ namespace abel {
     public:
         T key;
 
-        AVLNode(T new_key) : key(new_key), height(1), children{nullptr, nullptr} {};
+        static AVLNode<T> *const STUB;
 
-        AVLNode(T new_key, AVLNode<T> *left, AVLNode<T> *right) : key(new_key), height(1), children{left, right} {};
+        AVLNode(T new_key) : key(new_key), height(1), children{STUB, STUB}, isStub(false) {};
+
+        AVLNode(T new_key, AVLNode<T> *left, AVLNode<T> *right) : key(new_key), height(1), children{left, right}, isStub(false) {};
+
+        AVLNode(T new_key, bool new_isStub) : key(new_key), height(1), children{nullptr, nullptr}, isStub(new_isStub) {
+            assert(new_isStub /* This constructor is only intended for the stub node */);
+        }
 
         int getHeight() {
-            // This check gives a warning for some reason, however I have tested that
-            //'this' may, in fact, be nullptr if I call a method on a nullptr-child
-            if (!this) return 0;
+            if (isStub) return 0;
 
             return height;
         }
 
         AVLNode<T> *edgeChild(bool isRight) {
-            assert(this);
+            assert(!isStub);
 
-            if (children[isRight])
+            if (!children[isRight]->isStub)
                 return children[isRight]->edgeChild(isRight);
 
             return this;
@@ -98,47 +114,43 @@ namespace abel {
         }
 
         AVLNode<T> *erase() {
-            if (!this) return nullptr;
+            if (isStub) return STUB;
 
             AVLNode<T> *lNode = left();
             AVLNode<T> *rNode = right();  // Kind of caching, because we'll delete 'this' in several cases
 
-            if (!lNode && !rNode) {
+            if (lNode->isStub && rNode->isStub) {
                 delete this;
-                return nullptr;
+                return STUB;
             }
 
-            if (lNode && !rNode) {
+            if (!lNode->isStub && rNode->isStub) {
                 delete this;
                 return lNode;
             }
 
-            if (!lNode && rNode) {
+            if (lNode->isStub && !rNode->isStub) {
                 delete this;
                 return rNode;
             }
 
-            AVLNode<T> *replacement = lNode->edgeChild(true);  // The rightmost child of the left subtree
-            assert(replacement);  // At least one node must exist there
+            AVLNode<T> *replacement = lNode->max();  // The rightmost child of the left subtree
+            assert(!replacement->isStub);  // At least one node must exist there
 
-            T tmpKey = replacement->key;
-            replacement->key = key;
-            key = tmpKey;
+            left() = left()->unlinkChild(replacement->key);
 
-            replacement->erase();  // We have to do this because replacement isn't guaranteed to be a leaf:
-            /*
-                3 <----- If we're erasing this, 2 is the replacement
-              2   4
-            1
-            */
+            replacement->right() = right();
+            replacement->left() = left();
 
-            updateHeight();
+            delete this;
 
-            return balance();
+            replacement->updateHeight();
+
+            return replacement->balance();
         }
 
         AVLNode<T> *erase(T goal_key) {
-            if (!this) return nullptr;
+            if (isStub) return STUB;
 
             if (key == goal_key) return erase();
 
@@ -152,7 +164,11 @@ namespace abel {
         }
 
         AVLNode<T> *insert(T new_key) {
-            if (!this) return new AVLNode<T>(new_key);
+            //printf("> (%d)\n", key);
+
+            if (isStub) return new AVLNode<T>(new_key);
+
+            if (new_key == key) return this;
 
             bool isRight = new_key > key;
 
@@ -164,7 +180,7 @@ namespace abel {
         }
 
         AVLNode<T> *find(T goal_key) {
-            if (!this) return nullptr;
+            if (isStub) return STUB;
 
             if (key == goal_key) return this;
 
@@ -176,15 +192,15 @@ namespace abel {
             if (this) printf("(key=%d)", key);
             printf("\n");*/
 
-            if (!this) return nullptr;
+            if (isStub) return STUB;
 
             if (key == goal_key) {  // Maybe an unnecessary optimization, but why not
-                return children[isRight] ? children[isRight]->edgeChild(!isRight) : nullptr;
+                return !children[isRight]->isStub ? children[isRight]->edgeChild(!isRight) : STUB;
             }
 
             AVLNode<T> *result = children[goal_key > key]->findClosest(goal_key, isRight);
 
-            if (!result && (isRight == (goal_key < key))) return this;  // This essentially says that if the goal subtree is empty, the current node is the goal
+            if (result->isStub && (isRight == (goal_key < key))) return this;  // This essentially says that if the goal subtree is empty, the current node is the goal
 
             return result;
         }
@@ -196,30 +212,48 @@ namespace abel {
         AVLNode<T> *maxBelow(T goal_key) {
             return findClosest(goal_key, false);
         }
+
+        void dump(int depth = 0) {
+            for (int i = 0; i < depth; ++i) {
+                printf("  ");
+            }
+            printf("[%p]", this);
+            if (isStub) {
+                printf(" (STUB)\n");
+            } else {
+                printf(" (%d):\n", key);  // I know this only works on int, but without cout I don't know any way to print a value of an arbitraty type
+
+                left ()->dump(depth + 1);
+                right()->dump(depth + 1);
+            }
+        }
     #ifndef ALGO_DEBUG
     protected:
     #endif
         int height;
         AVLNode<T> *children[2];  // {left, right}
+        bool isStub;
+
+        static AVLNode<T> STUBVAL;
 
         // The following two methods are provided solely for convenience purposes as aliases
         // for children[0] and children[1]. The same effect could have been achieved with
         // #define left children[0] and #define right children[1], but I decided
         // this approach to be a better code practice
         inline AVLNode<T> *&left() {
-            assert(this);
+            assert(!isStub);
 
             return children[0];
         }
 
         inline AVLNode<T> *&right() {
-            assert(this);
+            assert(!isStub);
 
             return children[1];
         }
 
         void updateHeight() {
-            if (!this) return;
+            if (isStub) return;
 
             int  leftHeight =  left()->getHeight();
             int rightHeight = right()->getHeight();
@@ -229,21 +263,24 @@ namespace abel {
 
         // This way we get to generalize rotateLeft and rotateRight
         AVLNode<T> *rotateSmall(bool isRight) {
-            assert(this);
+            assert(!isStub);
 
             AVLNode<T> *otherNode = children[!isRight];
-            assert(otherNode);
+            assert(!otherNode->isStub);
 
             children[!isRight] = otherNode->children[isRight];
 
             otherNode->children[isRight] = this;
+
+            updateHeight();
+            otherNode->updateHeight();
 
             return otherNode;
         }
 
         // Same deal
         AVLNode<T> *rotateGrand(bool isRight) {
-            assert(this);
+            assert(!isStub);
 
             children[!isRight] = children[!isRight]->rotateSmall(!isRight);
 
@@ -251,18 +288,18 @@ namespace abel {
         }
 
         int getBalanceFactor() {
-            if (!this) return 0;
+            if (isStub) return 0;
 
             int  leftHeight =  left()->getHeight();
             int rightHeight = right()->getHeight();
 
-            assert(rightHeight - 2 <= leftHeight && rightHeight + 2 >= leftHeight);
+            assert(rightHeight - 2 <= leftHeight && rightHeight + 2 >= leftHeight);  // TODO: FIX!!! (and remove assert0's)
 
             return rightHeight - leftHeight;
         }
 
         AVLNode<T> *balance() {
-            assert(this);
+            assert(!isStub);
 
             bool isRight = false;
             int childBal = 0;
@@ -280,22 +317,41 @@ namespace abel {
                 childBal = children[isRight]->getBalanceFactor();
                 childBal *= isRight ? 1 : -1;
 
-                if (childBal <= 1) {
+                //printf(">> %d %c %d\n", key, isRight ? 'R' : 'L', childBal);
+
+                if (childBal == 1 || childBal == 0) {
                     return rotateSmall(!isRight);
                 } else {
                     return rotateGrand(!isRight);
                 }
             default:
-                assert(false /* Shouldn't be reachable */);
-                return nullptr;
+                assert(false /* Shouldn't be reachable */);  // Clear
+                return STUB;
             }
         }
+
+        AVLNode<T> *unlinkChild(T goal_key) {
+            if (isStub) return STUB;
+
+            if (key == goal_key) {
+                return !left()->isStub ? left() : right();
+            }
+
+            bool isRight = goal_key > key;
+
+            children[isRight] = children[isRight]->unlinkChild(goal_key);
+
+            updateHeight();
+
+            return balance();
+        }
     };
+
 
     template <typename T>
     class AVLTree {
     public:
-        AVLTree() : root(nullptr) {}
+        AVLTree() : root(AVLNode<T>::STUB) {}
 
         ~AVLTree() {
             recursiveDelete(root);
@@ -316,7 +372,7 @@ namespace abel {
         }
 
         bool empty() {
-            return root != nullptr;
+            return root != AVLNode<T>::STUB;
         }
 
         AVLNode<T> *find(T key) {
@@ -324,17 +380,17 @@ namespace abel {
         }
 
         bool contains(T key) {
-            return find(key) != nullptr;
+            return find(key) != AVLNode<T>::STUB;
         }
 
         T max() {
-            assert(root);
+            assert(!root->isStub);  // No sus
 
             return root->max().key;
         }
 
         T min() {
-            assert(root);
+            assert(!root->isStub);  // No sus
 
             return root->min().key;
         }
@@ -342,19 +398,29 @@ namespace abel {
         // Since we don't know if T has a poisonous value, we'll have to return key in
         // the following two functions in case of absence of the requested element
         T maxBelow(T key) {
-            assert(root);
+            if (root->isStub) {
+                return key;
+            }
 
             AVLNode<T> *result = root->maxBelow(key);
 
-            return result ? result->key : key;
+            return !result->isStub ? result->key : key;
         }
 
         T minAbove(T key) {
-            assert(root);
+            if (root->isStub) {
+                return key;
+            }
 
             AVLNode<T> *result = root->minAbove(key);
 
-            return result ? result->key : key;
+            return !result->isStub ? result->key : key;
+        }
+
+        void dump() {
+            printf("AVLTree [%p] {\n", this);
+            root->dump(1);
+            printf("}\n");
         }
     #ifndef ALGO_DEBUG
     protected:
@@ -362,21 +428,28 @@ namespace abel {
         AVLNode<T> *root;
 
         void recursiveDelete(AVLNode<T> *node) {
-            assert(this);
+            assert(node);
 
-            if (!node) return;
+            if (node->isStub) return;
 
             recursiveDelete(node->left());
             recursiveDelete(node->right());
 
             delete node;
         }
-    };  // TODO: Dump?
+    };
 }
 
 
 static const int CMD_LEN = 8;
 static const char CMD_FMT[] = "%7s";
+
+
+template <typename T>
+abel::AVLNode<T> abel::AVLNode<T>::STUBVAL(0, true);  // Again, I realize how crotchy this is, but it's not my fault method calls on nullptr are prohibited on CF
+
+template <typename T>
+abel::AVLNode<T> *const abel::AVLNode<T>::STUB = &(abel::AVLNode<T>::STUBVAL);
 
 
 int main() {
@@ -385,12 +458,25 @@ int main() {
     char cmd[CMD_LEN] = "";
 
     while (!feof(stdin)) {
+        #ifdef ALGO_DEBUG
+        tree.dump();
+        #endif
+
         int res = scanf(CMD_FMT, cmd);
-        assert(res == 1);
+        if (res != 1) break;
+
+        #ifdef ALGO_DEBUG
+        if (strcmp(cmd, "dump") == 0) {
+            tree.dump();
+            continue;
+        } else if (strcmp(cmd, "exit") == 0) {
+            break;
+        }
+        #endif
 
         int arg = 0;
         res = scanf("%d", &arg);
-        assert(res == 1);
+        if (res != 1) break;
 
         int tmp = 0;  // I can't declare it inside a 'case'
 
@@ -427,12 +513,25 @@ int main() {
             }
 
             break;
+        #ifdef ALGO_DEBUG
+        case 'b':  // balance
+            {
+                abel::AVLNode<int> *root = tree.find(arg);
+
+                printf("Balance before: %d\n", root->getBalanceFactor());
+                root->balance();
+                printf("Balance after : %d\n", root->getBalanceFactor());
+            }
+
+            break;
+        #endif
         default:
             assert(false /* Shouldn't be reachable */);
             return 1;
         }
     }
 
+    //scanf("%s")
     return 0;
 }
 
