@@ -1,0 +1,11 @@
+# depslib dependency file v1.0
+1604920677 source:d:\workspace\.mipt\s1\alc\source\utest.cpp
+
+1604930005 source:d:\workspace\.mipt\s1\alc\source\crc32.cpp
+	"crc32.h"
+	<cassert>
+	<string.h>
+
+1604929837 d:\workspace\.mipt\s1\alc\\include\\crc32.h
+	<cstdint>
+
