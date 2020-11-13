@@ -1,0 +1,15 @@
+# depslib dependency file v1.0
+1605291254 source:d:\workspace\.mipt\s1\somethingtree\main.cpp
+	<stdio.h>
+	<stdlib.h>
+	<assert.h>
+	"tree.h"
+
+1605291389 source:d:\workspace\.mipt\s1\somethingtree\tree.cpp
+	"tree.h"
+	<cstdio>
+	<cassert>
+	<cstring>
+
+1605291084 d:\workspace\.mipt\s1\somethingtree\tree.h
+
