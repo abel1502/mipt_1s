@@ -8,8 +8,8 @@
 
 namespace SomethingTree {
 
-    bool TextQuestion::ask() {
-        printf("It %s? ([Y]es/[n]o)\n", value);
+    bool ask(const char *question) {
+        printf("It %s? ([Y]es/[n]o)\n", question);
 
         char reply[64] = "";
         int res = scanf("%63s", reply);
@@ -18,14 +18,8 @@ namespace SomethingTree {
         return reply[0] != 'n' && reply[0] != 'N';
     }
 
-
-    bool TextQuestion::serialize(FILE *ofile) {
-
-    }
-
-
-    bool TextAnswer::verify() {
-        printf("Did you mean \"%s\"? ([Y]es/[n]o)\n", value);
+    bool verify(const char *answer) {
+        printf("Did you mean \"%s\"? ([Y]es/[n]o)\n", answer);
 
         char reply[64] = "";
         int res = scanf("%63s", reply);
@@ -39,38 +33,93 @@ namespace SomethingTree {
         DTFNodeHeader header{ifile};
 
         switch (header.type) {
-        case VALUE_NODE:
-            AnswerType answer = (AnswerType)calloc(header.valueLen + 1, 1);
+        case VALUE_NODE: {
+            char *answer = (char *)calloc(header.valueLen + 1, 1);
 
-            fread(answer, 1, header.valueLen)
+            fread(answer, 1, header.valueLen, ifile);
 
-            return new ValueDTN();
-        case CHOICE_NODE:
-            break;
+            ValueDTN *result = new ValueDTN(answer);
+
+            free(answer);
+
+            return result;
+        }
+        case CHOICE_NODE: {
+            char *question = (char *)calloc(header.valueLen + 1, 1);
+
+            fread(question, 1, header.valueLen, ifile);
+
+            ChoiceDTN *result = new ChoiceDTN(question, AbstractDTN::deserialize(ifile), AbstractDTN::deserialize(ifile));
+
+            free(question);
+
+            return result;
+        }
         default:
             assert(false /* Shouldn't be reachable */);
+
+            return NULL;
         }
     }
 
 
-    ValueDTN *ChoiceDTN::find(AbstractDecisionProvider *goal) {
-        return children[goal->ask(question)]->find(goal);
+    ValueDTN *ChoiceDTN::find() {
+        return children[ask(question)]->find();
     }
 
 
-    ValueDTN *ValueDTN::find(AbstractDecisionProvider *goal) {
-        if (goal->verify(value)) {
+    ValueDTN *ValueDTN::find() {
+        if (verify(value)) {
             return this;
         }
         return NULL;
     }
 
 
-    ValueDTN::ValueDTN(AnswerType new_value) : value{new_value} {}
+    void ChoiceDTN::serialize(FILE *ofile) {
+        DTFNodeHeader header{CHOICE_NODE, (uint8_t)strlen(question)};
+
+        fwrite(question, 1, header.valueLen, ofile);
+
+        children[0]->serialize(ofile);
+        children[1]->serialize(ofile);
+    }
 
 
-    ChoiceDTN::ChoiceDTN(QuestionType new_question, AbstractDTN *childTrue, AbstractDTN *childFalse) :
-        question{new_question}, children{childFalse, childTrue} {}
+    void ValueDTN::serialize(FILE *ofile) {
+        DTFNodeHeader header{VALUE_NODE, (uint8_t)strlen(value)};
+
+        fwrite(value, 1, header.valueLen, ofile);
+    }
+
+
+    ValueDTN::ValueDTN(const char *new_value) {
+        value = (char *)calloc(MAX_VALUE_LEN + 1, 1);
+
+        strncpy(value, new_value, MAX_VALUE_LEN);
+    }
+
+
+    ValueDTN::~ValueDTN() {
+        free(value);
+    }
+
+
+    const char *ValueDTN::getValue() {
+        return value;
+    }
+
+
+    ChoiceDTN::ChoiceDTN(const char *new_question, AbstractDTN *childTrue, AbstractDTN *childFalse) : children{childFalse, childTrue} {
+        question = (char *)calloc(MAX_VALUE_LEN + 1, 1);
+
+        strncpy(question, new_question, MAX_VALUE_LEN);
+    }
+
+
+    ChoiceDTN::~ChoiceDTN() {
+        free(question);
+    }
 
 
     DTFHeader::DTFHeader() : magic{MAGIC}, version{VERSION} {}
@@ -117,7 +166,7 @@ namespace SomethingTree {
 
         header.write(ofile);
 
-        root.write(ofile);
+        root->serialize(ofile);
     }
 
 
