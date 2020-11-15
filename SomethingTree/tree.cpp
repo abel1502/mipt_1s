@@ -8,6 +8,18 @@
 #include "general.h"
 
 
+// ==== [ List inclusion ] ====
+// As much as I'd like to avoid using such extremely-C-level library, I kind of need it for definition comparison
+typedef struct {
+    SomethingTree::ChoiceDTN *node;
+    bool childDir;
+} list_elem_t;
+#define LIST_VALIDATION_LEVEL  3
+#define LIST_DUMPNAME          list_dump
+#include "../SpeedyList/list.h"
+// =============================
+
+
 namespace SomethingTree {
 
     bool ask(const char *question) {
@@ -105,11 +117,13 @@ namespace SomethingTree {
 
             ValueDTN *newOption = new ValueDTN(tmpAns);
 
+            ChoiceDTN *tmpParent = parent;
+            bool tmpParentDir = parentDir;
+
             ChoiceDTN *newChoice = new ChoiceDTN(tmpQue, newOption, this);
 
-            newChoice->parent = parent;
-            newOption->parent = newChoice;
-            parent = newChoice;
+            newChoice->parent = tmpParent;
+            newChoice->parentDir = tmpParentDir;
 
             *newRoot = newChoice;
 
@@ -331,7 +345,101 @@ namespace SomethingTree {
 
 
     void DecisionTree::compare(const char *term1, const char *term2) {
-        //
+        ValueDTN *target1 = root->findByName(term1);
+        ValueDTN *target2 = root->findByName(term2);
+
+        if (!target1) {
+            printf("Item '%s' not found.\n", term1);
+            return;
+        }
+
+        if (!target2) {
+            printf("Item '%s' not found.\n", term2);
+            return;
+        }
+
+        if (target1 == target2) {
+            printf("%s and %s are the same thing.\n", term1, term2);
+            return;
+        }
+
+        list_t path1{}, path2{};
+        list_init(&path1, 32);
+        list_init(&path2, 32);
+
+        ChoiceDTN *curDTN1 = target1->parent;
+        bool childDir1 = target1->parentDir;
+        ChoiceDTN *curDTN2 = target2->parent;
+        bool childDir2 = target2->parentDir;
+
+        while (curDTN1) {
+            //printf("> %s\n", curDTN1->getQuestion());
+
+            bool res = list_pushBack(&path1, {curDTN1, childDir1});
+            assert(!res);
+
+            childDir1 = curDTN1->parentDir;
+            curDTN1 = curDTN1->parent;
+        }
+
+        while (curDTN2) {
+            //printf("> %s\n", curDTN2->getQuestion());
+
+            bool res = list_pushBack(&path2, {curDTN2, childDir2});
+            assert(!res);
+
+            childDir2 = curDTN2->parentDir;
+            curDTN2 = curDTN2->parent;
+        }
+
+        list_node_t *cur1 = list_getNode(&path1, 0);
+        list_node_t *cur2 = list_getNode(&path2, 0);
+        assert(cur1 && cur2);
+
+        #define PREV_() \
+            cur1 = list_getNode(&path1, cur1->prev); \
+            cur2 = list_getNode(&path2, cur2->prev); \
+            assert(cur1 && cur2);
+
+        #define NEXT_() \
+            cur1 = list_getNode(&path1, cur1->next); \
+            cur2 = list_getNode(&path2, cur2->next); \
+            assert(cur1 && cur2);
+
+        while (cur1->prev != 0 && cur2->prev != 0) {
+            PREV_();
+
+            assert(cur1->value.node == cur2->value.node);
+
+            if (cur1->value.childDir != cur2->value.childDir) {
+                break;
+            }
+        }
+
+        NEXT_();
+
+        if (cur1 != list_getNode(&path1, 0)) {
+            if (cur1->value.childDir) {
+                printf("%s, just like %s, ", term1, term2);
+            } else {
+                printf("Neither %s nor %s ", term1, term2);
+            }
+            printf("%s, but ", cur1->value.node->getQuestion());
+        }
+
+        PREV_();
+
+        if (cur1->value.childDir) {
+            printf("%s, unlike %s, %s.\n", term1, term2, cur1->value.node->getQuestion());
+        } else {
+            printf("%s, unlike %s, %s.\n", term2, term1, cur1->value.node->getQuestion());
+        }
+
+        #undef PREV_
+        #undef NEXT_
+
+        list_free(&path1);
+        list_free(&path2);
     }
 
 

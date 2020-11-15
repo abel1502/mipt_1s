@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1605471222 source:d:\workspace\.mipt\s1\somethingtree\main.cpp
+1605477863 source:d:\workspace\.mipt\s1\somethingtree\main.cpp
 	<cstdio>
 	<cstdlib>
 	<cassert>
@@ -9,13 +9,14 @@
 	"tree.h"
 	"general.h"
 
-1605471165 source:d:\workspace\.mipt\s1\somethingtree\tree.cpp
+1605477990 source:d:\workspace\.mipt\s1\somethingtree\tree.cpp
 	"tree.h"
 	<cstdio>
 	<cassert>
 	<cstring>
 	<cstdlib>
 	"general.h"
+	"../SpeedyList/list.h"
 
 1605470975 d:\workspace\.mipt\s1\somethingtree\tree.h
 	<cstdio>
@@ -28,4 +29,16 @@
 	"general.h"
 
 1605453762 d:\workspace\.mipt\s1\somethingtree\general.h
+
+1604652318 d:\workspace\.mipt\s1\speedylist\list.h
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+	<time.h>
+	"../libs/checksum.h"
+	<windows.h>
+
+1603029642 d:\workspace\.mipt\s1\libs\checksum.h
+	<stdint.h>
+	<string.h>
 

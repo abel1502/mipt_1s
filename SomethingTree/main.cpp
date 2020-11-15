@@ -85,6 +85,7 @@ int main(int argc, char **argv) {
         fclose(ifile);
     }
 
+    char tmpCompare[81] = "";
 
     while (true) {
         printf(" > ");
@@ -128,14 +129,22 @@ int main(int argc, char **argv) {
         CMD_CASE_("define",
             dt.define(cmd + cmdLen);
         )
+        CMD_CASE_("compare",
+            strcpy(tmpCompare, cmd + cmdLen);
+        )
+        CMD_CASE_("against",
+            dt.compare(tmpCompare, cmd + cmdLen);
+        )
         CMD_CASE_("help",
             printf("Commands:\n"
-                   "  help           - show this help\n"
-                   "  exit           - pretty obvious, isn't it?)\n"
-                   "  save <file>    - saves the current tree to 'file'\n"
-                   "  dump           - dumps the current tree\n"
-                   "  lookup         - initiate a lookup-add dialogue\n"
-                   "  define <term>  - print a definition for 'term'\n"
+                   "  help              - show this help\n"
+                   "  exit              - pretty obvious, isn't it?)\n"
+                   "  save <file>       - saves the current tree to 'file'\n"
+                   "  dump              - dumps the current tree\n"
+                   "  lookup            - initiate a lookup-add dialogue\n"
+                   "  define <term>     - print a definition for 'term'\n"
+                   "  compare <term1>   - compares term1...\n"
+                   "  against <term2>   - ... agains term2 (have to be used in conjuction)\n"
                    "\n");
         )
         CMD_CASE_("exit",
