@@ -79,15 +79,19 @@ namespace SomethingTree {
     void ChoiceDTN::serialize(FILE *ofile) {
         DTFNodeHeader header{CHOICE_NODE, (uint8_t)strlen(question)};
 
+        header.write(ofile);
+
         fwrite(question, 1, header.valueLen, ofile);
 
-        children[0]->serialize(ofile);
         children[1]->serialize(ofile);
+        children[0]->serialize(ofile);
     }
 
 
     void ValueDTN::serialize(FILE *ofile) {
         DTFNodeHeader header{VALUE_NODE, (uint8_t)strlen(value)};
+
+        header.write(ofile);
 
         fwrite(value, 1, header.valueLen, ofile);
     }

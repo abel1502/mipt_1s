@@ -105,7 +105,7 @@ namespace SomethingTree {
 
         void deserialize(FILE *ifile);
 
-    protected:
+    //protected:
         AbstractDTN *root = nullptr;
     };
 
