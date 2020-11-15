@@ -102,6 +102,7 @@ int main(int argc, char **argv) {
                 CODE \
             } else
 
+        CMD_CASE_("", )
         CMD_CASE_("save",
             FILE *sfile = fopen(cmd + cmdLen, "wb");
 
@@ -121,16 +122,20 @@ int main(int argc, char **argv) {
         CMD_CASE_("dump",
             dt.dump();
         )
-        CMD_CASE_("find",
-            dt.find();
+        CMD_CASE_("lookup",
+            dt.lookup();
+        )
+        CMD_CASE_("define",
+            dt.define(cmd + cmdLen);
         )
         CMD_CASE_("help",
             printf("Commands:\n"
-                   "  help         - show this help\n"
-                   "  exit         - pretty obvious, isn't it?)\n"
-                   "  save <file>  - saves the current tree to 'file'\n"
-                   "  dump         - dumps the current tree\n"
-                   "  find         - initiate a lookup-add dialogue\n"
+                   "  help           - show this help\n"
+                   "  exit           - pretty obvious, isn't it?)\n"
+                   "  save <file>    - saves the current tree to 'file'\n"
+                   "  dump           - dumps the current tree\n"
+                   "  lookup         - initiate a lookup-add dialogue\n"
+                   "  define <term>  - print a definition for 'term'\n"
                    "\n");
         )
         CMD_CASE_("exit",

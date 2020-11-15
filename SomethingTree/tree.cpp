@@ -59,14 +59,14 @@ namespace SomethingTree {
     }
 
 
-    ValueDTN *ChoiceDTN::find(AbstractDTN **newRoot __attribute__((unused))) {
+    ValueDTN *ChoiceDTN::lookup(AbstractDTN **newRoot __attribute__((unused))) {
         bool reply = ask(question);
 
-        return children[reply]->find(&children[reply]);
+        return children[reply]->lookup(&children[reply]);
     }
 
 
-    ValueDTN *ValueDTN::find(AbstractDTN **newRoot) {
+    ValueDTN *ValueDTN::lookup(AbstractDTN **newRoot) {
         if (verify(value)) {
             printf("Yay, I guessed!\n");
 
@@ -107,6 +107,10 @@ namespace SomethingTree {
 
             ChoiceDTN *newChoice = new ChoiceDTN(tmpQue, newOption, this);
 
+            newChoice->parent = parent;
+            newOption->parent = newChoice;
+            parent = newChoice;
+
             *newRoot = newChoice;
 
             return newOption;
@@ -139,6 +143,8 @@ namespace SomethingTree {
         value = (char *)calloc(MAX_VALUE_LEN + 1, 1);
 
         strncpy(value, new_value, MAX_VALUE_LEN);
+
+        parent = nullptr;
     }
 
 
@@ -156,6 +162,13 @@ namespace SomethingTree {
         question = (char *)calloc(MAX_VALUE_LEN + 1, 1);
 
         strncpy(question, new_question, MAX_VALUE_LEN);
+
+        childFalse->parent = childTrue->parent = this;
+        childFalse->parentDir = false;
+        childTrue->parentDir = true;
+
+        parent = nullptr;
+        parentDir = false;
     }
 
 
@@ -164,6 +177,30 @@ namespace SomethingTree {
 
         delete children[0];
         delete children[1];
+    }
+
+
+    const char *ChoiceDTN::getQuestion() {
+        return question;
+    }
+
+
+    ValueDTN *ChoiceDTN::findByName(const char *name) {
+        ValueDTN * leftRes = children[0]->findByName(name);
+        ValueDTN *rightRes = children[1]->findByName(name);
+
+        assert(!leftRes || !rightRes);
+
+        return (ValueDTN *)((size_t)leftRes | (size_t)rightRes);  // One of them is guaranteed to be zero
+    }
+
+
+    ValueDTN *ValueDTN::findByName(const char *name) {
+        if (strcmp(value, name) == 0) {
+            return this;
+        }
+
+        return nullptr;
     }
 
 
@@ -234,7 +271,7 @@ namespace SomethingTree {
     }
 
 
-    void DecisionTree::find() {
+    void DecisionTree::lookup() {
         if (!root) {
             printf("I guess I don't know anything yet, so let's just pretend this didn't happen...\n"
                    "What did you think of? :\n");
@@ -258,7 +295,43 @@ namespace SomethingTree {
             return;
         }
 
-        root->find(&root);
+        root->lookup(&root);
+    }
+
+
+    static void printDefinition_(ChoiceDTN *node, bool childDir) {
+        if (!node)  return;
+
+        if (!node->parent) {  // The root needs special care
+            printf("%s%s", childDir ? "" : "not ", node->getQuestion());
+
+            return;
+        }
+
+        printDefinition_(node->parent, node->parentDir);
+
+        printf(", %s %s", childDir ? "and" : "but not", node->getQuestion());
+    }
+
+
+    void DecisionTree::define(const char *term) {
+        ValueDTN *target = root->findByName(term);
+
+        if (!target) {
+            printf("Item '%s' not found.\n", term);
+            return;
+        }
+
+        printf("%s ", term);
+
+        printDefinition_(target->parent, target->parentDir);
+
+        printf(".\nAmazing).\n");
+    }
+
+
+    void DecisionTree::compare(const char *term1, const char *term2) {
+        //
     }
 
 

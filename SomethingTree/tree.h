@@ -51,18 +51,25 @@ namespace SomethingTree {
 
 
     class ValueDTN;
+    class ChoiceDTN;
 
     class AbstractDTN {
     public:
         virtual ~AbstractDTN() = default;
 
-        virtual ValueDTN *find(AbstractDTN **newRoot) = 0;
+        virtual ValueDTN *lookup(AbstractDTN **newRoot) = 0;
 
         static AbstractDTN *deserialize(FILE *ifile);
 
         virtual void serialize(FILE *ofile) = 0;
 
         virtual void dump(FILE *ofile) = 0;
+
+        virtual ValueDTN *findByName(const char *name) = 0;
+
+        ChoiceDTN *parent;
+
+        bool parentDir;
     };
 
 
@@ -72,11 +79,15 @@ namespace SomethingTree {
 
         ~ChoiceDTN();
 
-        virtual ValueDTN *find(AbstractDTN **newRoot) override;
+        virtual ValueDTN *lookup(AbstractDTN **newRoot) override;
 
         virtual void serialize(FILE *ofile) override;
 
+        const char *getQuestion();
+
         virtual void dump(FILE *ofile) override;
+
+        virtual ValueDTN *findByName(const char *name) override;
 
     protected:
         char *question;
@@ -93,13 +104,15 @@ namespace SomethingTree {
 
         ~ValueDTN();
 
-        virtual ValueDTN *find(AbstractDTN **newRoot) override;
+        virtual ValueDTN *lookup(AbstractDTN **newRoot) override;
 
         virtual void serialize(FILE *ofile) override;
 
         const char *getValue();
 
         virtual void dump(FILE *ofile) override;
+
+        virtual ValueDTN *findByName(const char *name) override;
 
     protected:
         char *value;
@@ -116,9 +129,13 @@ namespace SomethingTree {
 
         void deserialize(FILE *ifile);
 
-        void find();
+        void lookup();
 
         void dump();
+
+        void define(const char *term);
+
+        void compare(const char *term1, const char *term2);
 
     protected:
         AbstractDTN *root = nullptr;
