@@ -2,58 +2,129 @@
 
 #include <cstdio>
 #include <cassert>
-#include <cstring>>
+#include <cstring>
+#include <cstdlib>
 
 
 namespace SomethingTree {
 
-    template <>
-    bool ConsoleDecisionProvider<char *, char *>::ask(char *question) {
-        printf("It %s? ([Y]es/[n]o)\n", question);
+    bool TextQuestion::ask() {
+        printf("It %s? ([Y]es/[n]o)\n", value);
 
-        char reply[81] = "";
-        int res = scanf("%80s", &reply);
+        char reply[64] = "";
+        int res = scanf("%63s", reply);
         assert(res == 1);
 
         return reply[0] != 'n' && reply[0] != 'N';
     }
 
-    template <>
-    bool ConsoleDecisionProvider<char *, char *>::verify(char *answer) {
-        printf("Did you mean \"%s\"? ([Y]es/[n]o)\n", answer);
 
-        char reply[81] = "";
-        int res = scanf("%80s", &reply);
+    bool TextQuestion::serialize(FILE *ofile) {
+
+    }
+
+
+    bool TextAnswer::verify() {
+        printf("Did you mean \"%s\"? ([Y]es/[n]o)\n", value);
+
+        char reply[64] = "";
+        int res = scanf("%63s", reply);
         assert(res == 1);
 
         return reply[0] != 'n' && reply[0] != 'N';
     }
 
-    template <typename QT, typename AT>
-    ValueDTN<QT, AT> *ChoiceDTN<QT, AT>::find(AbstractDecisionProvider<QT, AT> *goal) {
+
+    AbstractDTN *AbstractDTN::deserialize(FILE *ifile) {
+        DTFNodeHeader header{ifile};
+
+        switch (header.type) {
+        case VALUE_NODE:
+            AnswerType answer = (AnswerType)calloc(header.valueLen + 1, 1);
+
+            fread(answer, 1, header.valueLen)
+
+            return new ValueDTN();
+        case CHOICE_NODE:
+            break;
+        default:
+            assert(false /* Shouldn't be reachable */);
+        }
+    }
+
+
+    ValueDTN *ChoiceDTN::find(AbstractDecisionProvider *goal) {
         return children[goal->ask(question)]->find(goal);
     }
 
-    template <typename QT, typename AT>
-    ValueDTN<QT, AT> *ValueDTN<QT, AT>::find(AbstractDecisionProvider<QT, AT> *goal) {
+
+    ValueDTN *ValueDTN::find(AbstractDecisionProvider *goal) {
         if (goal->verify(value)) {
             return this;
         }
         return NULL;
     }
 
-    template <typename QT, typename AT>
-    ValueDTN<QT, AT>::ValueDTN(AT new_value) :
-        value{new_value} {}
 
-    template <typename QT, typename AT>
-    ChoiceDTN<QT, AT>::ChoiceDTN(QT new_question, AbstractDTN<QT, AT> *childTrue, AbstractDTN<QT, AT> *childFalse) :
+    ValueDTN::ValueDTN(AnswerType new_value) : value{new_value} {}
+
+
+    ChoiceDTN::ChoiceDTN(QuestionType new_question, AbstractDTN *childTrue, AbstractDTN *childFalse) :
         question{new_question}, children{childFalse, childTrue} {}
 
-    template class AbstractDTN<char *, char *>;
-    template class ValueDTN<char *, char *>;
-    template class ChoiceDTN<char *, char *>;
 
-    template class AbstractDecisionProvider<char *, char *>;
-    template class ConsoleDecisionProvider<char *, char *>;
+    DTFHeader::DTFHeader() : magic{MAGIC}, version{VERSION} {}
+
+
+    DTFHeader::DTFHeader(FILE *ifile) {
+        size_t res = fread(this, sizeof(*this), 1, ifile);
+
+        assert(res == 1);
+
+        assert(magic == MAGIC);
+        assert(version == VERSION);
+    }
+
+
+    DTFNodeHeader::DTFNodeHeader(uint8_t new_type, uint8_t new_valueLen) : type{new_type}, valueLen{new_valueLen} {}
+
+
+    DTFNodeHeader::DTFNodeHeader(FILE *ifile) {
+        size_t res = fread(this, sizeof(*this), 1, ifile);
+
+        assert(res == 1);
+    }
+
+
+    void DTFHeader::write(FILE *ofile) {
+        int res = fwrite(this, sizeof(*this), 1, ofile);
+
+        assert(res == 1);
+    }
+
+
+    void DTFNodeHeader::write(FILE *ofile) {
+        int res = fwrite(this, sizeof(*this), 1, ofile);
+
+        assert(res == 1);
+
+        assert(valueLen <= MAX_VALUE_LEN);
+    }
+
+
+    void DecisionTree::serialize(FILE *ofile) {
+        DTFHeader header{};
+
+        header.write(ofile);
+
+        root.write(ofile);
+    }
+
+
+    void DecisionTree::deserialize(FILE *ifile) {
+        DTFHeader header{ifile};
+
+        root = AbstractDTN::deserialize(ifile);
+    }
+
 }

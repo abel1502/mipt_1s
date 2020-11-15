@@ -13,14 +13,14 @@ int main(int argc, char **argv) {
     char notDedStr[] = "IDK, not Ded I guess...";
     char dedQStr[] = "is Ded";
 
-    ValueDTN<char *, char *> ded(dedStr);
-    ValueDTN<char *, char *>  notDed(notDedStr);
+    ValueDTN ded(dedStr);
+    ValueDTN notDed(notDedStr);
 
-    ChoiceDTN<char *, char *>  root(dedQStr, &ded, &notDed);
+    ChoiceDTN root(dedQStr, &ded, &notDed);
 
-    ConsoleDecisionProvider<char *, char *> goal;
+    ConsoleDecisionProvider goal;
 
-    ValueDTN<char *, char *> *ans = root.find(&goal);
+    ValueDTN *ans = root.find(&goal);
 
     printf("%p\n", ans);
 
