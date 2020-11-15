@@ -7,7 +7,7 @@
 
 namespace SomethingTree {
 
-    const uint8_t MAX_VALUE_LEN = 64;
+    const uint8_t MAX_VALUE_LEN = 128;
 
     enum NodeType {
         VALUE_NODE,
@@ -21,6 +21,7 @@ namespace SomethingTree {
 
     struct DTFHeader {
         static const uint32_t MAGIC = '\nFTD';
+
         static const uint32_t VERSION = 0;
 
         uint32_t magic;
@@ -34,8 +35,8 @@ namespace SomethingTree {
     };
 
     struct DTFNodeHeader {
-        uint8_t type : 2;  // Some excess for scalability
-        uint8_t valueLen : 6;
+        uint8_t type : 1;
+        uint8_t valueLen : 7;
 
         DTFNodeHeader(uint8_t new_type, uint8_t new_valueLen);
 
@@ -60,6 +61,8 @@ namespace SomethingTree {
         static AbstractDTN *deserialize(FILE *ifile);
 
         virtual void serialize(FILE *ofile) = 0;
+
+        virtual void dump(FILE *ofile) = 0;
     };
 
 
@@ -72,6 +75,8 @@ namespace SomethingTree {
         virtual ValueDTN *find(AbstractDTN **newRoot) override;
 
         virtual void serialize(FILE *ofile) override;
+
+        virtual void dump(FILE *ofile) override;
 
     protected:
         char *question;
@@ -94,6 +99,8 @@ namespace SomethingTree {
 
         const char *getValue();
 
+        virtual void dump(FILE *ofile) override;
+
     protected:
         char *value;
     };
@@ -110,6 +117,8 @@ namespace SomethingTree {
         void deserialize(FILE *ifile);
 
         void find();
+
+        void dump();
 
     protected:
         AbstractDTN *root = nullptr;

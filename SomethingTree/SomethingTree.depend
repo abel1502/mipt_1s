@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1605458460 source:d:\workspace\.mipt\s1\somethingtree\main.cpp
+1605460150 source:d:\workspace\.mipt\s1\somethingtree\main.cpp
 	<cstdio>
 	<cstdlib>
 	<cassert>
@@ -9,7 +9,7 @@
 	"tree.h"
 	"general.h"
 
-1605457820 source:d:\workspace\.mipt\s1\somethingtree\tree.cpp
+1605463155 source:d:\workspace\.mipt\s1\somethingtree\tree.cpp
 	"tree.h"
 	<cstdio>
 	<cassert>
@@ -17,7 +17,7 @@
 	<cstdlib>
 	"general.h"
 
-1605457690 d:\workspace\.mipt\s1\somethingtree\tree.h
+1605463108 d:\workspace\.mipt\s1\somethingtree\tree.h
 	<cstdio>
 	<cstdint>
 

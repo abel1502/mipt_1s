@@ -59,7 +59,7 @@ namespace SomethingTree {
     }
 
 
-    ValueDTN *ChoiceDTN::find(AbstractDTN **newRoot) {
+    ValueDTN *ChoiceDTN::find(AbstractDTN **newRoot __attribute__((unused))) {
         bool reply = ask(question);
 
         return children[reply]->find(&children[reply]);
@@ -78,6 +78,13 @@ namespace SomethingTree {
 
             printf("It's ");
             fgets(tmpAns, MAX_VALUE_LEN - 1, stdin);
+            while (strchr(tmpAns, '"')) {
+                printf("Items with '\"' are forbidden. Try again:\n");
+
+                printf("It's ");
+                fgets(tmpAns, MAX_VALUE_LEN - 1, stdin);
+            }
+
             int ansLen = strlen(tmpAns);
             if (ansLen > 0)  tmpAns[ansLen - 1] = '\0';
 
@@ -86,8 +93,8 @@ namespace SomethingTree {
             printf("And unlike %s, it ", value);
             fgets(tmpQue, MAX_VALUE_LEN - 1, stdin);
 
-            while (strstr(tmpQue, "not ")) {
-                printf("Definitions with not are forbidden by Ded. Try again:\n");
+            while (strstr(tmpQue, "not ") || strchr(tmpQue, '"')) {
+                printf("Definitions with \"not\" or '\"' are forbidden. Try again:\n");
 
                 printf("It ");
                 fgets(tmpQue, MAX_VALUE_LEN - 1, stdin);
@@ -236,6 +243,13 @@ namespace SomethingTree {
 
             printf("It's ");
             fgets(tmpAns, MAX_VALUE_LEN - 1, stdin);
+            while (strchr(tmpAns, '"')) {
+                printf("Items with '\"' are forbidden. Try again:\n");
+
+                printf("It's ");
+                fgets(tmpAns, MAX_VALUE_LEN - 1, stdin);
+            }
+
             int ansLen = strlen(tmpAns);
             if (ansLen > 0)  tmpAns[ansLen - 1] = '\0';
 
@@ -246,5 +260,48 @@ namespace SomethingTree {
 
         root->find(&root);
     }
+
+
+    #define DUMP_(...)  fprintf(ofile, ##__VA_ARGS__)
+
+    void ChoiceDTN::dump(FILE *ofile) {
+        DUMP_("%zu -> %zu [color=blue label=\"no\"]\n", (size_t)this, (size_t)children[0]);
+        DUMP_("%zu -> %zu [color=red label=\"yes\"]\n", (size_t)this, (size_t)children[1]);
+
+        DUMP_("%zu [fontname=Consolas shape=box style=filled color=black fillcolor=\"#0096FF\" label=\"%s\"]\n", (size_t)this, question);
+
+        children[0]->dump(ofile);
+        children[1]->dump(ofile);
+    }
+
+
+    void ValueDTN::dump(FILE *ofile) {
+        DUMP_("%zu [fontname=Consolas shape=box style=filled color=black fillcolor=\"#FF6900\" label=\"%s\"]\n", (size_t)this, value);
+    }
+
+
+    void DecisionTree::dump() {
+        #define F_DOT_  "dump/tree.dump"
+        #define F_SVG_  "dump/tree.svg"
+
+        FILE *ofile = fopen(F_DOT_, "w");
+
+        DUMP_("digraph DecisionTree {\n");
+
+        DUMP_("graph [rankdir=TD splines=spline]\n");
+
+        if (root) {
+            root->dump(ofile);
+        }
+
+        DUMP_("}\n");
+
+        fclose(ofile);
+
+        system("dot -Tsvg " F_DOT_ " -o " F_SVG_);
+        system("start " F_SVG_);
+    }
+
+    #undef DUMP_
 
 }

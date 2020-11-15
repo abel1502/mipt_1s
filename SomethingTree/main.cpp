@@ -118,6 +118,9 @@ int main(int argc, char **argv) {
 
             fclose(sfile);
         )
+        CMD_CASE_("dump",
+            dt.dump();
+        )
         CMD_CASE_("find",
             dt.find();
         )
@@ -126,6 +129,7 @@ int main(int argc, char **argv) {
                    "  help         - show this help\n"
                    "  exit         - pretty obvious, isn't it?)\n"
                    "  save <file>  - saves the current tree to 'file'\n"
+                   "  dump         - dumps the current tree\n"
                    "  find         - initiate a lookup-add dialogue\n"
                    "\n");
         )
