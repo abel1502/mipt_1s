@@ -1,18 +1,31 @@
 # depslib dependency file v1.0
-1605452162 source:d:\workspace\.mipt\s1\somethingtree\main.cpp
-	<stdio.h>
-	<stdlib.h>
-	<assert.h>
+1605458460 source:d:\workspace\.mipt\s1\somethingtree\main.cpp
+	<cstdio>
+	<cstdlib>
+	<cassert>
+	<getopt.h>
+	<cstring>
+	<cctype>
 	"tree.h"
+	"general.h"
 
-1605452405 source:d:\workspace\.mipt\s1\somethingtree\tree.cpp
+1605457820 source:d:\workspace\.mipt\s1\somethingtree\tree.cpp
 	"tree.h"
 	<cstdio>
 	<cassert>
 	<cstring>
 	<cstdlib>
+	"general.h"
 
-1605452114 d:\workspace\.mipt\s1\somethingtree\tree.h
+1605457690 d:\workspace\.mipt\s1\somethingtree\tree.h
 	<cstdio>
 	<cstdint>
+
+1605453822 source:d:\workspace\.mipt\s1\somethingtree\general.cpp
+	<cstdio>
+	<cstdarg>
+	<cerrno>
+	"general.h"
+
+1605453762 d:\workspace\.mipt\s1\somethingtree\general.h
 

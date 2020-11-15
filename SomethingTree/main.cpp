@@ -1,54 +1,150 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cassert>
+#include <getopt.h>
+#include <cstring>
+#include <cctype>
 
 #include "tree.h"
+#include "general.h"
 
 
 using namespace SomethingTree;  // I may do this, right?
 
 
+static void showHelp(const char *binName) {
+    printf("Usage:  %s [-h] [-v] [-i ifile] [-o ofile]\n"
+           "  -h        - show this and exit\n"
+           "  -v        - increase verbosity\n"
+           "  -i ifile  - the name of the input .dtf database file\n"
+           "              (if not specified, the decision tree will initially be blank)\n"
+           "  -o ofile  - the name of the output .dtf database file\n"
+           "              (if not specified, result won't be saved).\n"
+           "\n", binName);
+}
+
+
 int main(int argc, char **argv) {
-    FILE *ifile = fopen("tree.dtf", "rb");
+    FILE *ifile = NULL;
+    FILE *ofile = NULL;
+    extern int verbosity;
 
-    DecisionTree dt;
-    dt.deserialize(ifile);
+    int c = 0;
 
-    ValueDTN *ans = dt.root->find();
+    while ((c = getopt(argc, argv, "+i:o:vh")) != -1) {
+        switch (c) {
+        case 'h':
+            showHelp(argv[0]);
+            return 1;
+        case 'i':
+            ifile = fopen(optarg, "rb");
 
-    if (ans != NULL) {
-        printf("It's %s\n", ans->getValue());
-    } else {
-        printf("Wow...\n");
+            if (ifile == NULL) {
+                ERR("Couldn't open %s to read", optarg);
+                return 2;
+            }
+
+            break;
+        case 'o':
+            ofile = fopen(optarg, "wb");
+
+            if (ofile == NULL) {
+                ERR("Couldn't open %s to write", optarg);
+                return 2;
+            }
+
+            break;
+        case 'v':
+            verbosity++;
+            break;
+        case '?':
+            ERR("Unknown option: -%c.", optopt);
+            showHelp(argv[0]);
+            return 1;
+        default:
+            ERR("Shouldn't be reachable");
+            abort();
+        }
     }
 
-    fclose(ifile);
+    if (optind != argc) {
+        fclose(ifile);
+        fclose(ofile);
 
-    /*char dedStr[] = "Ded";
-    char notDedStr[] = "IDK, not Ded I guess...";
-    char dedQStr[] = "likes cats";
-
-    ValueDTN ded(dedStr);
-    ValueDTN notDed(notDedStr);
-
-    ChoiceDTN root(dedQStr, &ded, &notDed);
-
-    ValueDTN *ans = root.find();
-
-    if (ans != NULL) {
-        printf("It's %s\n", ans->getValue());
-    } else {
-        printf("Wow...\n");
+        ERR("Unexpected number of positional arguments.");
+        showHelp(argv[0]);
+        return 1;
     }
 
-    FILE *ofile = fopen("tree.dtf", "wb");
 
-    DecisionTree dt;
-    dt.root = &root;
+    DecisionTree dt{};
 
-    dt.serialize(ofile);
+    if (ifile) {
+        dt.deserialize(ifile);
 
-    fclose(ofile);*/
+        fclose(ifile);
+    }
+
+
+    while (true) {
+        printf(" > ");
+
+        char cmd[81] = "";
+        size_t cmdLen = 0;
+
+        fgets(cmd, 80, stdin);
+        cmdLen = strlen(cmd);
+        if (cmdLen > 0)  cmd[--cmdLen] = '\0';
+
+        #define CMD_CASE_(CMD, CODE) \
+            if (strncmp(CMD, cmd, sizeof(CMD) - 1) == 0 && (isspace(cmd[sizeof(CMD) - 1]) || cmd[sizeof(CMD) - 1] == '\0')) { \
+                cmdLen = sizeof(CMD); \
+                CODE \
+            } else
+
+        CMD_CASE_("save",
+            FILE *sfile = fopen(cmd + cmdLen, "wb");
+
+            printf("Saving to %s...\n", cmd + cmdLen);
+
+            if (!sfile) {
+                ERR("Failed to save.");
+                continue;
+            }
+
+            printf("Done.\n");
+
+            dt.serialize(sfile);
+
+            fclose(sfile);
+        )
+        CMD_CASE_("find",
+            dt.find();
+        )
+        CMD_CASE_("help",
+            printf("Commands:\n"
+                   "  help         - show this help\n"
+                   "  exit         - pretty obvious, isn't it?)\n"
+                   "  save <file>  - saves the current tree to 'file'\n"
+                   "  find         - initiate a lookup-add dialogue\n"
+                   "\n");
+        )
+        CMD_CASE_("exit",
+            break;
+        ) {
+            ERR("Unknown command.");
+            continue;
+        }
+
+        #undef CMD_CASE_
+    }
+
+
+    if (ofile) {
+        dt.serialize(ofile);
+
+        fclose(ofile);
+    }
 
     return 0;
 }

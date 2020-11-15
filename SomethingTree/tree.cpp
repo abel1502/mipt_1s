@@ -5,6 +5,8 @@
 #include <cstring>
 #include <cstdlib>
 
+#include "general.h"
+
 
 namespace SomethingTree {
 
@@ -12,8 +14,7 @@ namespace SomethingTree {
         printf("It %s? ([Y]es/[n]o)\n", question);
 
         char reply[64] = "";
-        int res = scanf("%63s", reply);
-        assert(res == 1);
+        fgets(reply, 63, stdin);
 
         return reply[0] != 'n' && reply[0] != 'N';
     }
@@ -22,8 +23,7 @@ namespace SomethingTree {
         printf("Did you mean \"%s\"? ([Y]es/[n]o)\n", answer);
 
         char reply[64] = "";
-        int res = scanf("%63s", reply);
-        assert(res == 1);
+        fgets(reply, 63, stdin);
 
         return reply[0] != 'n' && reply[0] != 'N';
     }
@@ -34,45 +34,76 @@ namespace SomethingTree {
 
         switch (header.type) {
         case VALUE_NODE: {
-            char *answer = (char *)calloc(header.valueLen + 1, 1);
+            char answer[MAX_VALUE_LEN] = "";
 
             fread(answer, 1, header.valueLen, ifile);
 
             ValueDTN *result = new ValueDTN(answer);
 
-            free(answer);
-
             return result;
         }
         case CHOICE_NODE: {
-            char *question = (char *)calloc(header.valueLen + 1, 1);
+            char question[MAX_VALUE_LEN] = "";
 
             fread(question, 1, header.valueLen, ifile);
 
             ChoiceDTN *result = new ChoiceDTN(question, AbstractDTN::deserialize(ifile), AbstractDTN::deserialize(ifile));
 
-            free(question);
-
             return result;
         }
         default:
-            assert(false /* Shouldn't be reachable */);
+            ERR("Shouldn't be reachable");
 
-            return NULL;
+            abort();
         }
     }
 
 
-    ValueDTN *ChoiceDTN::find() {
-        return children[ask(question)]->find();
+    ValueDTN *ChoiceDTN::find(AbstractDTN **newRoot) {
+        bool reply = ask(question);
+
+        return children[reply]->find(&children[reply]);
     }
 
 
-    ValueDTN *ValueDTN::find() {
+    ValueDTN *ValueDTN::find(AbstractDTN **newRoot) {
         if (verify(value)) {
+            printf("Yay, I guessed!\n");
+
             return this;
+        } else {
+            printf("So, what is it, and how does it differ from %s? :\n", value);
+
+            char tmpAns[MAX_VALUE_LEN] = "";
+
+            printf("It's ");
+            fgets(tmpAns, MAX_VALUE_LEN - 1, stdin);
+            int ansLen = strlen(tmpAns);
+            if (ansLen > 0)  tmpAns[ansLen - 1] = '\0';
+
+            char tmpQue[MAX_VALUE_LEN] = "";
+
+            printf("And unlike %s, it ", value);
+            fgets(tmpQue, MAX_VALUE_LEN - 1, stdin);
+
+            while (strstr(tmpQue, "not ")) {
+                printf("Definitions with not are forbidden by Ded. Try again:\n");
+
+                printf("It ");
+                fgets(tmpQue, MAX_VALUE_LEN - 1, stdin);
+            }
+
+            int queLen = strlen(tmpQue);
+            if (queLen > 0)  tmpQue[queLen - 1] = '\0';
+
+            ValueDTN *newOption = new ValueDTN(tmpAns);
+
+            ChoiceDTN *newChoice = new ChoiceDTN(tmpQue, newOption, this);
+
+            *newRoot = newChoice;
+
+            return newOption;
         }
-        return NULL;
     }
 
 
@@ -123,6 +154,9 @@ namespace SomethingTree {
 
     ChoiceDTN::~ChoiceDTN() {
         free(question);
+
+        delete children[0];
+        delete children[1];
     }
 
 
@@ -146,6 +180,8 @@ namespace SomethingTree {
         size_t res = fread(this, sizeof(*this), 1, ifile);
 
         assert(res == 1);
+
+        assert(valueLen < MAX_VALUE_LEN);
     }
 
 
@@ -165,6 +201,16 @@ namespace SomethingTree {
     }
 
 
+    DecisionTree::DecisionTree() : root(nullptr) {}
+
+
+    DecisionTree::~DecisionTree() {
+        if (root) {
+            delete root;
+        }
+    }
+
+
     void DecisionTree::serialize(FILE *ofile) {
         DTFHeader header{};
 
@@ -178,6 +224,27 @@ namespace SomethingTree {
         DTFHeader header{ifile};
 
         root = AbstractDTN::deserialize(ifile);
+    }
+
+
+    void DecisionTree::find() {
+        if (!root) {
+            printf("I guess I don't know anything yet, so let's just pretend this didn't happen...\n"
+                   "What did you think of? :\n");
+
+            char tmpAns[MAX_VALUE_LEN] = "";
+
+            printf("It's ");
+            fgets(tmpAns, MAX_VALUE_LEN - 1, stdin);
+            int ansLen = strlen(tmpAns);
+            if (ansLen > 0)  tmpAns[ansLen - 1] = '\0';
+
+            root = new ValueDTN(tmpAns);
+
+            return;
+        }
+
+        root->find(&root);
     }
 
 }

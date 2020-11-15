@@ -55,7 +55,7 @@ namespace SomethingTree {
     public:
         virtual ~AbstractDTN() = default;
 
-        virtual ValueDTN *find() = 0;
+        virtual ValueDTN *find(AbstractDTN **newRoot) = 0;
 
         static AbstractDTN *deserialize(FILE *ifile);
 
@@ -69,7 +69,7 @@ namespace SomethingTree {
 
         ~ChoiceDTN();
 
-        virtual ValueDTN *find() override;
+        virtual ValueDTN *find(AbstractDTN **newRoot) override;
 
         virtual void serialize(FILE *ofile) override;
 
@@ -88,7 +88,7 @@ namespace SomethingTree {
 
         ~ValueDTN();
 
-        virtual ValueDTN *find() override;
+        virtual ValueDTN *find(AbstractDTN **newRoot) override;
 
         virtual void serialize(FILE *ofile) override;
 
@@ -101,11 +101,17 @@ namespace SomethingTree {
 
     class DecisionTree {
     public:
+        DecisionTree();
+
+        ~DecisionTree();
+
         void serialize(FILE *ofile);
 
         void deserialize(FILE *ifile);
 
-    //protected:
+        void find();
+
+    protected:
         AbstractDTN *root = nullptr;
     };
 
