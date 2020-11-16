@@ -15,6 +15,11 @@ namespace SomethingTree {
     };
 
 
+    bool ask(const char *question);
+
+    bool verify(const char *answer);
+
+
     class AbstractDTN;
 
     #pragma pack(1)
@@ -57,6 +62,8 @@ namespace SomethingTree {
     public:
         virtual ~AbstractDTN() = default;
 
+        virtual void dtor();
+
         virtual ValueDTN *lookup(AbstractDTN **newRoot) = 0;
 
         static AbstractDTN *deserialize(FILE *ifile);
@@ -75,9 +82,11 @@ namespace SomethingTree {
 
     class ChoiceDTN : public AbstractDTN {
     public:
-        ChoiceDTN(const char *new_question, AbstractDTN *childTrue, AbstractDTN *childFalse);
+        void ctor(const char *new_question, AbstractDTN *childTrue, AbstractDTN *childFalse);
 
-        ~ChoiceDTN();
+        void ctor();
+
+        virtual void dtor() override;
 
         virtual ValueDTN *lookup(AbstractDTN **newRoot) override;
 
@@ -88,6 +97,8 @@ namespace SomethingTree {
         virtual void dump(FILE *ofile) override;
 
         virtual ValueDTN *findByName(const char *name) override;
+
+        static ChoiceDTN *create();
 
     protected:
         char *question;
@@ -100,9 +111,11 @@ namespace SomethingTree {
 
     class ValueDTN : public AbstractDTN {
     public:
-        ValueDTN(const char *new_value);
+        void ctor(const char *new_value);
 
-        ~ValueDTN();
+        void ctor();
+
+        virtual void dtor() override;
 
         virtual ValueDTN *lookup(AbstractDTN **newRoot) override;
 
@@ -114,6 +127,8 @@ namespace SomethingTree {
 
         virtual ValueDTN *findByName(const char *name) override;
 
+        static ValueDTN *create();
+
     protected:
         char *value;
     };
@@ -121,9 +136,9 @@ namespace SomethingTree {
 
     class DecisionTree {
     public:
-        DecisionTree();
+        void ctor();
 
-        ~DecisionTree();
+        void dtor();
 
         void serialize(FILE *ofile);
 

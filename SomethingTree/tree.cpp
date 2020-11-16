@@ -1,3 +1,9 @@
+#ifdef TREE_SPEAK
+#define TX_USE_SPEAK
+#include <TXLib.h>
+#undef verify
+#endif
+
 #include "tree.h"
 
 #include <cstdio>
@@ -50,7 +56,8 @@ namespace SomethingTree {
 
             fread(answer, 1, header.valueLen, ifile);
 
-            ValueDTN *result = new ValueDTN(answer);
+            ValueDTN *result = ValueDTN::create();
+            result->ctor(answer);
 
             return result;
         }
@@ -59,7 +66,10 @@ namespace SomethingTree {
 
             fread(question, 1, header.valueLen, ifile);
 
-            ChoiceDTN *result = new ChoiceDTN(question, AbstractDTN::deserialize(ifile), AbstractDTN::deserialize(ifile));
+            ChoiceDTN *result = ChoiceDTN::create();
+            AbstractDTN *childTrue = AbstractDTN::deserialize(ifile);
+            AbstractDTN *childFalse = AbstractDTN::deserialize(ifile);
+            result->ctor(question, childTrue, childFalse);
 
             return result;
         }
@@ -97,7 +107,7 @@ namespace SomethingTree {
                 fgets(tmpAns, MAX_VALUE_LEN - 1, stdin);
             }
 
-            int ansLen = strlen(tmpAns);
+            size_t ansLen = strlen(tmpAns);
             if (ansLen > 0)  tmpAns[ansLen - 1] = '\0';
 
             char tmpQue[MAX_VALUE_LEN] = "";
@@ -112,15 +122,17 @@ namespace SomethingTree {
                 fgets(tmpQue, MAX_VALUE_LEN - 1, stdin);
             }
 
-            int queLen = strlen(tmpQue);
+            size_t queLen = strlen(tmpQue);
             if (queLen > 0)  tmpQue[queLen - 1] = '\0';
 
-            ValueDTN *newOption = new ValueDTN(tmpAns);
+            ValueDTN *newOption = ValueDTN::create();
+            newOption->ctor(tmpAns);
 
             ChoiceDTN *tmpParent = parent;
             bool tmpParentDir = parentDir;
 
-            ChoiceDTN *newChoice = new ChoiceDTN(tmpQue, newOption, this);
+            ChoiceDTN *newChoice = ChoiceDTN::create();
+            newChoice->ctor(tmpQue, newOption, this);
 
             newChoice->parent = tmpParent;
             newChoice->parentDir = tmpParentDir;
@@ -153,16 +165,24 @@ namespace SomethingTree {
     }
 
 
-    ValueDTN::ValueDTN(const char *new_value) {
+    void AbstractDTN::dtor() {}
+
+
+    void ValueDTN::ctor(const char *new_value) {  // const ValueDTN won't work
         value = (char *)calloc(MAX_VALUE_LEN + 1, 1);
 
-        strncpy(value, new_value, MAX_VALUE_LEN);
+        strncpy(value, new_value, MAX_VALUE_LEN);  // TODO: strdup; initializer list
 
         parent = nullptr;
+        parentDir = false;
     }
 
 
-    ValueDTN::~ValueDTN() {
+    void ValueDTN::ctor() {}
+
+
+    void ValueDTN::dtor() {
+        printf(">>> %p\n", value);
         free(value);
     }
 
@@ -172,7 +192,7 @@ namespace SomethingTree {
     }
 
 
-    ChoiceDTN::ChoiceDTN(const char *new_question, AbstractDTN *childTrue, AbstractDTN *childFalse) : children{childFalse, childTrue} {
+    void ChoiceDTN::ctor(const char *new_question, AbstractDTN *childTrue, AbstractDTN *childFalse) {
         question = (char *)calloc(MAX_VALUE_LEN + 1, 1);
 
         strncpy(question, new_question, MAX_VALUE_LEN);
@@ -183,14 +203,32 @@ namespace SomethingTree {
 
         parent = nullptr;
         parentDir = false;
+
+        children[0] = childFalse;
+        children[1] = childTrue;
     }
 
 
-    ChoiceDTN::~ChoiceDTN() {
+    void ChoiceDTN::ctor() {}
+
+
+    void ChoiceDTN::dtor() {
         free(question);
 
-        delete children[0];
-        delete children[1];
+        children[0]->dtor();
+        children[1]->dtor();
+
+        free(children[0]);
+        free(children[1]);
+    }
+
+
+    ChoiceDTN *ChoiceDTN::create() {
+        ChoiceDTN *self = new ChoiceDTN();//(ChoiceDTN *)calloc(1, sizeof(ChoiceDTN));
+        assert(self);
+
+        self->ctor();
+        return self;
     }
 
 
@@ -215,6 +253,16 @@ namespace SomethingTree {
         }
 
         return nullptr;
+    }
+
+
+    ValueDTN *ValueDTN::create() {
+        ValueDTN *self = new ValueDTN();//(ValueDTN *)calloc(1, sizeof(ValueDTN));
+        assert(self);
+        //*self = ValueDTN{};
+
+        self->ctor();
+        return self;
     }
 
 
@@ -244,14 +292,14 @@ namespace SomethingTree {
 
 
     void DTFHeader::write(FILE *ofile) {
-        int res = fwrite(this, sizeof(*this), 1, ofile);
+        size_t res = fwrite(this, sizeof(*this), 1, ofile);
 
         assert(res == 1);
     }
 
 
     void DTFNodeHeader::write(FILE *ofile) {
-        int res = fwrite(this, sizeof(*this), 1, ofile);
+        size_t res = fwrite(this, sizeof(*this), 1, ofile);
 
         assert(res == 1);
 
@@ -259,12 +307,16 @@ namespace SomethingTree {
     }
 
 
-    DecisionTree::DecisionTree() : root(nullptr) {}
+    void DecisionTree::ctor() {
+        root = nullptr;
+    }
 
 
-    DecisionTree::~DecisionTree() {
+    void DecisionTree::dtor() {
         if (root) {
-            delete root;
+            root->dtor();
+            free(root);
+            root = nullptr;
         }
     }
 
@@ -286,6 +338,8 @@ namespace SomethingTree {
 
 
     void DecisionTree::lookup() {
+        // TODO: Write an exceedingly OOP-ified addition of two numbers
+
         if (!root) {
             printf("I guess I don't know anything yet, so let's just pretend this didn't happen...\n"
                    "What did you think of? :\n");
@@ -301,10 +355,14 @@ namespace SomethingTree {
                 fgets(tmpAns, MAX_VALUE_LEN - 1, stdin);
             }
 
-            int ansLen = strlen(tmpAns);
+            size_t ansLen = strlen(tmpAns);
             if (ansLen > 0)  tmpAns[ansLen - 1] = '\0';
 
-            root = new ValueDTN(tmpAns);
+            root = ValueDTN::create();
+            ((ValueDTN *)root)->ctor(tmpAns);
+
+            // TODO: correspondence between ctor & dtor
+            // TODO: Static node method create
 
             return;
         }
@@ -313,18 +371,36 @@ namespace SomethingTree {
     }
 
 
+    #ifdef TREE_SPEAK
+    #define SAY_(FMT, ...) { \
+        char line[512] = ""; \
+        int res = snprintf(line, 512, \
+            "\x01<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'>" \
+            FMT "</speak>", ##__VA_ARGS__); \
+        assert(res >= 0 && res < 512); \
+        txSpeak(line); \
+    }
+
+    #define PRINTF_SAY_(FMT, ...) \
+        printf(FMT, ##__VA_ARGS__); \
+        SAY_(FMT, ##__VA_ARGS__);
+    #else
+    #define SAY_(FMT, ...)
+    #define PRINTF_SAY_(FMT, ...)
+    #endif
+
     static void printDefinition_(ChoiceDTN *node, bool childDir) {
         if (!node)  return;
 
         if (!node->parent) {  // The root needs special care
-            printf("%s%s", childDir ? "" : "not ", node->getQuestion());
+            PRINTF_SAY_("%s%s", childDir ? "" : "not ", node->getQuestion());
 
             return;
         }
 
         printDefinition_(node->parent, node->parentDir);
 
-        printf(", %s %s", childDir ? "and" : "but not", node->getQuestion());
+        PRINTF_SAY_(", %s %s", childDir ? "and" : "but not", node->getQuestion());
     }
 
 
@@ -336,7 +412,7 @@ namespace SomethingTree {
             return;
         }
 
-        printf("%s ", term);
+        PRINTF_SAY_("%s ", term);
 
         printDefinition_(target->parent, target->parentDir);
 
@@ -359,7 +435,7 @@ namespace SomethingTree {
         }
 
         if (target1 == target2) {
-            printf("%s and %s are the same thing.\n", term1, term2);
+            PRINTF_SAY_("%s and %s are the same thing.\n", term1, term2);
             return;
         }
 
@@ -420,19 +496,19 @@ namespace SomethingTree {
 
         if (cur1 != list_getNode(&path1, 0)) {
             if (cur1->value.childDir) {
-                printf("%s, just like %s, ", term1, term2);
+                PRINTF_SAY_("%s, just like %s, ", term1, term2);
             } else {
-                printf("Neither %s nor %s ", term1, term2);
+                PRINTF_SAY_("Neither %s nor %s ", term1, term2);
             }
-            printf("%s, but ", cur1->value.node->getQuestion());
+            PRINTF_SAY_("%s, but ", cur1->value.node->getQuestion());
         }
 
         PREV_();
 
         if (cur1->value.childDir) {
-            printf("%s, unlike %s, %s.\n", term1, term2, cur1->value.node->getQuestion());
+            PRINTF_SAY_("%s, unlike %s, %s.\n", term1, term2, cur1->value.node->getQuestion());
         } else {
-            printf("%s, unlike %s, %s.\n", term2, term1, cur1->value.node->getQuestion());
+            PRINTF_SAY_("%s, unlike %s, %s.\n", term2, term1, cur1->value.node->getQuestion());
         }
 
         #undef PREV_
@@ -441,6 +517,8 @@ namespace SomethingTree {
         list_free(&path1);
         list_free(&path2);
     }
+
+    #undef SAY_
 
 
     #define DUMP_(...)  fprintf(ofile, ##__VA_ARGS__)

@@ -1,10 +1,1 @@
-"likes cats" [
-	"has numbers in its name" [
-		"Ded32"
-		"Ded"
-	]
-	"exists" [
-		"a dog"
-		"IDK, not Ded I guess..."
-	]
-]
+"likes cats" ["has numbers in its name" ["Ded32" "Ded"] "exists" ["is plural" ["two dogs" "a dog"] "IDK, not Ded I guess..."]]

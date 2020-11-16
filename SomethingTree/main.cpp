@@ -27,7 +27,6 @@ static void showHelp(const char *binName) {
 int main(int argc, char **argv) {
     FILE *ifile = NULL;
     FILE *ofile = NULL;
-    extern int verbosity;
 
     int c = 0;
 

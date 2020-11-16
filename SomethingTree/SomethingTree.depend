@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1605477863 source:d:\workspace\.mipt\s1\somethingtree\main.cpp
+1605522286 source:d:\workspace\.mipt\s1\somethingtree\main.cpp
 	<cstdio>
 	<cstdlib>
 	<cassert>
@@ -9,7 +9,8 @@
 	"tree.h"
 	"general.h"
 
-1605477990 source:d:\workspace\.mipt\s1\somethingtree\tree.cpp
+1605526817 source:d:\workspace\.mipt\s1\somethingtree\tree.cpp
+	<TXLib.h>
 	"tree.h"
 	<cstdio>
 	<cassert>
@@ -18,7 +19,7 @@
 	"general.h"
 	"../SpeedyList/list.h"
 
-1605470975 d:\workspace\.mipt\s1\somethingtree\tree.h
+1605526365 d:\workspace\.mipt\s1\somethingtree\tree.h
 	<cstdio>
 	<cstdint>
 
@@ -28,7 +29,7 @@
 	<cerrno>
 	"general.h"
 
-1605453762 d:\workspace\.mipt\s1\somethingtree\general.h
+1605522018 d:\workspace\.mipt\s1\somethingtree\general.h
 
 1604652318 d:\workspace\.mipt\s1\speedylist\list.h
 	<stdlib.h>
