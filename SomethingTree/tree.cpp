@@ -182,7 +182,6 @@ namespace SomethingTree {
 
 
     void ValueDTN::dtor() {
-        printf(">>> %p\n", value);
         free(value);
     }
 
@@ -375,7 +374,7 @@ namespace SomethingTree {
     #define SAY_(FMT, ...) { \
         char line[512] = ""; \
         int res = snprintf(line, 512, \
-            "\x01<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'>" \
+            "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'>" \
             FMT "</speak>", ##__VA_ARGS__); \
         assert(res >= 0 && res < 512); \
         txSpeak(line); \

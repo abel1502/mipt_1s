@@ -35,6 +35,7 @@
 			<Add option="-fexceptions" />
 			<Add option="-Wno-multichar" />
 			<Add option="-D_USE_MINGW_ANSI_STDIO=1" />
+			<Add option="-DTREE_SPEAK" />
 		</Compiler>
 		<Unit filename="general.cpp" />
 		<Unit filename="general.h" />

@@ -77,6 +77,7 @@ int main(int argc, char **argv) {
 
 
     DecisionTree dt{};
+    dt.ctor();
 
     if (ifile) {
         dt.deserialize(ifile);
@@ -162,6 +163,8 @@ int main(int argc, char **argv) {
 
         fclose(ofile);
     }
+
+    dt.dtor();
 
     return 0;
 }
