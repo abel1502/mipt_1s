@@ -30,7 +30,7 @@ namespace SymbolDiff {
             VDECL(ExprNode, void, dump)
             VDECL(ExprNode, ExprNode *, diff)
             VDECL(ExprNode, ExprNode *, copy)
-            VDECL(ExprNode, ExprNode *, simplify)
+            VDECL(ExprNode, ExprNode *, simplify, bool *)
         };
 
         VTABLE_FIELD
@@ -107,29 +107,29 @@ namespace SymbolDiff {
         ExprNode *VMIN(Var, copy)();
 
 
-        ExprNode *VMIN(BinOp, simplify)();
+        ExprNode *VMIN(BinOp, simplify)(bool *wasTrivial);
 
-        ExprNode *VMIN(UnOp, simplify)();
+        ExprNode *VMIN(UnOp, simplify)(bool *wasTrivial);
 
-        ExprNode *VMIN(Leaf, simplify)();
-
-
-        ExprNode *VMIN(BinOp_Add, simplify)();
-
-        ExprNode *VMIN(BinOp_Sub, simplify)();
-
-        ExprNode *VMIN(BinOp_Mul, simplify)();
-
-        ExprNode *VMIN(BinOp_Div, simplify)();
-
-        ExprNode *VMIN(BinOp_Pow, simplify)();
+        ExprNode *VMIN(Leaf, simplify)(bool *wasTrivial);
 
 
-        ExprNode *VMIN(UnOp_Neg, simplify)();
+        ExprNode *VMIN(BinOp_Add, simplify)(bool *wasTrivial);
 
-        ExprNode *VMIN(UnOp_Sin, simplify)();
+        ExprNode *VMIN(BinOp_Sub, simplify)(bool *wasTrivial);
 
-        ExprNode *VMIN(UnOp_Cos, simplify)();
+        ExprNode *VMIN(BinOp_Mul, simplify)(bool *wasTrivial);
+
+        ExprNode *VMIN(BinOp_Div, simplify)(bool *wasTrivial);
+
+        ExprNode *VMIN(BinOp_Pow, simplify)(bool *wasTrivial);
+
+
+        ExprNode *VMIN(UnOp_Neg, simplify)(bool *wasTrivial);
+
+        ExprNode *VMIN(UnOp_Sin, simplify)(bool *wasTrivial);
+
+        ExprNode *VMIN(UnOp_Cos, simplify)(bool *wasTrivial);
 
 
     private:
@@ -166,9 +166,9 @@ namespace SymbolDiff {
 
         static ExprNode *(ExprNode::* const unOpDifferentiators[])();
 
-        static ExprNode *(ExprNode::* const binOpSimplifiers[])();
+        static ExprNode *(ExprNode::* const binOpSimplifiers[])(bool *wasTrivial);
 
-        static ExprNode *(ExprNode::* const unOpSimplifiers[])();
+        static ExprNode *(ExprNode::* const unOpSimplifiers[])(bool *wasTrivial);
     };
 
 

@@ -15,15 +15,16 @@
 	"general.h"
 	"expr.h"
 
-1606591626 d:\workspace\.mipt\s1\symboldiff\expr.h
+1606594763 d:\workspace\.mipt\s1\symboldiff\expr.h
 	"general.h"
 	"vtable.h"
 
-1606585694 d:\workspace\.mipt\s1\symboldiff\vtable.h
+1606595071 d:\workspace\.mipt\s1\symboldiff\vtable.h
 
-1606592858 source:d:\workspace\.mipt\s1\symboldiff\expr.cpp
+1606594989 source:d:\workspace\.mipt\s1\symboldiff\expr.cpp
 	"expr.h"
 	<cstdio>
 	<cstdlib>
 	<cassert>
+	<cmath>
 

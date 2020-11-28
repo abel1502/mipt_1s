@@ -175,33 +175,42 @@ namespace SymbolDiff {
     }
 
 
-    ExprNode *ExprNode::VMIN(BinOp, simplify)() {
+    ExprNode *ExprNode::VMIN(BinOp, simplify)(bool *wasTrivial) {
         /*printf("!");
         VCALL(this, dump);
         printf("\n");*/
 
-        left = VCALL(left, simplify);
-        right = VCALL(right, simplify);
+        *wasTrivial = false;
+        while (!*wasTrivial)
+            left = VCALL(left, simplify, wasTrivial);
+
+        *wasTrivial = false;
+        while (!*wasTrivial)
+            right = VCALL(right, simplify, wasTrivial);
 
         /*printf(">");
         VCALL(this, dump);
         printf("\n");*/
 
-        return (this->*binOpSimplifiers[binOp])();
+        return (this->*binOpSimplifiers[binOp])(wasTrivial);
     }
 
-    ExprNode *ExprNode::VMIN(UnOp, simplify)() {
-        child = VCALL(child, simplify);
+    ExprNode *ExprNode::VMIN(UnOp, simplify)(bool *wasTrivial) {
+        *wasTrivial = false;
+        while (!*wasTrivial)
+            child = VCALL(child, simplify, wasTrivial);
 
-        return (this->*unOpSimplifiers[unOp])();
+        return (this->*unOpSimplifiers[unOp])(wasTrivial);
     }
 
-    ExprNode *ExprNode::VMIN(Leaf, simplify)() {
+    ExprNode *ExprNode::VMIN(Leaf, simplify)(bool *wasTrivial) {
+        *wasTrivial = true;
+
         return this;
     }
 
 
-    ExprNode *ExprNode::VMIN(BinOp_Add, simplify)() {
+    ExprNode *ExprNode::VMIN(BinOp_Add, simplify)(bool *wasTrivial) {
         if (VISINST(left, Const) && VISINST(right, Const)) {
             ExprNode *tmp = left;
 
@@ -226,10 +235,12 @@ namespace SymbolDiff {
             }
         }
 
+        *wasTrivial = true;
+
         return this;
     }
 
-    ExprNode *ExprNode::VMIN(BinOp_Sub, simplify)() {
+    ExprNode *ExprNode::VMIN(BinOp_Sub, simplify)(bool *wasTrivial) {
         if (VISINST(left, Const) && VISINST(right, Const)) {
             ExprNode *tmp = left;
 
@@ -261,10 +272,12 @@ namespace SymbolDiff {
             return tmp;
         }
 
+        *wasTrivial = true;
+
         return this;
     }
 
-    ExprNode *ExprNode::VMIN(BinOp_Mul, simplify)() {
+    ExprNode *ExprNode::VMIN(BinOp_Mul, simplify)(bool *wasTrivial) {
         if (VISINST(left, Const) && VISINST(right, Const)) {
             ExprNode *tmp = left;
 
@@ -308,10 +321,12 @@ namespace SymbolDiff {
             }
         }
 
+        *wasTrivial = true;
+
         return this;
     }
 
-    ExprNode *ExprNode::VMIN(BinOp_Div, simplify)() {
+    ExprNode *ExprNode::VMIN(BinOp_Div, simplify)(bool *wasTrivial) {
         if (VISINST(left, Const) && VISINST(right, Const) && right != 0 && left->value % right->value == 0) {
             ExprNode *tmp = left;
 
@@ -334,10 +349,12 @@ namespace SymbolDiff {
             return tmp;
         }
 
+        *wasTrivial = true;
+
         return this;
     }
 
-    ExprNode *ExprNode::VMIN(BinOp_Pow, simplify)() {
+    ExprNode *ExprNode::VMIN(BinOp_Pow, simplify)(bool *wasTrivial) {
         if (VISINST(left, Const) && VISINST(right, Const)) {
             ExprNode *tmp = left;
 
@@ -367,11 +384,13 @@ namespace SymbolDiff {
             return CONST_(1);
         }
 
+        *wasTrivial = true;
+
         return this;
     }
 
 
-    ExprNode *ExprNode::VMIN(UnOp_Neg, simplify)() {
+    ExprNode *ExprNode::VMIN(UnOp_Neg, simplify)(bool *wasTrivial) {
         if (VISINST(child, UnOp) && child->unOp == UnOp_Neg) {
             ExprNode *tmp = child->child;
 
@@ -394,14 +413,20 @@ namespace SymbolDiff {
             return tmp;
         }
 
+        *wasTrivial = true;
+
         return this;
     }
 
-    ExprNode *ExprNode::VMIN(UnOp_Sin, simplify)() {
+    ExprNode *ExprNode::VMIN(UnOp_Sin, simplify)(bool *wasTrivial) {
+        *wasTrivial = true;
+
         return this;
     }
 
-    ExprNode *ExprNode::VMIN(UnOp_Cos, simplify)() {
+    ExprNode *ExprNode::VMIN(UnOp_Cos, simplify)(bool *wasTrivial) {
+        *wasTrivial = true;
+
         return this;
     }
 
@@ -455,7 +480,7 @@ namespace SymbolDiff {
         [UnOp_Cos] = ExprNode::VMIN(UnOp_Cos, diff),
     };
 
-    ExprNode *(ExprNode::* const ExprNode::binOpSimplifiers[])() = {
+    ExprNode *(ExprNode::* const ExprNode::binOpSimplifiers[])(bool *wasTrivial) = {
         [BinOp_Add] = ExprNode::VMIN(BinOp_Add, simplify),
         [BinOp_Sub] = ExprNode::VMIN(BinOp_Sub, simplify),
         [BinOp_Mul] = ExprNode::VMIN(BinOp_Mul, simplify),
@@ -463,7 +488,7 @@ namespace SymbolDiff {
         [BinOp_Pow] = ExprNode::VMIN(BinOp_Pow, simplify),
     };
 
-    ExprNode *(ExprNode::* const ExprNode::unOpSimplifiers[])() = {
+    ExprNode *(ExprNode::* const ExprNode::unOpSimplifiers[])(bool *wasTrivial) = {
         [UnOp_Neg] = ExprNode::VMIN(UnOp_Neg, simplify),
         [UnOp_Sin] = ExprNode::VMIN(UnOp_Sin, simplify),
         [UnOp_Cos] = ExprNode::VMIN(UnOp_Cos, simplify),

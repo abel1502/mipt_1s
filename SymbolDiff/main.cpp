@@ -24,26 +24,35 @@ static void showHelp(const char *binName) {
 
 
 int main(int argc, char **argv) {
-    ExprNode *one = ExprNode::create()->ctorConst(123);
-    ExprNode *two = ExprNode::create()->ctorVar('x');
-    ExprNode *three = ExprNode::create()->ctorConst(17);
-    ExprNode *add = ExprNode::create()->ctorBinOp(BinOp_Add, one, ExprNode::create()->ctorBinOp(BinOp_Mul, three, two));
+    ExprNode *c123 = ExprNode::create()->ctorConst(123);
+    ExprNode *x = ExprNode::create()->ctorVar('x');
+    ExprNode *c17 = ExprNode::create()->ctorConst(17);
+    ExprNode *c2 = ExprNode::create()->ctorConst(2);
+    ExprNode *expr = ExprNode::create()->ctorBinOp(BinOp_Add,
+        c123,
+        ExprNode::create()->ctorBinOp(BinOp_Mul,
+            ExprNode::create()->ctorBinOp(BinOp_Pow, x, c2),
+            c17
+        )
+    );
 
-    VCALL(add, dump);
+    VCALL(expr, dump);
     printf("\n");
 
-    ExprNode *diff = VCALL(add, diff);
+    ExprNode *diff = VCALL(expr, diff);
 
     VCALL(diff, dump);
     printf("\n");
 
-    diff = VCALL(diff, simplify);
+    bool wasTrivial = false;
+    while (!wasTrivial)
+        diff = VCALL(diff, simplify, &wasTrivial);
 
     VCALL(diff, dump);
     printf("\n");
 
-    add->dtor();
-    delete add;
+    expr->dtor();
+    delete expr;
 
     diff->dtor();
     delete diff;
