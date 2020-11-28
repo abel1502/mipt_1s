@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cassert>
+#include <cmath>
 
 
 namespace SymbolDiff {
@@ -60,13 +61,13 @@ namespace SymbolDiff {
     void ExprNode::VMIN(BinOp, dump)() {
         printf("(");
         VCALL(left, dump);
-        printf(" %c ", "+-*/"[binOp]);  // TODO: Replace
+        printf(" %c ", "+-*/^"[binOp]);  // TODO: Replace
         VCALL(right, dump);
         printf(")");
     }
 
     void ExprNode::VMIN(UnOp, dump)() {
-        printf("(%c (", "+-"[unOp]);    // TODO: Replace
+        printf("(%c (", "-sc"[unOp]);    // TODO: Replace
         VCALL(child, dump);
         printf(")");
     }
@@ -81,18 +82,43 @@ namespace SymbolDiff {
 
 
     void ExprNode::VMIN(BinOp, dtor)() {
-        VCALL(left, dtor);
-        delete left;
-        VCALL(right, dtor);
-        delete right;
+        if (left) {
+            VCALL(left, dtor);
+            delete left;
+        }
+
+        if (right) {
+            VCALL(right, dtor);
+            delete right;
+        }
     }
 
     void ExprNode::VMIN(UnOp, dtor)() {
-        VCALL(child, dtor);
-        delete child;
+        if (child) {
+            VCALL(child, dtor);
+            delete child;
+        }
     }
 
     void ExprNode::VMIN(Leaf, dtor)() {}
+
+
+    // Differentiation DSL begin
+
+    #define ADD_(A, B)  ExprNode::create()->ctorBinOp(BinOp_Add, A, B)
+    #define SUB_(A, B)  ExprNode::create()->ctorBinOp(BinOp_Sub, A, B)
+    #define MUL_(A, B)  ExprNode::create()->ctorBinOp(BinOp_Mul, A, B)
+    #define DIV_(A, B)  ExprNode::create()->ctorBinOp(BinOp_Div, A, B)
+    #define POW_(A, B)  ExprNode::create()->ctorBinOp(BinOp_Pow, A, B)
+
+    #define NEG_(A)     ExprNode::create()->ctorUnOp(UnOp_Neg, A)
+    #define SIN_(A)     ExprNode::create()->ctorUnOp(UnOp_Sin, A)
+    #define COS_(A)     ExprNode::create()->ctorUnOp(UnOp_Cos, A)
+
+    #define COPY_(A)    VCALL(A, copy)
+    #define DIFF_(A)    VCALL(A, diff)
+    #define CONST_(A)   ExprNode::create()->ctorConst(A)
+    #define VAR_(A)     ExprNode::create()->ctorVar(A)
 
 
     ExprNode *ExprNode::VMIN(BinOp, diff)() {
@@ -100,41 +126,317 @@ namespace SymbolDiff {
     }
 
     ExprNode *ExprNode::VMIN(UnOp, diff)() {
-        return (this->*unOpDifferentiators[binOp])();
+        return (this->*unOpDifferentiators[unOp])();
     }
 
     ExprNode *ExprNode::VMIN(Const, diff)() {
-        return ExprNode::create()->ctorConst(0);
+        return CONST_(0);
     }
 
     ExprNode *ExprNode::VMIN(Var, diff)() {
-        return ExprNode::create()->ctorConst(1);
+        assert(varName == 'x');
+
+        return CONST_(1);
     }
 
 
     ExprNode *ExprNode::VMIN(BinOp_Add, diff)() {
+        return ADD_(DIFF_(left), DIFF_(right));
     }
 
     ExprNode *ExprNode::VMIN(BinOp_Sub, diff)() {
+        return SUB_(DIFF_(left), DIFF_(right));
     }
 
     ExprNode *ExprNode::VMIN(BinOp_Mul, diff)() {
+        return ADD_(MUL_(DIFF_(left), COPY_(right)), MUL_(COPY_(left), DIFF_(right)));
     }
 
     ExprNode *ExprNode::VMIN(BinOp_Div, diff)() {
+        return DIV_(SUB_(MUL_(DIFF_(left), COPY_(right)), MUL_(COPY_(left), DIFF_(right))), POW_(COPY_(right), CONST_(2)));
+    }
+    ExprNode *ExprNode::VMIN(BinOp_Pow, diff)() {
+        assert(VISINST(right, Const));
+
+        return MUL_(MUL_(COPY_(right), POW_(COPY_(left), SUB_(COPY_(right), CONST_(1)))), DIFF_(left));
     }
 
-
-    ExprNode *ExprNode::VMIN(UnOp_Pos, diff)() {
-    }
 
     ExprNode *ExprNode::VMIN(UnOp_Neg, diff)() {
+        return NEG_(DIFF_(child));
     }
 
     ExprNode *ExprNode::VMIN(UnOp_Sin, diff)() {
+        return MUL_(COS_(COPY_(child)), DIFF_(child));
     }
 
     ExprNode *ExprNode::VMIN(UnOp_Cos, diff)() {
+        return NEG_(MUL_(SIN_(COPY_(child)), DIFF_(child)));
+    }
+
+
+    ExprNode *ExprNode::VMIN(BinOp, simplify)() {
+        /*printf("!");
+        VCALL(this, dump);
+        printf("\n");*/
+
+        left = VCALL(left, simplify);
+        right = VCALL(right, simplify);
+
+        /*printf(">");
+        VCALL(this, dump);
+        printf("\n");*/
+
+        return (this->*binOpSimplifiers[binOp])();
+    }
+
+    ExprNode *ExprNode::VMIN(UnOp, simplify)() {
+        child = VCALL(child, simplify);
+
+        return (this->*unOpSimplifiers[unOp])();
+    }
+
+    ExprNode *ExprNode::VMIN(Leaf, simplify)() {
+        return this;
+    }
+
+
+    ExprNode *ExprNode::VMIN(BinOp_Add, simplify)() {
+        if (VISINST(left, Const) && VISINST(right, Const)) {
+            ExprNode *tmp = left;
+
+            tmp->value += right->value;
+
+            left = nullptr;
+            dtor();
+            delete this;
+
+            return tmp;
+        }
+
+        for (int i = 0; i < 2; ++i) {
+            if (VISINST(children[i], Const) && children[i]->value == 0) {
+                ExprNode *tmp = children[!i];
+
+                children[!i] = nullptr;
+                dtor();
+                delete this;
+
+                return tmp;
+            }
+        }
+
+        return this;
+    }
+
+    ExprNode *ExprNode::VMIN(BinOp_Sub, simplify)() {
+        if (VISINST(left, Const) && VISINST(right, Const)) {
+            ExprNode *tmp = left;
+
+            tmp->value -= right->value;
+
+            left = nullptr;
+            dtor();
+            delete this;
+
+            return tmp;
+        }
+
+        if (VISINST(left, Const) && left->value == 0) {
+            left->dtor();
+            delete left;
+
+            ctorUnOp(UnOp_Neg, right);
+
+            return this;
+        }
+
+        if (VISINST(right, Const) && right->value == 0) {
+            ExprNode *tmp = left;
+
+            left = nullptr;
+            dtor();
+            delete this;
+
+            return tmp;
+        }
+
+        return this;
+    }
+
+    ExprNode *ExprNode::VMIN(BinOp_Mul, simplify)() {
+        if (VISINST(left, Const) && VISINST(right, Const)) {
+            ExprNode *tmp = left;
+
+            tmp->value *= right->value;
+
+            left = nullptr;
+            dtor();
+            delete this;
+
+            return tmp;
+        }
+
+        for (int i = 0; i < 2; ++i) {
+            if (VISINST(children[i], Const)) {
+                ExprNode *tmp = nullptr;
+
+                switch (children[i]->value) {
+                case 0:
+                    dtor();
+                    delete this;
+
+                    return CONST_(0);
+                case 1:
+                    tmp = children[!i];
+
+                    children[!i] = nullptr;
+                    dtor();
+                    delete this;
+
+                    return tmp;
+                case -1:
+                    children[i]->dtor();
+                    delete children[i];
+
+                    ctorUnOp(UnOp_Neg, children[!i]);
+
+                    return this;
+                default:
+                    break;
+                }
+            }
+        }
+
+        return this;
+    }
+
+    ExprNode *ExprNode::VMIN(BinOp_Div, simplify)() {
+        if (VISINST(left, Const) && VISINST(right, Const) && right != 0 && left->value % right->value == 0) {
+            ExprNode *tmp = left;
+
+            tmp->value /= right->value;
+
+            left = nullptr;
+            dtor();
+            delete this;
+
+            return tmp;
+        }
+
+        if (VISINST(right, Const) && right->value == 1) {
+            ExprNode *tmp = left;
+
+            left = nullptr;
+            dtor();
+            delete this;
+
+            return tmp;
+        }
+
+        return this;
+    }
+
+    ExprNode *ExprNode::VMIN(BinOp_Pow, simplify)() {
+        if (VISINST(left, Const) && VISINST(right, Const)) {
+            ExprNode *tmp = left;
+
+            tmp->value = pow(tmp->value, right->value);
+
+            left = nullptr;
+            dtor();
+            delete this;
+
+            return tmp;
+        }
+
+        if (VISINST(right, Const) && right->value == 1) {
+            ExprNode *tmp = left;
+
+            left = nullptr;
+            dtor();
+            delete this;
+
+            return tmp;
+        }
+
+        if (VISINST(left, Const) && left->value == 1) {
+            dtor();
+            delete this;
+
+            return CONST_(1);
+        }
+
+        return this;
+    }
+
+
+    ExprNode *ExprNode::VMIN(UnOp_Neg, simplify)() {
+        if (VISINST(child, UnOp) && child->unOp == UnOp_Neg) {
+            ExprNode *tmp = child->child;
+
+            child->child = nullptr;
+            dtor();
+            delete this;
+
+            return tmp;
+        }
+
+        if (VISINST(child, Const)) {
+            ExprNode *tmp = child;
+
+            child = nullptr;
+            dtor();
+            delete this;
+
+            tmp->value = -tmp->value;
+
+            return tmp;
+        }
+
+        return this;
+    }
+
+    ExprNode *ExprNode::VMIN(UnOp_Sin, simplify)() {
+        return this;
+    }
+
+    ExprNode *ExprNode::VMIN(UnOp_Cos, simplify)() {
+        return this;
+    }
+
+    #undef ADD_
+    #undef SUB_
+    #undef MUL_
+    #undef DIV_
+    #undef POW_
+
+    #undef NEG_
+    #undef SIN_
+    #undef COS_
+
+    #undef COPY_
+    #undef DIFF_
+    #undef CONST_
+    #undef VAR_
+
+    // Differentiation DSL end
+
+
+    ExprNode *ExprNode::VMIN(BinOp, copy)() {
+        return ExprNode::create()->ctorBinOp(binOp, VCALL(left, copy), VCALL(right, copy));
+    }
+
+    ExprNode *ExprNode::VMIN(UnOp, copy)() {
+        return ExprNode::create()->ctorUnOp(unOp, VCALL(child, copy));
+    }
+
+    ExprNode *ExprNode::VMIN(Const, copy)() {
+        return ExprNode::create()->ctorConst(value);
+    }
+
+    ExprNode *ExprNode::VMIN(Var, copy)() {
+        return ExprNode::create()->ctorVar(varName);
     }
 
     //--------------------------------------------------------------------------------
@@ -144,13 +446,27 @@ namespace SymbolDiff {
         [BinOp_Sub] = ExprNode::VMIN(BinOp_Sub, diff),
         [BinOp_Mul] = ExprNode::VMIN(BinOp_Mul, diff),
         [BinOp_Div] = ExprNode::VMIN(BinOp_Div, diff),
+        [BinOp_Pow] = ExprNode::VMIN(BinOp_Pow, diff),
     };
 
     ExprNode *(ExprNode::* const ExprNode::unOpDifferentiators[])() = {
-        [UnOp_Pos] = ExprNode::VMIN(UnOp_Pos, diff),
         [UnOp_Neg] = ExprNode::VMIN(UnOp_Neg, diff),
         [UnOp_Sin] = ExprNode::VMIN(UnOp_Sin, diff),
         [UnOp_Cos] = ExprNode::VMIN(UnOp_Cos, diff),
+    };
+
+    ExprNode *(ExprNode::* const ExprNode::binOpSimplifiers[])() = {
+        [BinOp_Add] = ExprNode::VMIN(BinOp_Add, simplify),
+        [BinOp_Sub] = ExprNode::VMIN(BinOp_Sub, simplify),
+        [BinOp_Mul] = ExprNode::VMIN(BinOp_Mul, simplify),
+        [BinOp_Div] = ExprNode::VMIN(BinOp_Div, simplify),
+        [BinOp_Pow] = ExprNode::VMIN(BinOp_Pow, simplify),
+    };
+
+    ExprNode *(ExprNode::* const ExprNode::unOpSimplifiers[])() = {
+        [UnOp_Neg] = ExprNode::VMIN(UnOp_Neg, simplify),
+        [UnOp_Sin] = ExprNode::VMIN(UnOp_Sin, simplify),
+        [UnOp_Cos] = ExprNode::VMIN(UnOp_Cos, simplify),
     };
 
     //--------------------------------------------------------------------------------
@@ -158,21 +474,33 @@ namespace SymbolDiff {
     VTYPE_DEF(BinOp, ExprNode) = {
         ExprNode::VMIN(BinOp, dtor),
         ExprNode::VMIN(BinOp, dump),
+        ExprNode::VMIN(BinOp, diff),
+        ExprNode::VMIN(BinOp, copy),
+        ExprNode::VMIN(BinOp, simplify),
     };
 
     VTYPE_DEF(UnOp, ExprNode) = {
         ExprNode::VMIN(UnOp, dtor),
         ExprNode::VMIN(UnOp, dump),
+        ExprNode::VMIN(UnOp, diff),
+        ExprNode::VMIN(UnOp, copy),
+        ExprNode::VMIN(UnOp, simplify),
     };
 
     VTYPE_DEF(Const, ExprNode) = {
         ExprNode::VMIN(Leaf, dtor),
         ExprNode::VMIN(Const, dump),
+        ExprNode::VMIN(Const, diff),
+        ExprNode::VMIN(Const, copy),
+        ExprNode::VMIN(Leaf, simplify),
     };
 
     VTYPE_DEF(Var, ExprNode) = {
         ExprNode::VMIN(Leaf, dtor),
         ExprNode::VMIN(Var, dump),
+        ExprNode::VMIN(Var, diff),
+        ExprNode::VMIN(Var, copy),
+        ExprNode::VMIN(Leaf, simplify),
     };
 
 }

@@ -12,11 +12,11 @@ namespace SymbolDiff {
         BinOp_Sub,
         BinOp_Mul,
         BinOp_Div,
+        BinOp_Pow,
     };
 
 
     enum UnOp_e {
-        UnOp_Pos,
         UnOp_Neg,
         UnOp_Sin,
         UnOp_Cos,
@@ -28,6 +28,9 @@ namespace SymbolDiff {
         VTABLE_STRUCT {
             VDECL(ExprNode, void, dtor)
             VDECL(ExprNode, void, dump)
+            VDECL(ExprNode, ExprNode *, diff)
+            VDECL(ExprNode, ExprNode *, copy)
+            VDECL(ExprNode, ExprNode *, simplify)
         };
 
         VTABLE_FIELD
@@ -85,14 +88,49 @@ namespace SymbolDiff {
 
         ExprNode *VMIN(BinOp_Div, diff)();
 
+        ExprNode *VMIN(BinOp_Pow, diff)();
 
-        ExprNode *VMIN(UnOp_Pos, diff)();
 
         ExprNode *VMIN(UnOp_Neg, diff)();
 
         ExprNode *VMIN(UnOp_Sin, diff)();
 
         ExprNode *VMIN(UnOp_Cos, diff)();
+
+
+        ExprNode *VMIN(BinOp, copy)();
+
+        ExprNode *VMIN(UnOp, copy)();
+
+        ExprNode *VMIN(Const, copy)();
+
+        ExprNode *VMIN(Var, copy)();
+
+
+        ExprNode *VMIN(BinOp, simplify)();
+
+        ExprNode *VMIN(UnOp, simplify)();
+
+        ExprNode *VMIN(Leaf, simplify)();
+
+
+        ExprNode *VMIN(BinOp_Add, simplify)();
+
+        ExprNode *VMIN(BinOp_Sub, simplify)();
+
+        ExprNode *VMIN(BinOp_Mul, simplify)();
+
+        ExprNode *VMIN(BinOp_Div, simplify)();
+
+        ExprNode *VMIN(BinOp_Pow, simplify)();
+
+
+        ExprNode *VMIN(UnOp_Neg, simplify)();
+
+        ExprNode *VMIN(UnOp_Sin, simplify)();
+
+        ExprNode *VMIN(UnOp_Cos, simplify)();
+
 
     private:
         union {
@@ -127,6 +165,10 @@ namespace SymbolDiff {
         static ExprNode *(ExprNode::* const binOpDifferentiators[])();
 
         static ExprNode *(ExprNode::* const unOpDifferentiators[])();
+
+        static ExprNode *(ExprNode::* const binOpSimplifiers[])();
+
+        static ExprNode *(ExprNode::* const unOpSimplifiers[])();
     };
 
 

@@ -26,12 +26,27 @@ static void showHelp(const char *binName) {
 int main(int argc, char **argv) {
     ExprNode *one = ExprNode::create()->ctorConst(123);
     ExprNode *two = ExprNode::create()->ctorVar('x');
-    ExprNode *add = ExprNode::create()->ctorBinOp(BinOp_Add, one, two);
+    ExprNode *three = ExprNode::create()->ctorConst(17);
+    ExprNode *add = ExprNode::create()->ctorBinOp(BinOp_Add, one, ExprNode::create()->ctorBinOp(BinOp_Mul, three, two));
 
     VCALL(add, dump);
+    printf("\n");
+
+    ExprNode *diff = VCALL(add, diff);
+
+    VCALL(diff, dump);
+    printf("\n");
+
+    diff = VCALL(diff, simplify);
+
+    VCALL(diff, dump);
+    printf("\n");
 
     add->dtor();
     delete add;
+
+    diff->dtor();
+    delete diff;
 
 
     return 0;
