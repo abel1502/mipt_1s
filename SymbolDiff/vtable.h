@@ -24,7 +24,7 @@
 #define VTYPE_DEF(TYPENAME, CLSNAME)              const CLSNAME::Vtable_ CLSNAME::VTYPE(TYPENAME)
 
 // Virtual table method declaration
-#define VDECL(CLSNAME, RTYPE, FUNCNAME, ...)      RTYPE (CLSNAME::*FUNCNAME)(##__VA_ARGS__);
+#define VDECL(CLSNAME, RTYPE, FUNCNAME, ...)      RTYPE (CLSNAME::*FUNCNAME)(__VA_ARGS__);
 
 // Virtual method implementation name
 #define VMIN(TYPENAME, METHODNAME)                virt_##TYPENAME##_##METHODNAME##_
