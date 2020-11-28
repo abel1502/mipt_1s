@@ -1,0 +1,29 @@
+# depslib dependency file v1.0
+1606457182 source:d:\workspace\.mipt\s1\symboldiff\general.cpp
+	<cstdio>
+	<cstdarg>
+	<cerrno>
+	"general.h"
+
+1606466509 d:\workspace\.mipt\s1\symboldiff\general.h
+
+1606564618 source:d:\workspace\.mipt\s1\symboldiff\main.cpp
+	<cstdio>
+	<cstdlib>
+	<cassert>
+	<getopt.h>
+	"general.h"
+	"expr.h"
+
+1606586104 d:\workspace\.mipt\s1\symboldiff\expr.h
+	"general.h"
+	"vtable.h"
+
+1606585694 d:\workspace\.mipt\s1\symboldiff\vtable.h
+
+1606584530 source:d:\workspace\.mipt\s1\symboldiff\expr.cpp
+	"expr.h"
+	<cstdio>
+	<cstdlib>
+	<cassert>
+
