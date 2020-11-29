@@ -38,6 +38,9 @@
 		<Unit filename="general.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="vtable.h" />
+		<Unit filename="vtables_BinOp_tpl.h" />
+		<Unit filename="vtables_ExprNode_tpl.h" />
+		<Unit filename="vtables_UnOp_tpl.h" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>

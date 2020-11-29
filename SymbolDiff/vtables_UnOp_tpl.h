@@ -1,0 +1,3 @@
+VCASE_TPL(UnOp_Neg)
+VCASE_TPL(UnOp_Sin)
+VCASE_TPL(UnOp_Cos)

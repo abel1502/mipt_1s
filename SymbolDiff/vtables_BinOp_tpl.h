@@ -1,0 +1,5 @@
+VCASE_TPL(BinOp_Add)
+VCASE_TPL(BinOp_Sub)
+VCASE_TPL(BinOp_Mul)
+VCASE_TPL(BinOp_Div)
+VCASE_TPL(BinOp_Pow)
