@@ -31,8 +31,8 @@ int main(int argc, char **argv) {
     ExprNode *expr = ExprNode::create()->ctorBinOp(BinOp_Add,
         c123,
         ExprNode::create()->ctorBinOp(BinOp_Mul,
-            ExprNode::create()->ctorBinOp(BinOp_Pow, x, c2),
-            c17
+            c17,
+            ExprNode::create()->ctorBinOp(BinOp_Pow, x, c2)
         )
     );
 

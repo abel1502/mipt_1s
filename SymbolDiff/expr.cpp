@@ -61,13 +61,13 @@ namespace SymbolDiff {
     void ExprNode::VMIN(BinOp, dump)() {
         printf("(");
         VCALL(left, dump);
-        printf(" %c ", "+-*/^"[binOp]);  // TODO: Replace
+        printf(" %s ", binOpStrings[binOp]);  // TODO: Replace
         VCALL(right, dump);
         printf(")");
     }
 
     void ExprNode::VMIN(UnOp, dump)() {
-        printf("(%c (", "-sc"[unOp]);    // TODO: Replace
+        printf("(%s (", unOpStrings[unOp]);    // TODO: Replace
         VCALL(child, dump);
         printf(")");
     }
@@ -83,20 +83,17 @@ namespace SymbolDiff {
 
     void ExprNode::VMIN(BinOp, dtor)() {
         if (left) {
-            VCALL(left, dtor);
-            delete left;
+            left->destroy();
         }
 
         if (right) {
-            VCALL(right, dtor);
-            delete right;
+            right->destroy();
         }
     }
 
     void ExprNode::VMIN(UnOp, dtor)() {
         if (child) {
-            VCALL(child, dtor);
-            delete child;
+            child->destroy();
         }
     }
 
@@ -176,10 +173,6 @@ namespace SymbolDiff {
 
 
     ExprNode *ExprNode::VMIN(BinOp, simplify)(bool *wasTrivial) {
-        /*printf("!");
-        VCALL(this, dump);
-        printf("\n");*/
-
         *wasTrivial = false;
         while (!*wasTrivial)
             left = VCALL(left, simplify, wasTrivial);
@@ -187,10 +180,6 @@ namespace SymbolDiff {
         *wasTrivial = false;
         while (!*wasTrivial)
             right = VCALL(right, simplify, wasTrivial);
-
-        /*printf(">");
-        VCALL(this, dump);
-        printf("\n");*/
 
         return (this->*binOpSimplifiers[binOp])(wasTrivial);
     }
@@ -217,8 +206,7 @@ namespace SymbolDiff {
             tmp->value += right->value;
 
             left = nullptr;
-            dtor();
-            delete this;
+            destroy();
 
             return tmp;
         }
@@ -228,8 +216,7 @@ namespace SymbolDiff {
                 ExprNode *tmp = children[!i];
 
                 children[!i] = nullptr;
-                dtor();
-                delete this;
+                destroy();
 
                 return tmp;
             }
@@ -247,15 +234,13 @@ namespace SymbolDiff {
             tmp->value -= right->value;
 
             left = nullptr;
-            dtor();
-            delete this;
+            destroy();
 
             return tmp;
         }
 
         if (VISINST(left, Const) && left->value == 0) {
-            left->dtor();
-            delete left;
+            left->destroy();
 
             ctorUnOp(UnOp_Neg, right);
 
@@ -266,8 +251,7 @@ namespace SymbolDiff {
             ExprNode *tmp = left;
 
             left = nullptr;
-            dtor();
-            delete this;
+            destroy();
 
             return tmp;
         }
@@ -284,8 +268,7 @@ namespace SymbolDiff {
             tmp->value *= right->value;
 
             left = nullptr;
-            dtor();
-            delete this;
+            destroy();
 
             return tmp;
         }
@@ -296,25 +279,24 @@ namespace SymbolDiff {
 
                 switch (children[i]->value) {
                 case 0:
-                    dtor();
-                    delete this;
+                    tmp = children[i];
 
-                    return CONST_(0);
+                    children[i] = nullptr;
+                    destroy();
+
+                    return tmp;
                 case 1:
                     tmp = children[!i];
 
                     children[!i] = nullptr;
-                    dtor();
-                    delete this;
+                    destroy();
 
                     return tmp;
                 case -1:
-                    children[i]->dtor();
-                    delete children[i];
+                    children[i]->destroy();
+                    children[i] = nullptr;  // Just in case
 
-                    ctorUnOp(UnOp_Neg, children[!i]);
-
-                    return this;
+                    return ctorUnOp(UnOp_Neg, children[!i]);
                 default:
                     break;
                 }
@@ -333,8 +315,7 @@ namespace SymbolDiff {
             tmp->value /= right->value;
 
             left = nullptr;
-            dtor();
-            delete this;
+            destroy();
 
             return tmp;
         }
@@ -343,8 +324,7 @@ namespace SymbolDiff {
             ExprNode *tmp = left;
 
             left = nullptr;
-            dtor();
-            delete this;
+            destroy();
 
             return tmp;
         }
@@ -361,8 +341,7 @@ namespace SymbolDiff {
             tmp->value = pow(tmp->value, right->value);
 
             left = nullptr;
-            dtor();
-            delete this;
+            destroy();
 
             return tmp;
         }
@@ -371,17 +350,39 @@ namespace SymbolDiff {
             ExprNode *tmp = left;
 
             left = nullptr;
-            dtor();
-            delete this;
+            destroy();
 
             return tmp;
         }
 
         if (VISINST(left, Const) && left->value == 1) {
-            dtor();
-            delete this;
+            ExprNode *tmp = left;
 
-            return CONST_(1);
+            left = nullptr;
+            destroy();
+
+            return tmp;
+        }
+
+        // Order matters, since 0**0 == 1
+        if (VISINST(right, Const) && right->value == 0) {
+            ExprNode *tmp = right;
+
+            right->value = 1;
+
+            right = nullptr;
+            destroy();
+
+            return tmp;
+        }
+
+        if (VISINST(left, Const) && left->value == 0) {
+            ExprNode *tmp = left;
+
+            left = nullptr;
+            destroy();
+
+            return tmp;
         }
 
         *wasTrivial = true;
@@ -395,8 +396,7 @@ namespace SymbolDiff {
             ExprNode *tmp = child->child;
 
             child->child = nullptr;
-            dtor();
-            delete this;
+            destroy();
 
             return tmp;
         }
@@ -405,8 +405,7 @@ namespace SymbolDiff {
             ExprNode *tmp = child;
 
             child = nullptr;
-            dtor();
-            delete this;
+            destroy();
 
             tmp->value = -tmp->value;
 

@@ -169,6 +169,24 @@ namespace SymbolDiff {
         static ExprNode *(ExprNode::* const binOpSimplifiers[])(bool *wasTrivial);
 
         static ExprNode *(ExprNode::* const unOpSimplifiers[])(bool *wasTrivial);
+
+
+        static const unsigned OPSTR_MAX_LEN = 8;
+        typedef char opStr[OPSTR_MAX_LEN];
+
+        static const constexpr opStr binOpStrings[] = {
+            "+",
+            "-",
+            "*",
+            "/",
+            "^",  // "**"?
+        };
+
+        static const constexpr opStr unOpStrings[] = {
+            "-",
+            "sin",
+            "cos",
+        };
     };
 
 
