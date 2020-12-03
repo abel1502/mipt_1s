@@ -101,11 +101,11 @@ namespace SymbolDiff {
 
     #include "expr_dsl_def.h"
 
-    ExprNode *ExprNode::VMIN(Const, diff)(char __attribute__((unused)) by) {
+    ExprNode *ExprNode::VMIN(Const, diff)(char __attribute__((unused)) by, FILE *logFile) {
         return CONST_(0);
     }
 
-    ExprNode *ExprNode::VMIN(Var, diff)(char by) {
+    ExprNode *ExprNode::VMIN(Var, diff)(char by, FILE *logFile) {
         if (varName == by)
             return CONST_(1);
 
@@ -233,7 +233,7 @@ namespace SymbolDiff {
 
         ExprTree *newTree = ExprTree::create();
 
-        newTree->root = VCALL(root, diff, by);
+        newTree->root = VCALL(root, diff, by, nullptr);
 
         return newTree;
     }

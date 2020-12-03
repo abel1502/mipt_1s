@@ -10,7 +10,7 @@
 #define LN_(A)          ExprNode::create()->ctorUnOp(UnOp_Ln, A)
 
 #define COPY_(A)        VCALL(A, copy)
-#define DIFF_(A)        VCALL(A, diff, by)
-#define DIFFBY_(A, B)   VCALL(A, diff, B)
+#define DIFF_(A)        VCALL(A, diff, by, logFile)
+#define DIFFBY_(A, B)   VCALL(A, diff, B, logFile)
 #define CONST_(A)       ExprNode::create()->ctorConst(A)
 #define VAR_(A)         ExprNode::create()->ctorVar(A)

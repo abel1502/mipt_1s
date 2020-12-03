@@ -45,7 +45,7 @@ namespace SymbolDiff {
         VTABLE_STRUCT {
             VDECL(ExprNode, void, dtor)
             VDECL(ExprNode, void, dump)
-            VDECL(ExprNode, ExprNode *, diff, char by)
+            VDECL(ExprNode, ExprNode *, diff, char by, FILE *logFile)
             VDECL(ExprNode, ExprNode *, copy)
             VDECL(ExprNode, ExprNode *, simplify, bool *wasTrivial)
             VDECL(ExprNode, void, writeTex, FILE *ofile)
@@ -98,23 +98,23 @@ namespace SymbolDiff {
         void VMIN(Var, dump)();
 
 
-        ExprNode *VMIN(BinOp, diff)(char by);
+        ExprNode *VMIN(BinOp, diff)(char by, FILE *logFile);
 
-        ExprNode *VMIN(UnOp, diff)(char by);
+        ExprNode *VMIN(UnOp, diff)(char by, FILE *logFile);
 
-        ExprNode *VMIN(Const, diff)(char by);
+        ExprNode *VMIN(Const, diff)(char by, FILE *logFile);
 
-        ExprNode *VMIN(Var, diff)(char by);
+        ExprNode *VMIN(Var, diff)(char by, FILE *logFile);
 
 
-        #define CASE_TPL(NAME, STR)  ExprNode *VMIN(BinOp_##NAME, diff)(char by);
+        #define CASE_TPL(NAME, STR)  ExprNode *VMIN(BinOp_##NAME, diff)(char by, FILE *logFile);
 
         #include "tpl_BinOp.h"
 
         #undef CASE_TPL
 
 
-        #define CASE_TPL(NAME, STR)  ExprNode *VMIN(UnOp_##NAME, diff)(char by);
+        #define CASE_TPL(NAME, STR)  ExprNode *VMIN(UnOp_##NAME, diff)(char by, FILE *logFile);
 
         #include "tpl_UnOp.h"
 
@@ -208,7 +208,7 @@ namespace SymbolDiff {
         };
 
 
-        static constexpr ExprNode *(ExprNode::* const binOpDifferentiators[])(char by) = {
+        static constexpr ExprNode *(ExprNode::* const binOpDifferentiators[])(char by, FILE *logFile) = {
             #define CASE_TPL(NAME, STR)  [BinOp_##NAME] = ExprNode::VMIN(BinOp_##NAME, diff),
 
             #include "tpl_BinOp.h"
@@ -216,7 +216,7 @@ namespace SymbolDiff {
             #undef CASE_TPL
         };
 
-        static constexpr ExprNode *(ExprNode::* const unOpDifferentiators[])(char by) = {
+        static constexpr ExprNode *(ExprNode::* const unOpDifferentiators[])(char by, FILE *logFile) = {
             #define CASE_TPL(NAME, STR)  [UnOp_##NAME] = ExprNode::VMIN(UnOp_##NAME, diff),
 
             #include "tpl_UnOp.h"

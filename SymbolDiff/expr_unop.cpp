@@ -35,24 +35,24 @@ namespace SymbolDiff {
 
     #include "expr_dsl_def.h"
 
-    ExprNode *ExprNode::VMIN(UnOp, diff)(char by) {
-        return (this->*unOpDifferentiators[unOp])(by);
+    ExprNode *ExprNode::VMIN(UnOp, diff)(char by, FILE *logFile) {
+        return (this->*unOpDifferentiators[unOp])(by, logFile);
     }
 
 
-    ExprNode *ExprNode::VMIN(UnOp_Neg, diff)(char by) {
+    ExprNode *ExprNode::VMIN(UnOp_Neg, diff)(char by, FILE *logFile) {
         return NEG_(DIFF_(child));
     }
 
-    ExprNode *ExprNode::VMIN(UnOp_Sin, diff)(char by) {
+    ExprNode *ExprNode::VMIN(UnOp_Sin, diff)(char by, FILE *logFile) {
         return MUL_(COS_(COPY_(child)), DIFF_(child));
     }
 
-    ExprNode *ExprNode::VMIN(UnOp_Cos, diff)(char by) {
+    ExprNode *ExprNode::VMIN(UnOp_Cos, diff)(char by, FILE *logFile) {
         return NEG_(MUL_(SIN_(COPY_(child)), DIFF_(child)));
     }
 
-    ExprNode *ExprNode::VMIN(UnOp_Ln, diff)(char by) {
+    ExprNode *ExprNode::VMIN(UnOp_Ln, diff)(char by, FILE *logFile) {
         return DIV_(DIFF_(child), COPY_(child));
     }
 
@@ -161,7 +161,7 @@ namespace SymbolDiff {
             return Priority_Ufunc;
         default:
             assert(false);
-            break;
+            abort();
         }
     }
 

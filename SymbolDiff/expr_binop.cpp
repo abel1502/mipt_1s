@@ -40,28 +40,28 @@ namespace SymbolDiff {
 
     #include "expr_dsl_def.h"
 
-    ExprNode *ExprNode::VMIN(BinOp, diff)(char by) {
-        return (this->*binOpDifferentiators[binOp])(by);
+    ExprNode *ExprNode::VMIN(BinOp, diff)(char by, FILE *logFile) {
+        return (this->*binOpDifferentiators[binOp])(by, logFile);
     }
 
 
-    ExprNode *ExprNode::VMIN(BinOp_Add, diff)(char by) {
+    ExprNode *ExprNode::VMIN(BinOp_Add, diff)(char by, FILE *logFile) {
         return ADD_(DIFF_(left), DIFF_(right));
     }
 
-    ExprNode *ExprNode::VMIN(BinOp_Sub, diff)(char by) {
+    ExprNode *ExprNode::VMIN(BinOp_Sub, diff)(char by, FILE *logFile) {
         return SUB_(DIFF_(left), DIFF_(right));
     }
 
-    ExprNode *ExprNode::VMIN(BinOp_Mul, diff)(char by) {
+    ExprNode *ExprNode::VMIN(BinOp_Mul, diff)(char by, FILE *logFile) {
         return ADD_(MUL_(DIFF_(left), COPY_(right)), MUL_(COPY_(left), DIFF_(right)));
     }
 
-    ExprNode *ExprNode::VMIN(BinOp_Div, diff)(char by) {
+    ExprNode *ExprNode::VMIN(BinOp_Div, diff)(char by, FILE *logFile) {
         return DIV_(SUB_(MUL_(DIFF_(left), COPY_(right)), MUL_(COPY_(left), DIFF_(right))), POW_(COPY_(right), CONST_(2)));
     }
 
-    ExprNode *ExprNode::VMIN(BinOp_Pow, diff)(char by) {
+    ExprNode *ExprNode::VMIN(BinOp_Pow, diff)(char by, FILE *logFile) {
         if (VCALL(right, isConstBy, by)) {
             return MUL_(MUL_(COPY_(right), POW_(COPY_(left), SUB_(COPY_(right), CONST_(1)))), DIFF_(left));
         } else if (VCALL(left, isConstBy, by)) {
@@ -361,7 +361,7 @@ namespace SymbolDiff {
             return Priority_Pow;
         default:
             assert(false);
-            break;
+            abort();
         }
     }
 
