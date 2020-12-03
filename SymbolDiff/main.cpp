@@ -26,9 +26,13 @@ static void showHelp(const char *binName) {
 int main(int argc, char **argv) {
     verbosity = 3;
 
-    ExprNode *tmp = ExprNode::read("( (1) + ( sin((2) * (x)) ) )");
+    ExprNode *tmp = ExprNode::read("( (1) + ( sin((-(2)) * ((x) ^ ((15) * (y)))) ) )");
 
     if (tmp) {
+        printf("$$ ");
+        VCALL(tmp, writeTex, stdout);
+        printf(" $$\n");
+
         VCALL(tmp, dump);
         printf("\n");
 
@@ -40,6 +44,10 @@ int main(int argc, char **argv) {
         bool wasTrivial = false;
         while (!wasTrivial)
             diff = VCALL(diff, simplify, &wasTrivial);
+
+        printf("$$ ");
+        VCALL(diff, writeTex, stdout);
+        printf(" $$\n");
 
         VCALL(diff, dump);
         printf("\n");

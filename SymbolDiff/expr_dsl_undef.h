@@ -7,6 +7,7 @@
 #undef NEG_
 #undef SIN_
 #undef COS_
+#undef LN_
 
 #undef COPY_
 #undef DIFF_

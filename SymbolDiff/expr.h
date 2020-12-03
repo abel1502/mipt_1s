@@ -23,6 +23,17 @@ namespace SymbolDiff {
         UnOp_Neg,
         UnOp_Sin,
         UnOp_Cos,
+        UnOp_Ln,
+    };
+
+
+    enum Priority_e {
+        Priority_Add,
+        Priority_Neg,
+        Priority_Mul,
+        Priority_Pow,
+        Priority_Ufunc,
+        Priority_Imm,
     };
 
 
@@ -37,6 +48,9 @@ namespace SymbolDiff {
             VDECL(ExprNode, ExprNode *, diff, char by)
             VDECL(ExprNode, ExprNode *, copy)
             VDECL(ExprNode, ExprNode *, simplify, bool *wasTrivial)
+            VDECL(ExprNode, void, writeTex, FILE *ofile)
+            VDECL(ExprNode, Priority_e, getPriority)
+            VDECL(ExprNode, bool, isConstBy, char by);
         };
 
         VTABLE_FIELD
@@ -99,28 +113,12 @@ namespace SymbolDiff {
 
         #undef CASE_TPL
 
-        /*ExprNode *VMIN(BinOp_Add, diff)(char by);
-
-        ExprNode *VMIN(BinOp_Sub, diff)(char by);
-
-        ExprNode *VMIN(BinOp_Mul, diff)(char by);
-
-        ExprNode *VMIN(BinOp_Div, diff)(char by);
-
-        ExprNode *VMIN(BinOp_Pow, diff)(char by);*/
-
 
         #define CASE_TPL(NAME, STR)  ExprNode *VMIN(UnOp_##NAME, diff)(char by);
 
         #include "tpl_UnOp.h"
 
         #undef CASE_TPL
-
-        /*ExprNode *VMIN(UnOp_Neg, diff)(char by);
-
-        ExprNode *VMIN(UnOp_Sin, diff)(char by);
-
-        ExprNode *VMIN(UnOp_Cos, diff)(char by);*/
 
 
         ExprNode *VMIN(BinOp, copy)();
@@ -145,16 +143,6 @@ namespace SymbolDiff {
 
         #undef CASE_TPL
 
-        /*ExprNode *VMIN(BinOp_Add, simplify)(bool *wasTrivial);
-
-        ExprNode *VMIN(BinOp_Sub, simplify)(bool *wasTrivial);
-
-        ExprNode *VMIN(BinOp_Mul, simplify)(bool *wasTrivial);
-
-        ExprNode *VMIN(BinOp_Div, simplify)(bool *wasTrivial);
-
-        ExprNode *VMIN(BinOp_Pow, simplify)(bool *wasTrivial);*/
-
 
         #define CASE_TPL(NAME, STR)  ExprNode *VMIN(UnOp_##NAME, simplify)(bool *wasTrivial);
 
@@ -162,11 +150,31 @@ namespace SymbolDiff {
 
         #undef CASE_TPL
 
-        /*ExprNode *VMIN(UnOp_Neg, simplify)(bool *wasTrivial);
 
-        ExprNode *VMIN(UnOp_Sin, simplify)(bool *wasTrivial);
+        void VMIN(BinOp, writeTex)(FILE *ofile);
 
-        ExprNode *VMIN(UnOp_Cos, simplify)(bool *wasTrivial);*/
+        void VMIN(UnOp, writeTex)(FILE *ofile);
+
+        void VMIN(Const, writeTex)(FILE *ofile);
+
+        void VMIN(Var, writeTex)(FILE *ofile);
+
+
+        Priority_e VMIN(BinOp, getPriority)();
+
+        Priority_e VMIN(UnOp, getPriority)();
+
+        Priority_e VMIN(Const, getPriority)();
+
+        Priority_e VMIN(Var, getPriority)();
+
+        bool VMIN(BinOp, isConstBy)(char by);
+
+        bool VMIN(UnOp, isConstBy)(char by);
+
+        bool VMIN(Const, isConstBy)(char by);
+
+        bool VMIN(Var, isConstBy)(char by);
 
 
     private:
@@ -256,6 +264,25 @@ namespace SymbolDiff {
 
 
     class ExprTree {
+    public:
+        FACTORIES(ExprTree);
+
+        ExprTree *ctor();
+
+        void dtor();
+
+        bool read(FILE *ifile);
+
+        bool read(const char *src);
+
+        void dump();
+
+        void simplify();
+
+        static ExprNode *read(Parser *parser);
+
+    private:
+        ExprNode *root;
     };
 
 }

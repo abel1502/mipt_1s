@@ -52,6 +52,10 @@ namespace SymbolDiff {
         return NEG_(MUL_(SIN_(COPY_(child)), DIFF_(child)));
     }
 
+    ExprNode *ExprNode::VMIN(UnOp_Ln, diff)(char by) {
+        return MUL_(DIFF_(child), COPY_(child));
+    }
+
 
     ExprNode *ExprNode::VMIN(UnOp, simplify)(bool *wasTrivial) {
         *wasTrivial = false;
@@ -100,6 +104,12 @@ namespace SymbolDiff {
         return this;
     }
 
+    ExprNode *ExprNode::VMIN(UnOp_Ln, simplify)(bool *wasTrivial) {
+        *wasTrivial = true;
+
+        return this;
+    }
+
     #include "expr_dsl_undef.h"
 
 
@@ -107,6 +117,59 @@ namespace SymbolDiff {
         return ExprNode::create()->ctorUnOp(unOp, VCALL(child, copy));
     }
 
+    void ExprNode::VMIN(UnOp, writeTex)(FILE *ofile) {
+        Priority_e  prio = VCALL(this,  getPriority);
+        Priority_e cprio = VCALL(child, getPriority);
+
+        bool cBrackets = cprio < prio;
+
+        #define CHILD_                          \
+            if (cBrackets) {                    \
+                fprintf(ofile, "\\left(");      \
+            }                                   \
+                                                \
+            VCALL(child, writeTex, ofile);      \
+                                                \
+            if (cBrackets) {                    \
+                fprintf(ofile, "\\right)");     \
+            }
+
+        switch (unOp) {
+        case UnOp_Neg:
+            fprintf(ofile, "- ");
+            CHILD_;
+            break;
+        case UnOp_Sin:
+        case UnOp_Cos:
+        case UnOp_Ln:   // TODO: ?
+            fprintf(ofile, "\\%s ", unOpStrings[unOp]);
+            CHILD_;
+            break;
+        default:
+            assert(false);
+            break;
+        }
+    }
+
+    Priority_e ExprNode::VMIN(UnOp, getPriority)() {
+        switch (unOp) {
+        case UnOp_Neg:
+            return Priority_Neg;
+        case UnOp_Sin:
+        case UnOp_Cos:
+        case UnOp_Ln:   // TODO: ?
+            return Priority_Ufunc;
+        default:
+            assert(false);
+            break;
+        }
+    }
+
+    bool ExprNode::VMIN(UnOp, isConstBy)(char by) {
+        return VCALL(child, isConstBy, by);
+    }
+
+    //--------------------------------------------------------------------------------
 
     VTYPE_DEF(UnOp, ExprNode) = {
         ExprNode::VMIN(UnOp, dtor),
@@ -114,6 +177,9 @@ namespace SymbolDiff {
         ExprNode::VMIN(UnOp, diff),
         ExprNode::VMIN(UnOp, copy),
         ExprNode::VMIN(UnOp, simplify),
+        ExprNode::VMIN(UnOp, writeTex),
+        ExprNode::VMIN(UnOp, getPriority),
+        ExprNode::VMIN(UnOp, isConstBy),
     };
 }
 

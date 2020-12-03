@@ -62,9 +62,15 @@ namespace SymbolDiff {
     }
 
     ExprNode *ExprNode::VMIN(BinOp_Pow, diff)(char by) {
-        assert(VISINST(right, Const));
-
-        return MUL_(MUL_(COPY_(right), POW_(COPY_(left), SUB_(COPY_(right), CONST_(1)))), DIFF_(left));
+        if (VCALL(right, isConstBy, by)) {
+            return MUL_(MUL_(COPY_(right), POW_(COPY_(left), SUB_(COPY_(right), CONST_(1)))), DIFF_(left));
+        } else if (VCALL(left, isConstBy, by)) {
+            return MUL_(MUL_(LN_(left), COPY_(this)), DIFF_(right));
+        } else {
+            printf("\n --- ["); VCALL(this, dump); printf("] ---\n");
+            assert(false);
+            return nullptr;
+        }
     }
 
 
@@ -279,6 +285,91 @@ namespace SymbolDiff {
         return ExprNode::create()->ctorBinOp(binOp, VCALL(left, copy), VCALL(right, copy));
     }
 
+    void ExprNode::VMIN(BinOp, writeTex)(FILE *ofile) {
+        Priority_e  prio = VCALL(this,  getPriority);
+        Priority_e lprio = VCALL(left,  getPriority);
+        Priority_e rprio = VCALL(right, getPriority);
+
+        bool lBrackets = lprio < prio || (lprio == prio && binOp == BinOp_Pow);
+        bool rBrackets = rprio < prio;
+
+        #define LEFT_                           \
+            if (lBrackets) {                    \
+                fprintf(ofile, "\\left(");      \
+            }                                   \
+                                                \
+            VCALL(left, writeTex, ofile);       \
+                                                \
+            if (lBrackets) {                    \
+                fprintf(ofile, "\\right)");     \
+            }
+
+        #define RIGHT_                          \
+            if (rBrackets) {                    \
+                fprintf(ofile, "\\left(");      \
+            }                                   \
+                                                \
+            VCALL(right, writeTex, ofile);      \
+                                                \
+            if (rBrackets) {                    \
+                fprintf(ofile, "\\right)");     \
+            }
+
+        switch (binOp) {
+        case BinOp_Add:
+        case BinOp_Sub:
+            LEFT_;
+            fprintf(ofile, " %s ", binOpStrings[binOp]);
+            RIGHT_;
+            break;
+        case BinOp_Mul:
+            LEFT_;
+            fprintf(ofile, " \\cdot ");
+            RIGHT_;
+            break;
+        case BinOp_Div:
+            fprintf(ofile, "\\frac{");
+            LEFT_;
+            fprintf(ofile, "}{");
+            RIGHT_;
+            fprintf(ofile, "}");
+            break;
+        case BinOp_Pow:
+            LEFT_;
+            fprintf(ofile, "^{");
+            rBrackets = false;
+            RIGHT_;
+            fprintf(ofile, "}");
+            break;
+        default:
+            assert(false);
+            break;
+        }
+
+        #undef LEFT_
+        #undef RIGHT_
+    }
+
+    Priority_e ExprNode::VMIN(BinOp, getPriority)() {
+        switch (binOp) {
+        case BinOp_Add:
+        case BinOp_Sub:
+            return Priority_Add;
+        case BinOp_Mul:
+        case BinOp_Div:
+            return Priority_Mul;
+        case BinOp_Pow:
+            return Priority_Pow;
+        default:
+            assert(false);
+            break;
+        }
+    }
+
+    bool ExprNode::VMIN(BinOp, isConstBy)(char by) {
+        return VCALL(left, isConstBy, by) && VCALL(right, isConstBy, by);
+    }
+
     //--------------------------------------------------------------------------------
 
     VTYPE_DEF(BinOp, ExprNode) = {
@@ -287,6 +378,9 @@ namespace SymbolDiff {
         ExprNode::VMIN(BinOp, diff),
         ExprNode::VMIN(BinOp, copy),
         ExprNode::VMIN(BinOp, simplify),
+        ExprNode::VMIN(BinOp, writeTex),
+        ExprNode::VMIN(BinOp, getPriority),
+        ExprNode::VMIN(BinOp, isConstBy),
     };
 }
 

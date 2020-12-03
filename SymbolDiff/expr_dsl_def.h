@@ -7,6 +7,7 @@
 #define NEG_(A)         ExprNode::create()->ctorUnOp(UnOp_Neg, A)
 #define SIN_(A)         ExprNode::create()->ctorUnOp(UnOp_Sin, A)
 #define COS_(A)         ExprNode::create()->ctorUnOp(UnOp_Cos, A)
+#define LN_(A)          ExprNode::create()->ctorUnOp(UnOp_Ln, A)
 
 #define COPY_(A)        VCALL(A, copy)
 #define DIFF_(A)        VCALL(A, diff, by)

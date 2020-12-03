@@ -113,12 +113,44 @@ namespace SymbolDiff {
     }
 
 
+    void ExprNode::VMIN(Const, writeTex)(FILE *ofile) {
+        fprintf(ofile, " %lld ", value);
+    }
+
+    void ExprNode::VMIN(Var, writeTex)(FILE *ofile) {
+        fprintf(ofile, " %c ", varName);
+    }
+
+
+    Priority_e ExprNode::VMIN(Const, getPriority)() {
+        if (value < 0)
+            return Priority_Neg;
+
+        return Priority_Imm;
+    }
+
+    Priority_e ExprNode::VMIN(Var, getPriority)() {
+        return Priority_Imm;
+    }
+
+    bool ExprNode::VMIN(Const, isConstBy)(char __attribute__((unused)) by) {
+        return true;
+    }
+
+    bool ExprNode::VMIN(Var, isConstBy)(char by) {
+        return by != varName;
+    }
+
+
     VTYPE_DEF(Const, ExprNode) = {
         ExprNode::VMIN(Leaf, dtor),
         ExprNode::VMIN(Const, dump),
         ExprNode::VMIN(Const, diff),
         ExprNode::VMIN(Const, copy),
         ExprNode::VMIN(Leaf, simplify),
+        ExprNode::VMIN(Const, writeTex),
+        ExprNode::VMIN(Const, getPriority),
+        ExprNode::VMIN(Const, isConstBy),
     };
 
     VTYPE_DEF(Var, ExprNode) = {
@@ -127,7 +159,18 @@ namespace SymbolDiff {
         ExprNode::VMIN(Var, diff),
         ExprNode::VMIN(Var, copy),
         ExprNode::VMIN(Leaf, simplify),
+        ExprNode::VMIN(Var, writeTex),
+        ExprNode::VMIN(Var, getPriority),
+        ExprNode::VMIN(Var, isConstBy),
     };
+
+    //--------------------------------------------------------------------------------
+
+    ExprTree *ExprTree::ctor() {
+    }
+
+    void ExprTree::dtor() {
+    }
 
 }
 
