@@ -24,6 +24,35 @@ static void showHelp(const char *binName) {
 
 
 int main(int argc, char **argv) {
+    verbosity = 3;
+
+    ExprNode *tmp = ExprNode::read("( (1) + ( sin((2) * (x)) ) )");
+
+    if (tmp) {
+        VCALL(tmp, dump);
+        printf("\n");
+
+        ExprNode *diff = VCALL(tmp, diff, 'x');
+
+        VCALL(diff, dump);
+        printf("\n");
+
+        bool wasTrivial = false;
+        while (!wasTrivial)
+            diff = VCALL(diff, simplify, &wasTrivial);
+
+        VCALL(diff, dump);
+        printf("\n");
+
+        diff->destroy();
+        tmp->destroy();
+    } else {
+        printf("Corrupt expression, sorry(...\n");
+    }
+
+
+    return 0;
+
     ExprNode *c123 = ExprNode::create()->ctorConst(123);
     ExprNode *x = ExprNode::create()->ctorVar('x');
     ExprNode *c17 = ExprNode::create()->ctorConst(17);
@@ -39,7 +68,7 @@ int main(int argc, char **argv) {
     VCALL(expr, dump);
     printf("\n");
 
-    ExprNode *diff = VCALL(expr, diff);
+    ExprNode *diff = VCALL(expr, diff, 'x');
 
     VCALL(diff, dump);
     printf("\n");
@@ -51,11 +80,9 @@ int main(int argc, char **argv) {
     VCALL(diff, dump);
     printf("\n");
 
-    expr->dtor();
-    delete expr;
+    expr->destroy();
 
-    diff->dtor();
-    delete diff;
+    diff->destroy();
 
 
     return 0;

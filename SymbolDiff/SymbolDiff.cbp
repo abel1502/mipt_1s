@@ -11,6 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="-vvv" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -34,13 +35,18 @@
 		</Compiler>
 		<Unit filename="expr.cpp" />
 		<Unit filename="expr.h" />
+		<Unit filename="expr_binop.cpp" />
+		<Unit filename="expr_dsl_def.h" />
+		<Unit filename="expr_dsl_undef.h" />
+		<Unit filename="expr_unop.cpp" />
 		<Unit filename="general.cpp" />
 		<Unit filename="general.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="parser.cpp" />
+		<Unit filename="parser.h" />
+		<Unit filename="tpl_BinOp.h" />
+		<Unit filename="tpl_UnOp.h" />
 		<Unit filename="vtable.h" />
-		<Unit filename="vtables_BinOp_tpl.h" />
-		<Unit filename="vtables_ExprNode_tpl.h" />
-		<Unit filename="vtables_UnOp_tpl.h" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>

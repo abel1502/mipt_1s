@@ -5,9 +5,9 @@
 	<cerrno>
 	"general.h"
 
-1606466509 d:\workspace\.mipt\s1\symboldiff\general.h
+1606752985 d:\workspace\.mipt\s1\symboldiff\general.h
 
-1606643980 source:d:\workspace\.mipt\s1\symboldiff\main.cpp
+1607017997 source:d:\workspace\.mipt\s1\symboldiff\main.cpp
 	<cstdio>
 	<cstdlib>
 	<cassert>
@@ -15,16 +15,74 @@
 	"general.h"
 	"expr.h"
 
-1606644429 d:\workspace\.mipt\s1\symboldiff\expr.h
+1607016627 d:\workspace\.mipt\s1\symboldiff\expr.h
 	"general.h"
 	"vtable.h"
+	"parser.h"
+	<cstdio>
+	"tpl_BinOp.h"
+	"tpl_UnOp.h"
+	"tpl_BinOp.h"
+	"tpl_UnOp.h"
+	"tpl_BinOp.h"
+	"tpl_UnOp.h"
+	"tpl_BinOp.h"
+	"tpl_UnOp.h"
+	"tpl_BinOp.h"
+	"tpl_UnOp.h"
 
-1606642452 d:\workspace\.mipt\s1\symboldiff\vtable.h
+1606750015 d:\workspace\.mipt\s1\symboldiff\vtable.h
 
-1606644650 source:d:\workspace\.mipt\s1\symboldiff\expr.cpp
+1607016644 source:d:\workspace\.mipt\s1\symboldiff\expr.cpp
 	"expr.h"
 	<cstdio>
 	<cstdlib>
 	<cassert>
 	<cmath>
+	<cctype>
+	<cstring>
+	"expr_dsl_def.h"
+
+1606717562 source:d:\workspace\.mipt\s1\symboldiff\expr_dsl_undef.h
+
+1606721303 d:\workspace\.mipt\s1\symboldiff\expr_dsl_def.h
+
+1606721371 source:d:\workspace\.mipt\s1\symboldiff\expr_binop.cpp
+	"expr.h"
+	<cstdio>
+	<cstdlib>
+	<cassert>
+	<cmath>
+	"expr_dsl_def.h"
+	"expr_dsl_undef.h"
+
+1606721316 d:\workspace\.mipt\s1\symboldiff\expr_dsl_undef.h
+
+1606721375 source:d:\workspace\.mipt\s1\symboldiff\expr_unop.cpp
+	"expr.h"
+	<cstdio>
+	<cstdlib>
+	<cassert>
+	<cmath>
+	"expr_dsl_def.h"
+	"expr_dsl_undef.h"
+
+1607018325 source:d:\workspace\.mipt\s1\symboldiff\parser.cpp
+	"parser.h"
+	<cstdlib>
+	<cassert>
+	<cstring>
+	<cctype>
+	<sys/stat.h>
+	"tpl_BinOp.h"
+	"tpl_UnOp.h"
+
+1607016381 d:\workspace\.mipt\s1\symboldiff\parser.h
+	"general.h"
+	"expr.h"
+	<cstdio>
+
+1606750269 d:\workspace\.mipt\s1\symboldiff\tpl_binop.h
+
+1606750284 d:\workspace\.mipt\s1\symboldiff\tpl_unop.h
 

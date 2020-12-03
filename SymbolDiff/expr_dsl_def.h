@@ -1,0 +1,15 @@
+#define ADD_(A, B)      ExprNode::create()->ctorBinOp(BinOp_Add, A, B)
+#define SUB_(A, B)      ExprNode::create()->ctorBinOp(BinOp_Sub, A, B)
+#define MUL_(A, B)      ExprNode::create()->ctorBinOp(BinOp_Mul, A, B)
+#define DIV_(A, B)      ExprNode::create()->ctorBinOp(BinOp_Div, A, B)
+#define POW_(A, B)      ExprNode::create()->ctorBinOp(BinOp_Pow, A, B)
+
+#define NEG_(A)         ExprNode::create()->ctorUnOp(UnOp_Neg, A)
+#define SIN_(A)         ExprNode::create()->ctorUnOp(UnOp_Sin, A)
+#define COS_(A)         ExprNode::create()->ctorUnOp(UnOp_Cos, A)
+
+#define COPY_(A)        VCALL(A, copy)
+#define DIFF_(A)        VCALL(A, diff, by)
+#define DIFFBY_(A, B)   VCALL(A, diff, B)
+#define CONST_(A)       ExprNode::create()->ctorConst(A)
+#define VAR_(A)         ExprNode::create()->ctorVar(A)

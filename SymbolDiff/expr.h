@@ -3,6 +3,9 @@
 
 #include "general.h"
 #include "vtable.h"
+#include "parser.h"
+
+#include <cstdio>
 
 
 namespace SymbolDiff {
@@ -23,14 +26,17 @@ namespace SymbolDiff {
     };
 
 
+    class Parser;
+
+
     class ExprNode {
     public:
         VTABLE_STRUCT {
             VDECL(ExprNode, void, dtor)
             VDECL(ExprNode, void, dump)
-            VDECL(ExprNode, ExprNode *, diff)
+            VDECL(ExprNode, ExprNode *, diff, char by)
             VDECL(ExprNode, ExprNode *, copy)
-            VDECL(ExprNode, ExprNode *, simplify, bool *)
+            VDECL(ExprNode, ExprNode *, simplify, bool *wasTrivial)
         };
 
         VTABLE_FIELD
@@ -53,6 +59,13 @@ namespace SymbolDiff {
         ExprNode *ctorConst(long long new_value);
 
 
+        static ExprNode *read(FILE *ifile);
+
+        static ExprNode *read(const char *src);
+
+        static ExprNode *read(Parser *parser);
+
+
         void dtor();
 
         void VMIN(BinOp, dtor)();
@@ -71,31 +84,43 @@ namespace SymbolDiff {
         void VMIN(Var, dump)();
 
 
-        ExprNode *VMIN(BinOp, diff)();
+        ExprNode *VMIN(BinOp, diff)(char by);
 
-        ExprNode *VMIN(UnOp, diff)();
+        ExprNode *VMIN(UnOp, diff)(char by);
 
-        ExprNode *VMIN(Const, diff)();
+        ExprNode *VMIN(Const, diff)(char by);
 
-        ExprNode *VMIN(Var, diff)();
-
-
-        ExprNode *VMIN(BinOp_Add, diff)();
-
-        ExprNode *VMIN(BinOp_Sub, diff)();
-
-        ExprNode *VMIN(BinOp_Mul, diff)();
-
-        ExprNode *VMIN(BinOp_Div, diff)();
-
-        ExprNode *VMIN(BinOp_Pow, diff)();
+        ExprNode *VMIN(Var, diff)(char by);
 
 
-        ExprNode *VMIN(UnOp_Neg, diff)();
+        #define CASE_TPL(NAME, STR)  ExprNode *VMIN(BinOp_##NAME, diff)(char by);
 
-        ExprNode *VMIN(UnOp_Sin, diff)();
+        #include "tpl_BinOp.h"
 
-        ExprNode *VMIN(UnOp_Cos, diff)();
+        #undef CASE_TPL
+
+        /*ExprNode *VMIN(BinOp_Add, diff)(char by);
+
+        ExprNode *VMIN(BinOp_Sub, diff)(char by);
+
+        ExprNode *VMIN(BinOp_Mul, diff)(char by);
+
+        ExprNode *VMIN(BinOp_Div, diff)(char by);
+
+        ExprNode *VMIN(BinOp_Pow, diff)(char by);*/
+
+
+        #define CASE_TPL(NAME, STR)  ExprNode *VMIN(UnOp_##NAME, diff)(char by);
+
+        #include "tpl_UnOp.h"
+
+        #undef CASE_TPL
+
+        /*ExprNode *VMIN(UnOp_Neg, diff)(char by);
+
+        ExprNode *VMIN(UnOp_Sin, diff)(char by);
+
+        ExprNode *VMIN(UnOp_Cos, diff)(char by);*/
 
 
         ExprNode *VMIN(BinOp, copy)();
@@ -114,7 +139,13 @@ namespace SymbolDiff {
         ExprNode *VMIN(Leaf, simplify)(bool *wasTrivial);
 
 
-        ExprNode *VMIN(BinOp_Add, simplify)(bool *wasTrivial);
+        #define CASE_TPL(NAME, STR)  ExprNode *VMIN(BinOp_##NAME, simplify)(bool *wasTrivial);
+
+        #include "tpl_BinOp.h"
+
+        #undef CASE_TPL
+
+        /*ExprNode *VMIN(BinOp_Add, simplify)(bool *wasTrivial);
 
         ExprNode *VMIN(BinOp_Sub, simplify)(bool *wasTrivial);
 
@@ -122,14 +153,20 @@ namespace SymbolDiff {
 
         ExprNode *VMIN(BinOp_Div, simplify)(bool *wasTrivial);
 
-        ExprNode *VMIN(BinOp_Pow, simplify)(bool *wasTrivial);
+        ExprNode *VMIN(BinOp_Pow, simplify)(bool *wasTrivial);*/
 
 
-        ExprNode *VMIN(UnOp_Neg, simplify)(bool *wasTrivial);
+        #define CASE_TPL(NAME, STR)  ExprNode *VMIN(UnOp_##NAME, simplify)(bool *wasTrivial);
+
+        #include "tpl_UnOp.h"
+
+        #undef CASE_TPL
+
+        /*ExprNode *VMIN(UnOp_Neg, simplify)(bool *wasTrivial);
 
         ExprNode *VMIN(UnOp_Sin, simplify)(bool *wasTrivial);
 
-        ExprNode *VMIN(UnOp_Cos, simplify)(bool *wasTrivial);
+        ExprNode *VMIN(UnOp_Cos, simplify)(bool *wasTrivial);*/
 
 
     private:
@@ -162,31 +199,59 @@ namespace SymbolDiff {
             };
         };
 
-        static ExprNode *(ExprNode::* const binOpDifferentiators[])();
 
-        static ExprNode *(ExprNode::* const unOpDifferentiators[])();
+        static constexpr ExprNode *(ExprNode::* const binOpDifferentiators[])(char by) = {
+            #define CASE_TPL(NAME, STR)  [BinOp_##NAME] = ExprNode::VMIN(BinOp_##NAME, diff),
 
-        static ExprNode *(ExprNode::* const binOpSimplifiers[])(bool *wasTrivial);
+            #include "tpl_BinOp.h"
 
-        static ExprNode *(ExprNode::* const unOpSimplifiers[])(bool *wasTrivial);
+            #undef CASE_TPL
+        };
+
+        static constexpr ExprNode *(ExprNode::* const unOpDifferentiators[])(char by) = {
+            #define CASE_TPL(NAME, STR)  [UnOp_##NAME] = ExprNode::VMIN(UnOp_##NAME, diff),
+
+            #include "tpl_UnOp.h"
+
+            #undef CASE_TPL
+        };
+
+        static constexpr ExprNode *(ExprNode::* const binOpSimplifiers[])(bool *wasTrivial) = {
+            #define CASE_TPL(NAME, STR)  [BinOp_##NAME] = ExprNode::VMIN(BinOp_##NAME, simplify),
+
+            #include "tpl_BinOp.h"
+
+            #undef CASE_TPL
+        };
+
+        static constexpr ExprNode *(ExprNode::* const unOpSimplifiers[])(bool *wasTrivial) = {
+            #define CASE_TPL(NAME, STR)  [UnOp_##NAME] = ExprNode::VMIN(UnOp_##NAME, simplify),
+
+            #include "tpl_UnOp.h"
+
+            #undef CASE_TPL
+        };
 
 
         static const unsigned OPSTR_MAX_LEN = 8;
-        typedef char opStr[OPSTR_MAX_LEN];
+        typedef char OpStr[OPSTR_MAX_LEN + 1];
 
-        static const constexpr opStr binOpStrings[] = {
-            "+",
-            "-",
-            "*",
-            "/",
-            "^",  // "**"?
+        static const constexpr OpStr binOpStrings[] = {
+            #define CASE_TPL(NAME, STR)  STR,
+
+            #include "tpl_BinOp.h"
+
+            #undef CASE_TPL
         };
 
-        static const constexpr opStr unOpStrings[] = {
-            "-",
-            "sin",
-            "cos",
+        static const constexpr OpStr unOpStrings[] = {
+            #define CASE_TPL(NAME, STR)  STR,
+
+            #include "tpl_UnOp.h"
+
+            #undef CASE_TPL
         };
+
     };
 
 

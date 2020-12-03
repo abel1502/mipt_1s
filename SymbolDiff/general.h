@@ -19,6 +19,14 @@
     }
 
 
+// TODO: Throw
+#define REQUIRE(STMT)                                   \
+    if (!(STMT)) {                                      \
+        ERR("Requirement not satisfied: %s\n", #STMT);  \
+        abort();                                        \
+    }
+
+
 extern int verbosity;
 
 void err_(const char *funcName, int lineNo, const char *msg, ...);
