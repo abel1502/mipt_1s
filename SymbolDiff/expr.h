@@ -275,11 +275,13 @@ namespace SymbolDiff {
 
         bool read(const char *src);
 
+        void writeTex(FILE *ofile);
+
         void dump();
 
         void simplify();
 
-        static ExprNode *read(Parser *parser);
+        ExprTree *diff(char by='x');
 
     private:
         ExprNode *root;

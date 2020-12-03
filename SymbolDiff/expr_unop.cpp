@@ -21,7 +21,7 @@ namespace SymbolDiff {
 
 
     void ExprNode::VMIN(UnOp, dump)() {
-        printf("(%s (", unOpStrings[unOp]);
+        printf("(%s ", unOpStrings[unOp]);
         VCALL(child, dump);
         printf(")");
     }
@@ -53,7 +53,7 @@ namespace SymbolDiff {
     }
 
     ExprNode *ExprNode::VMIN(UnOp_Ln, diff)(char by) {
-        return MUL_(DIFF_(child), COPY_(child));
+        return DIV_(DIFF_(child), COPY_(child));
     }
 
 

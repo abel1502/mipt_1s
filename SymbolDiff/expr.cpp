@@ -67,7 +67,21 @@ namespace SymbolDiff {
     }
 
     void ExprNode::dtor() {
-        if (this->vtable_) {
+        //printf("[%p] %p %p\n", this, vtable_, vtable_ ? (void *)vtable_->dtor : (void *)-1);
+
+        if (vtable_) {
+            /*if (VISINST(this, BinOp)) {
+                printf("> BinOp %p %s %p\n", left, binOpStrings[binOp], right);
+            } else if (VISINST(this, UnOp)) {
+                printf("> UnOp %s %p\n", unOpStrings[unOp], child);
+            } else if (VISINST(this, Const)) {
+                printf("> Const %lld\n", value);
+            } else if (VISINST(this, Var)) {
+                printf("> Var %c\n", varName);
+            } else {
+                printf("> ???\n", value);
+            }*/
+
             VCALL(this, dtor);
         }
     }
@@ -167,9 +181,61 @@ namespace SymbolDiff {
     //--------------------------------------------------------------------------------
 
     ExprTree *ExprTree::ctor() {
+        root = nullptr;
+
+        return this;
     }
 
     void ExprTree::dtor() {
+        if (root)
+            root->destroy();
+
+        root = nullptr;
+    }
+
+    bool ExprTree::read(FILE *ifile) {
+        root = ExprNode::read(ifile);
+
+        return (bool)root;  // Explicit cast for readability
+    }
+
+    bool ExprTree::read(const char *src) {
+        root = ExprNode::read(src);
+
+        return (bool)root;  // Same deal
+    }
+
+    void ExprTree::writeTex(FILE *ofile) {
+        assert(root);
+
+        fprintf(ofile, "$$ ");
+        VCALL(root, writeTex, ofile);
+        fprintf(ofile, " $$\n");
+    }
+
+    void ExprTree::dump() {
+        assert(root);
+
+        VCALL(root, dump);
+        printf("\n");
+    }
+
+    void ExprTree::simplify() {
+        assert(root);
+
+        bool wasTrivial = false;
+        while (!wasTrivial)
+            root = VCALL(root, simplify, &wasTrivial);
+    }
+
+    ExprTree *ExprTree::diff(char by) {
+        assert(root);
+
+        ExprTree *newTree = ExprTree::create();
+
+        newTree->root = VCALL(root, diff, by);
+
+        return newTree;
     }
 
 }

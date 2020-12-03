@@ -29,7 +29,7 @@ namespace SymbolDiff {
     unsigned Parser::fsize(FILE *ifile) {
         struct stat fbuf = {};
 
-        REQUIRE(fstat(fileno(ifile), &fbuf));
+        REQUIRE(fstat(fileno(ifile), &fbuf) == 0);
 
         return fbuf.st_size + 1;
     }

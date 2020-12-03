@@ -65,9 +65,8 @@ namespace SymbolDiff {
         if (VCALL(right, isConstBy, by)) {
             return MUL_(MUL_(COPY_(right), POW_(COPY_(left), SUB_(COPY_(right), CONST_(1)))), DIFF_(left));
         } else if (VCALL(left, isConstBy, by)) {
-            return MUL_(MUL_(LN_(left), COPY_(this)), DIFF_(right));
+            return MUL_(MUL_(LN_(COPY_(left)), COPY_(this)), DIFF_(right));
         } else {
-            printf("\n --- ["); VCALL(this, dump); printf("] ---\n");
             assert(false);
             return nullptr;
         }
