@@ -1,11 +1,13 @@
 \documentclass[12pt]{article}
 \begin{document}
 
+\begin{titlepage}\begin{center}\Large MIPT ICT, 2020\end{center}\begin{center}\Large\textit{Belyaev Andrey Alexeevich}\end{center}\begin{center}\Huge\textbf{\underline{D I F F E R E N T I A T I O N}}\end{center}\begin{center}\large\textit{Patent pending}\end{center}\section{\Large{Abstract}}So, scientific works get payed for, right? I've got a master plan...\end{titlepage}
+
 Thankfully, the derivative is additive.
 
 $$ \frac{d}{dx} \left( x  +  7  \cdot \cos  y ^{ x ^{ 2 }}\right) = \left( x \right)' + \left( 7  \cdot \cos  y ^{ x ^{ 2 }}\right)' $$
 
-Multiplication is a bit difficult, but we cad still manage it.
+Multiplication is a bit difficult, but we can still manage it.
 
 $$ \frac{d (f \cdot g)}{dx} = f' \cdot g + f \cdot g' $$
 $$ f(x) =  7  $$
@@ -31,9 +33,13 @@ So, this subexpression results in:
 
 $$  2  \cdot  x ^{ 2  -  1 } \cdot  1  $$
 
+If we simplify it, we get:
+
+$$  2  \cdot  x  $$
+
 So, this subexpression results in:
 
-$$ \ln \cos  y  \cdot \cos  y ^{ x ^{ 2 }} \cdot  2  \cdot  x ^{ 2  -  1 } \cdot  1  $$
+$$ \ln \cos  y  \cdot \cos  y ^{ x ^{ 2 }} \cdot  2  \cdot  x  $$
 
 Differentiation of a constant is trivial.
 
@@ -41,7 +47,11 @@ $$ \frac{d}{dx} 7 = 0 $$
 
 So, this subexpression results in:
 
-$$  0  \cdot \cos  y ^{ x ^{ 2 }} +  7  \cdot \ln \cos  y  \cdot \cos  y ^{ x ^{ 2 }} \cdot  2  \cdot  x ^{ 2  -  1 } \cdot  1  $$
+$$  0  \cdot \cos  y ^{ x ^{ 2 }} +  7  \cdot \ln \cos  y  \cdot \cos  y ^{ x ^{ 2 }} \cdot  2  \cdot  x  $$
+
+If we simplify it, we get:
+
+$$  7  \cdot \ln \cos  y  \cdot \cos  y ^{ x ^{ 2 }} \cdot  2  \cdot  x  $$
 
 The derivative of the target variable is obvious.
 
@@ -49,7 +59,7 @@ $$ \frac{dx}{dx} = 1 $$
 
 So, this subexpression results in:
 
-$$  1  +  0  \cdot \cos  y ^{ x ^{ 2 }} +  7  \cdot \ln \cos  y  \cdot \cos  y ^{ x ^{ 2 }} \cdot  2  \cdot  x ^{ 2  -  1 } \cdot  1  $$
+$$  1  +  7  \cdot \ln \cos  y  \cdot \cos  y ^{ x ^{ 2 }} \cdot  2  \cdot  x  $$
 
 \end{document}
 

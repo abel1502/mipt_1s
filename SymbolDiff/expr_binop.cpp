@@ -50,6 +50,20 @@ namespace SymbolDiff {
         VCALL(result, writeTex, logFile);
         TEXP(" $$\n\n");
 
+        int cycles = 0;
+        bool wasTrivial = false;
+        while (!wasTrivial) {
+            result = VCALL(result, simplify, &wasTrivial);
+            cycles++;
+        }
+
+        if (cycles > 1) {
+            TEXP("If we simplify it, we get:\n\n"
+                 "$$ ");
+            VCALL(result, writeTex, logFile);
+            TEXP(" $$\n\n");
+        }
+
         return result;
     }
 
@@ -81,7 +95,7 @@ namespace SymbolDiff {
     }
 
     ExprNode *ExprNode::VMIN(BinOp_Mul, diff)(char by, FILE *logFile) {
-        TEXP("Multiplication is a bit difficult, but we cad still manage it.\n\n"
+        TEXP("Multiplication is a bit difficult, but we can still manage it.\n\n"
              "$$ \\frac{d (f \\cdot g)}{d%c} = f' \\cdot g + f \\cdot g' $$\n"
              "$$ f(x) = ", by);
         VCALL(left, writeTex, logFile);
@@ -142,15 +156,27 @@ namespace SymbolDiff {
     #undef TEXP
 
     ExprNode *ExprNode::VMIN(BinOp, simplify)(bool *wasTrivial) {
+        int cnt = 0;
+
         *wasTrivial = false;
-        while (!*wasTrivial)
+        while (!*wasTrivial) {
             left = VCALL(left, simplify, wasTrivial);
+            cnt++;
+        }
+
 
         *wasTrivial = false;
-        while (!*wasTrivial)
+        while (!*wasTrivial) {
             right = VCALL(right, simplify, wasTrivial);
+            cnt++;
+        }
 
-        return (this->*binOpSimplifiers[binOp])(wasTrivial);
+        *wasTrivial = false;
+        ExprNode *result = (this->*binOpSimplifiers[binOp])(wasTrivial);
+
+        *wasTrivial &= cnt == 2;
+
+        return result;
     }
 
 
@@ -355,6 +381,7 @@ namespace SymbolDiff {
     void ExprNode::VMIN(BinOp, writeTex)(FILE *ofile) {
         Priority_e  prio = VCALL(this,  getPriority);
         Priority_e lprio = VCALL(left,  getPriority);
+        //printf("\n>> %p : %d %p %p\n", this, binOp, left, right);
         Priority_e rprio = VCALL(right, getPriority);
 
         bool lBrackets = lprio < prio || (lprio == prio && binOp == BinOp_Pow);

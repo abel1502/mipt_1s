@@ -137,16 +137,16 @@ int main(int argc, char **argv) {
     ExprTree *deriv = expr.diff();
 
     if (verbosity >= 2) {
-        printf("Raw derivative: ");
+        printf("Derivative: ");
         deriv->dump();
     }
 
-    deriv->simplify();
+    /*deriv->simplify();
 
     if (verbosity >= 2) {
         printf("Simplified derivative: ");
         deriv->dump();
-    }
+    }*/
 
     expr.dtor();
     deriv->dtor();

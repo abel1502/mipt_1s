@@ -251,7 +251,15 @@ namespace SymbolDiff {
         assert(logFile);
 
         TEXP("\\documentclass[12pt]{article}\n"
-             "\\begin{document}\n\n");
+             "\\begin{document}\n\n"
+             "\\begin{titlepage}"
+             "\\begin{center}\\Large MIPT ICT, 2020\\end{center}"
+             "\\begin{center}\\Large\\textit{Belyaev Andrey Alexeevich}\\end{center}"
+             "\\begin{center}\\Huge\\textbf{\\underline{D I F F E R E N T I A T I O N}}\\end{center}"
+             "\\begin{center}\\large\\textit{Patent pending}\\end{center}"
+             "\\section{\\Large{Abstract}}"
+             "So, scientific works get payed for, right? I've got a master plan..."
+             "\\end{titlepage}\n\n");
 
         newTree->root = VCALL(root, diff, by, logFile);
 

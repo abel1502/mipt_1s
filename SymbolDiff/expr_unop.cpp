@@ -44,6 +44,20 @@ namespace SymbolDiff {
         VCALL(result, writeTex, logFile);
         TEXP(" $$\n\n");
 
+        int cycles = 0;
+        bool wasTrivial = false;
+        while (!wasTrivial) {
+            result = VCALL(result, simplify, &wasTrivial);
+            cycles++;
+        }
+
+        if (cycles > 1) {
+            TEXP("If we simplify it, we get:\n\n"
+                 "$$ ");
+            VCALL(result, writeTex, logFile);
+            TEXP(" $$\n\n");
+        }
+
         return result;
     }
 
@@ -102,11 +116,20 @@ namespace SymbolDiff {
 
 
     ExprNode *ExprNode::VMIN(UnOp, simplify)(bool *wasTrivial) {
-        *wasTrivial = false;
-        while (!*wasTrivial)
-            child = VCALL(child, simplify, wasTrivial);
+        int cnt = 0;
 
-        return (this->*unOpSimplifiers[unOp])(wasTrivial);
+        *wasTrivial = false;
+        while (!*wasTrivial) {
+            child = VCALL(child, simplify, wasTrivial);
+            cnt++;
+        }
+
+        *wasTrivial = false;
+        ExprNode *result = (this->*unOpSimplifiers[unOp])(wasTrivial);
+
+        *wasTrivial &= cnt == 1;
+
+        return result;
     }
 
 

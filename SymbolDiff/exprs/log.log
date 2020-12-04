@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.11) (preloaded format=pdflatex 2020.11.20)  4 DEC 2020 10:46
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.11) (preloaded format=pdflatex 2020.11.20)  4 DEC 2020 12:03
 entering extended mode
 **./exprs/log.tex
 (exprs/log.tex
@@ -44,35 +44,49 @@ LaTeX Font Info:    ... okay on input line 2.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 2.
 LaTeX Font Info:    ... okay on input line 2.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 6.
+(Font)              <24.88> on input line 4.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 6.
+(Font)              <20.74> on input line 4.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 6.
- [1
+(Font)              <17.28> on input line 4.
 
-{C:/Users/Abel/AppData/Local/MiKTeX/pdftex/config/pdftex.map}] [2]
+Overfull \hbox (11.01744pt too wide) in paragraph at lines 4--4
+ []$ 
+ []
+
+[1
+
+{C:/Users/Abel/AppData/Local/MiKTeX/pdftex/config/pdftex.map}]
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 8.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 8.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 8.
+ [1] [2]
 (D:\Workspace\.MIPT\s1\SymbolDiff\exprs\log.aux) ) 
 Here is how much of TeX's memory you used:
- 405 strings out of 479799
- 7279 string characters out of 2879601
- 275877 words of memory out of 3000000
- 17471 multiletter control sequences out of 15000+200000
- 537824 words of font info for 38 fonts, out of 3000000 for 9000
+ 425 strings out of 479799
+ 7596 string characters out of 2879601
+ 274877 words of memory out of 3000000
+ 17488 multiletter control sequences out of 15000+200000
+ 542172 words of font info for 52 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 43i,5n,49p,185b,100s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 43i,5n,49p,430b,191s stack positions out of 5000i,500n,10000p,200000b,50000s
 <C:/Program Files/MiKTeX/font
-s/type1/public/amsfonts/cm/cmex10.pfb><C:/Program Files/MiKTeX/fonts/type1/publ
-ic/amsfonts/cm/cmmi12.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/
-cm/cmmi8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb>
-<C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Program Fi
-les/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Program Files/MiKTeX/fon
-ts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX/fonts/type1/pub
-lic/amsfonts/cm/cmsy8.pfb>
-Output written on D:\Workspace\.MIPT\s1\SymbolDiff\exprs\log.pdf (2 pages, 7550
-0 bytes).
+s/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program Files/MiKTeX/fonts/type1/publ
+ic/amsfonts/cm/cmex10.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/
+cm/cmmi12.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi8.pfb
+><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Program 
+Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr17.pfb><C:/Program Files/MiKTeX/
+fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Program Files/MiKTeX/fonts/type1/pu
+blic/amsfonts/cm/cmr8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/
+cm/cmsy10.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy8.pfb
+><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmti12.pfb>
+Output written on D:\Workspace\.MIPT\s1\SymbolDiff\exprs\log.pdf (3 pages, 1078
+94 bytes).
 PDF statistics:
- 41 PDF objects out of 1000 (max. 8388607)
+ 56 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
