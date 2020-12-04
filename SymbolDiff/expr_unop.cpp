@@ -32,8 +32,9 @@ namespace SymbolDiff {
         }
     }
 
-
     #include "expr_dsl_def.h"
+
+    #define TEXP(FMT, ...)  fprintf(logFile, FMT, ##__VA_ARGS__)
 
     ExprNode *ExprNode::VMIN(UnOp, diff)(char by, FILE *logFile) {
         return (this->*unOpDifferentiators[unOp])(by, logFile);
@@ -41,20 +42,56 @@ namespace SymbolDiff {
 
 
     ExprNode *ExprNode::VMIN(UnOp_Neg, diff)(char by, FILE *logFile) {
+        TEXP("I don't think this needs clarification.\n\n"
+             "$$ \\frac{d}{d%c} \\left(", by);
+        VCALL(this, writeTex, logFile);
+        TEXP("\\right) = -\\left(");
+        VCALL(child, writeTex, logFile);
+        TEXP("\\right)'$$\n\n");
+
         return NEG_(DIFF_(child));
     }
 
     ExprNode *ExprNode::VMIN(UnOp_Sin, diff)(char by, FILE *logFile) {
+        TEXP("Sine turns into cosine.\n\n"
+             "$$ \\frac{d}{d%c} ", by);
+        VCALL(this, writeTex, logFile);
+        TEXP(" = \\cos \\left(");
+        VCALL(child, writeTex, logFile);
+        TEXP("\\right) \\cdot \\left(");
+        VCALL(child, writeTex, logFile);
+        TEXP("\\right)' $$\n\n");
+
         return MUL_(COS_(COPY_(child)), DIFF_(child));
     }
 
     ExprNode *ExprNode::VMIN(UnOp_Cos, diff)(char by, FILE *logFile) {
+        TEXP("Cosine turns into negative sine.\n\n"
+             "$$ \\frac{d}{d%c} ", by);
+        VCALL(this, writeTex, logFile);
+        TEXP(" = -\\sin \\left(");
+        VCALL(child, writeTex, logFile);
+        TEXP("\\right) \\cdot \\left(");
+        VCALL(child, writeTex, logFile);
+        TEXP("\\right)' $$\n\n");
+
         return NEG_(MUL_(SIN_(COPY_(child)), DIFF_(child)));
     }
 
     ExprNode *ExprNode::VMIN(UnOp_Ln, diff)(char by, FILE *logFile) {
+        TEXP("Natural logarithm is a beautiful function.\n\n"
+             "$$ \\frac{d}{d%c} ", by);
+        VCALL(this, writeTex, logFile);
+        TEXP(" = \\frac{\\left(");
+        VCALL(child, writeTex, logFile);
+        TEXP("\\right)'}{");
+        VCALL(child, writeTex, logFile);
+        TEXP(" $$\n\n");
+
         return DIV_(DIFF_(child), COPY_(child));
     }
+
+    #undef TEXP
 
 
     ExprNode *ExprNode::VMIN(UnOp, simplify)(bool *wasTrivial) {

@@ -148,8 +148,6 @@ int main(int argc, char **argv) {
         deriv->dump();
     }
 
-    deriv->writeTex(stdout);
-
     expr.dtor();
     deriv->dtor();
 

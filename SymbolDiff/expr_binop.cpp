@@ -40,38 +40,99 @@ namespace SymbolDiff {
 
     #include "expr_dsl_def.h"
 
+    #define TEXP(FMT, ...)  fprintf(logFile, FMT, ##__VA_ARGS__)
+
     ExprNode *ExprNode::VMIN(BinOp, diff)(char by, FILE *logFile) {
         return (this->*binOpDifferentiators[binOp])(by, logFile);
     }
 
 
     ExprNode *ExprNode::VMIN(BinOp_Add, diff)(char by, FILE *logFile) {
+        TEXP("Thankfully, the derivative is additive.\n\n"
+             "$$ \\frac{d}{d%c} \\left(", by);
+        VCALL(this, writeTex, logFile);
+        TEXP("\\right) = \\left(");
+        VCALL(left, writeTex, logFile);
+        TEXP("\\right)' + \\left(");
+        VCALL(right, writeTex, logFile);
+        TEXP("\\right)' $$\n\n");
+
         return ADD_(DIFF_(left), DIFF_(right));
     }
 
     ExprNode *ExprNode::VMIN(BinOp_Sub, diff)(char by, FILE *logFile) {
+        TEXP("Thankfully, the derivative is additive (even in subtraction).\n\n"
+             "$$ \\frac{d}{d%c} \\left(", by);
+        VCALL(this, writeTex, logFile);
+        TEXP("\\right) = \\left(");
+        VCALL(left, writeTex, logFile);
+        TEXP("\\right)' - \\left(");
+        VCALL(right, writeTex, logFile);
+        TEXP("\\right)' $$\n\n");
+
         return SUB_(DIFF_(left), DIFF_(right));
     }
 
     ExprNode *ExprNode::VMIN(BinOp_Mul, diff)(char by, FILE *logFile) {
+        TEXP("Multiplication is a bit difficult, but we cad still manage it.\n\n"
+             "$$ \\frac{d (f \\cdot g)}{d%c} = f' \\cdot g + f \\cdot g' $$\n"
+             "$$ f(x) = ", by);
+        VCALL(left, writeTex, logFile);
+        TEXP(" $$\n $$ g(x) = ");
+        VCALL(right, writeTex, logFile);
+        TEXP(" $$\n\n");
+
         return ADD_(MUL_(DIFF_(left), COPY_(right)), MUL_(COPY_(left), DIFF_(right)));
     }
 
     ExprNode *ExprNode::VMIN(BinOp_Div, diff)(char by, FILE *logFile) {
+        TEXP("Division is troubling, but I guess we have no choice...\n\n"
+             "$$ \\frac{d}{d%c} \\frac{f}{g} = \\frac{f' \\cdot g - f \\cdot g'}{g^2} $$\n"
+             "$$ f(x) = ", by);
+        VCALL(left, writeTex, logFile);
+        TEXP(" $$\n $$ g(x) = ");
+        VCALL(right, writeTex, logFile);
+        TEXP(" $$\n\n");
+
         return DIV_(SUB_(MUL_(DIFF_(left), COPY_(right)), MUL_(COPY_(left), DIFF_(right))), POW_(COPY_(right), CONST_(2)));
     }
 
     ExprNode *ExprNode::VMIN(BinOp_Pow, diff)(char by, FILE *logFile) {
         if (VCALL(right, isConstBy, by)) {
+            TEXP("Polynomial differentiation is a piece of cake.\n\n"
+                 "$$ \\frac{d}{d%c} f^{a} = a \\cdot f^{a - 1} \\cdot f' $$\n"
+                 "$$ f(x) = ", by);
+            VCALL(left, writeTex, logFile);
+            TEXP(" $$\n $$ a = ");
+            VCALL(right, writeTex, logFile);
+            TEXP(" $$\n\n");
+
             return MUL_(MUL_(COPY_(right), POW_(COPY_(left), SUB_(COPY_(right), CONST_(1)))), DIFF_(left));
         } else if (VCALL(left, isConstBy, by)) {
+            TEXP("Exponential differentiation is not as scary as it looks.\n\n"
+                 "$$ \\frac{d}{d%c} a^f = \\ln{a} \\cdot a^f \\cdot f' $$\n"
+                 "$$ f(x) = ", by);
+            VCALL(left, writeTex, logFile);
+            TEXP(" $$\n $$ a = ");
+            VCALL(right, writeTex, logFile);
+            TEXP(" $$\n\n");
+
             return MUL_(MUL_(LN_(COPY_(left)), COPY_(this)), DIFF_(right));
         } else {
-            assert(false);
-            return nullptr;
+            TEXP("Oops... Now this is awkward. I have no idea how to handle exponential-polynomial hybrid differentiation.\n"
+                 "Just write this on my gravestone..."
+                 "$$ \\frac{d}{d%c} ", by);
+            VCALL(this, writeTex, logFile);
+            TEXP(" = ? $$\n\n");
+
+            return VAR_('Ú');
+
+            //assert(false);
+            //return nullptr;
         }
     }
 
+    #undef TEXP
 
     ExprNode *ExprNode::VMIN(BinOp, simplify)(bool *wasTrivial) {
         *wasTrivial = false;

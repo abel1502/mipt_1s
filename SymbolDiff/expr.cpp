@@ -101,16 +101,30 @@ namespace SymbolDiff {
 
     #include "expr_dsl_def.h"
 
-    ExprNode *ExprNode::VMIN(Const, diff)(char __attribute__((unused)) by, FILE *logFile) {
+    #define TEXP(FMT, ...)  fprintf(logFile, FMT, ##__VA_ARGS__)
+
+    ExprNode *ExprNode::VMIN(Const, diff)(char by, FILE *logFile) {
+        TEXP("Differentiation of a constant is trivial.\n\n"
+             "$$ \\frac{d}{d%c} %lld = 0 $$\n\n", by, value);
+
         return CONST_(0);
     }
 
     ExprNode *ExprNode::VMIN(Var, diff)(char by, FILE *logFile) {
-        if (varName == by)
+        if (varName == by) {
+            TEXP("The derivative of the target variable is obvious.\n\n"
+                 "$$ \\frac{d%c}{d%c} = 1 $$\n\n", varName, by);
+
             return CONST_(1);
+        }
+
+        TEXP("Any variable other than %c may be treated as constant.\n\n"
+             "$$ \\frac{d}{d%c} %c = 0 $$\n\n", by, by, varName);
 
         return CONST_(0);
     }
+
+    #undef TEXP
 
     ExprNode *ExprNode::VMIN(Leaf, simplify)(bool *wasTrivial) {
         *wasTrivial = true;
@@ -126,7 +140,6 @@ namespace SymbolDiff {
         return ExprNode::create()->ctorVar(varName);
     }
 
-
     void ExprNode::VMIN(Const, writeTex)(FILE *ofile) {
         fprintf(ofile, " %lld ", value);
     }
@@ -134,7 +147,6 @@ namespace SymbolDiff {
     void ExprNode::VMIN(Var, writeTex)(FILE *ofile) {
         fprintf(ofile, " %c ", varName);
     }
-
 
     Priority_e ExprNode::VMIN(Const, getPriority)() {
         if (value < 0)
@@ -228,15 +240,32 @@ namespace SymbolDiff {
             root = VCALL(root, simplify, &wasTrivial);
     }
 
+    #define TEXP(FMT, ...)  fprintf(logFile, FMT, ##__VA_ARGS__)
+
     ExprTree *ExprTree::diff(char by) {
         assert(root);
 
         ExprTree *newTree = ExprTree::create();
 
-        newTree->root = VCALL(root, diff, by, nullptr);
+        FILE *logFile = fopen("exprs/log.tex", "w");
+        assert(logFile);
+
+        TEXP("\\documentclass[12pt]{article}\n"
+             "\\begin{document}\n\n");
+
+        newTree->root = VCALL(root, diff, by, logFile);
+
+        TEXP("\\end{document}\n\n");
+
+        fclose(logFile);
+
+        system("pdflatex -output-directory=exprs -jobname=log exprs/log.tex >nul");
+        system("start exprs/log.pdf");
 
         return newTree;
     }
+
+    #undef TEXP
 
 }
 
