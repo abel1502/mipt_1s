@@ -37,7 +37,14 @@ namespace SymbolDiff {
     #define TEXP(FMT, ...)  fprintf(logFile, FMT, ##__VA_ARGS__)
 
     ExprNode *ExprNode::VMIN(UnOp, diff)(char by, FILE *logFile) {
-        return (this->*unOpDifferentiators[unOp])(by, logFile);
+        ExprNode *result = (this->*unOpDifferentiators[unOp])(by, logFile);
+
+        TEXP("So, this subexpression results in:\n\n"
+             "$$ ");
+        VCALL(result, writeTex, logFile);
+        TEXP(" $$\n\n");
+
+        return result;
     }
 
 
