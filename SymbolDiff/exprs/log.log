@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.11) (preloaded format=pdflatex 2020.11.20)  4 DEC 2020 12:03
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.11) (preloaded format=pdflatex 2020.12.4)  6 DEC 2020 20:12
 entering extended mode
 **./exprs/log.tex
 (exprs/log.tex
@@ -21,36 +21,122 @@ File: size12.clo 2020/04/10 v1.4m Standard LaTeX file (size option)
 \belowcaptionskip=\skip48
 \bibindent=\dimen138
 )
+("C:\Program Files\MiKTeX\tex/latex/base\inputenc.sty"
+Package: inputenc 2020/08/01 v1.3d Input encoding file
+\inpenc@prehook=\toks15
+\inpenc@posthook=\toks16
+)
+("C:\Program Files\MiKTeX\tex/latex/base\textcomp.sty"
+Package: textcomp 2020/02/02 v2.0n Standard LaTeX package
+)
+("C:\Program Files\MiKTeX\tex/latex/scalerel\scalerel.sty"
+Package: scalerel 2016/12/29 v1.8 Routines for constrained scaling and stretchi
+ng of objects, relative to a reference object or in absolute terms
+
+("C:\Program Files\MiKTeX\tex/latex/tools\calc.sty"
+Package: calc 2017/05/25 v4.3 Infix arithmetic (KKT,FJ)
+\calc@Acount=\count183
+\calc@Bcount=\count184
+\calc@Adimen=\dimen139
+\calc@Bdimen=\dimen140
+\calc@Askip=\skip49
+\calc@Bskip=\skip50
+LaTeX Info: Redefining \setlength on input line 80.
+LaTeX Info: Redefining \addtolength on input line 81.
+\calc@Ccount=\count185
+\calc@Cskip=\skip51
+)
+("C:\Program Files\MiKTeX\tex/latex/graphics\graphicx.sty"
+Package: graphicx 2020/09/09 v1.2b Enhanced LaTeX Graphics (DPC,SPQR)
+
+("C:\Program Files\MiKTeX\tex/latex/graphics\keyval.sty"
+Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
+\KV@toks@=\toks17
+)
+("C:\Program Files\MiKTeX\tex/latex/graphics\graphics.sty"
+Package: graphics 2020/08/30 v1.4c Standard LaTeX Graphics (DPC,SPQR)
+
+("C:\Program Files\MiKTeX\tex/latex/graphics\trig.sty"
+Package: trig 2016/01/03 v1.10 sin cos tan (DPC)
+)
+("C:\Program Files\MiKTeX\tex/latex/graphics-cfg\graphics.cfg"
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 105.
+
+("C:\Program Files\MiKTeX\tex/latex/graphics-def\pdftex.def"
+File: pdftex.def 2020/10/05 v1.2a Graphics/color driver for pdftex
+))
+\Gin@req@height=\dimen141
+\Gin@req@width=\dimen142
+)
+("C:\Program Files\MiKTeX\tex/latex/etoolbox\etoolbox.sty"
+Package: etoolbox 2020/10/05 v2.5k e-TeX tools for LaTeX (JAW)
+\etb@tempcnta=\count186
+)
+\thesrwidth=\skip52
+\thesrheight=\skip53
+\srblobheight=\skip54
+\srblobdepth=\skip55
+\mnxsrwidth=\skip56
+\LMex=\skip57
+\LMpt=\skip58
+)
+("C:\Program Files\MiKTeX\tex/latex/newunicodechar\newunicodechar.sty"
+Package: newunicodechar 2018/04/08 v1.2 Defining Unicode characters
+)
+("C:\Program Files\MiKTeX\tex/latex/tools\indentfirst.sty"
+Package: indentfirst 1995/11/23 v1.03 Indent first paragraph (DPC)
+)
 ("C:\Program Files\MiKTeX\tex/latex/l3backend\l3backend-pdftex.def"
 File: l3backend-pdftex.def 2020-09-24 L3 backend support: PDF output (pdfTeX)
-\l__kernel_color_stack_int=\count183
+\l__kernel_color_stack_int=\count187
 \l__pdf_internal_box=\box47
 )
 (D:\Workspace\.MIPT\s1\SymbolDiff\exprs\log.aux)
 \openout1 = `log.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 2.
-LaTeX Font Info:    ... okay on input line 2.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 2.
-LaTeX Font Info:    ... okay on input line 2.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 2.
-LaTeX Font Info:    ... okay on input line 2.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 2.
-LaTeX Font Info:    ... okay on input line 2.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 2.
-LaTeX Font Info:    ... okay on input line 2.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 2.
-LaTeX Font Info:    ... okay on input line 2.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 2.
-LaTeX Font Info:    ... okay on input line 2.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <24.88> on input line 4.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <20.74> on input line 4.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <17.28> on input line 4.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 10.
+LaTeX Font Info:    ... okay on input line 10.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 10.
+LaTeX Font Info:    ... okay on input line 10.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 10.
+LaTeX Font Info:    ... okay on input line 10.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 10.
+LaTeX Font Info:    ... okay on input line 10.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 10.
+LaTeX Font Info:    ... okay on input line 10.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 10.
+LaTeX Font Info:    ... okay on input line 10.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 10.
+LaTeX Font Info:    ... okay on input line 10.
 
-Overfull \hbox (11.01744pt too wide) in paragraph at lines 4--4
+("C:\Program Files\MiKTeX\tex/context/base/mkii\supp-pdf.mkii"
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count188
+\scratchdimen=\dimen143
+\scratchbox=\box48
+\nofMPsegments=\count189
+\nofMParguments=\count190
+\everyMPshowfont=\toks18
+\MPscratchCnt=\count191
+\MPscratchDim=\dimen144
+\MPnumerator=\count192
+\makeMPintoPDFobject=\count193
+\everyMPtoPDFconversion=\toks19
+) ("C:\Program Files\MiKTeX\tex/latex/epstopdf-pkg\epstopdf-base.sty"
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
+)
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <24.88> on input line 12.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <20.74> on input line 12.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <17.28> on input line 12.
+
+Overfull \hbox (11.01744pt too wide) in paragraph at lines 12--12
  []$ 
  []
 
@@ -58,35 +144,53 @@ Overfull \hbox (11.01744pt too wide) in paragraph at lines 4--4
 
 {C:/Users/Abel/AppData/Local/MiKTeX/pdftex/config/pdftex.map}]
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 8.
+(Font)              <12> on input line 18.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 8.
+(Font)              <8> on input line 18.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 8.
- [1] [2]
-(D:\Workspace\.MIPT\s1\SymbolDiff\exprs\log.aux) ) 
+(Font)              <6> on input line 18.
+ [1]
+<exprs/u2642.png, id=19, 108.405pt x 108.405pt>
+File: exprs/u2642.png Graphic file (type png)
+<use exprs/u2642.png>
+Package pdftex.def Info: exprs/u2642.png  used on input line 84.
+(pdftex.def)             Requested size: 108.40472pt x 108.40472pt.
+File: exprs/u2642.png Graphic file (type png)
+<use exprs/u2642.png>
+Package pdftex.def Info: exprs/u2642.png  used on input line 84.
+(pdftex.def)             Requested size: 108.40472pt x 108.40472pt.
+File: exprs/u2642.png Graphic file (type png)
+<use exprs/u2642.png>
+Package pdftex.def Info: exprs/u2642.png  used on input line 84.
+(pdftex.def)             Requested size: 108.40472pt x 108.40472pt.
+File: exprs/u2642.png Graphic file (type png)
+<use exprs/u2642.png>
+Package pdftex.def Info: exprs/u2642.png  used on input line 84.
+(pdftex.def)             Requested size: 108.40472pt x 108.40472pt.
+ [2 <./exprs/u2642.png>] (D:\Workspace\.MIPT\s1\SymbolDiff\exprs\log.aux) ) 
 Here is how much of TeX's memory you used:
- 425 strings out of 479799
- 7596 string characters out of 2879601
- 274877 words of memory out of 3000000
- 17488 multiletter control sequences out of 15000+200000
- 542172 words of font info for 52 fonts, out of 3000000 for 9000
+ 1724 strings out of 479799
+ 25016 string characters out of 2879602
+ 298339 words of memory out of 3000000
+ 18727 multiletter control sequences out of 15000+200000
+ 542826 words of font info for 54 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 43i,5n,49p,430b,191s stack positions out of 5000i,500n,10000p,200000b,50000s
-<C:/Program Files/MiKTeX/font
-s/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program Files/MiKTeX/fonts/type1/publ
-ic/amsfonts/cm/cmex10.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/
-cm/cmmi12.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi8.pfb
-><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Program 
-Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr17.pfb><C:/Program Files/MiKTeX/
-fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Program Files/MiKTeX/fonts/type1/pu
-blic/amsfonts/cm/cmr8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/
-cm/cmsy10.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy8.pfb
-><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmti12.pfb>
-Output written on D:\Workspace\.MIPT\s1\SymbolDiff\exprs\log.pdf (3 pages, 1078
-94 bytes).
+ 80i,7n,85p,343b,201s stack positions out of 5000i,500n,10000p,200000b,50000s
+<C:/
+Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program File
+s/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Program Files/MiKTeX/fon
+ts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Program Files/MiKTeX/fonts/type1/pub
+lic/amsfonts/cm/cmmi8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/
+cm/cmr12.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr17.pfb>
+<C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Program Fi
+les/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Program Files/MiKTeX/fon
+ts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX/fonts/type1/pub
+lic/amsfonts/cm/cmsy8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/
+cm/cmti12.pfb>
+Output written on D:\Workspace\.MIPT\s1\SymbolDiff\exprs\log.pdf (3 pages, 1189
+54 bytes).
 PDF statistics:
- 56 PDF objects out of 1000 (max. 8388607)
+ 58 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
- 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 6 words of extra memory for PDF output out of 10000 (max. 10000000)
 

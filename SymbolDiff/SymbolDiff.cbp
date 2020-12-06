@@ -41,6 +41,7 @@
 		<Unit filename="expr_unop.cpp" />
 		<Unit filename="general.cpp" />
 		<Unit filename="general.h" />
+		<Unit filename="latex_consts.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="parser.cpp" />
 		<Unit filename="parser.h" />

@@ -7,7 +7,7 @@
 
 1606752985 d:\workspace\.mipt\s1\symboldiff\general.h
 
-1607065908 source:d:\workspace\.mipt\s1\symboldiff\main.cpp
+1607072592 source:d:\workspace\.mipt\s1\symboldiff\main.cpp
 	<cstdio>
 	<cstdlib>
 	<cassert>
@@ -33,8 +33,9 @@
 
 1606750015 d:\workspace\.mipt\s1\symboldiff\vtable.h
 
-1607072399 source:d:\workspace\.mipt\s1\symboldiff\expr.cpp
+1607273939 source:d:\workspace\.mipt\s1\symboldiff\expr.cpp
 	"expr.h"
+	"latex_consts.h"
 	<cstdio>
 	<cstdlib>
 	<cassert>
@@ -85,4 +86,6 @@
 1606750269 d:\workspace\.mipt\s1\symboldiff\tpl_binop.h
 
 1607024707 d:\workspace\.mipt\s1\symboldiff\tpl_unop.h
+
+1607274302 d:\workspace\.mipt\s1\symboldiff\latex_consts.h
 

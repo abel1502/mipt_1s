@@ -1,4 +1,5 @@
 #include "expr.h"
+#include "latex_consts.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -250,25 +251,27 @@ namespace SymbolDiff {
         FILE *logFile = fopen("exprs/log.tex", "w");
         assert(logFile);
 
-        TEXP("\\documentclass[12pt]{article}\n"
-             "\\begin{document}\n\n"
-             "\\begin{titlepage}"
-             "\\begin{center}\\Large MIPT ICT, 2020\\end{center}"
-             "\\begin{center}\\Large\\textit{Belyaev Andrey Alexeevich}\\end{center}"
-             "\\begin{center}\\Huge\\textbf{\\underline{D I F F E R E N T I A T I O N}}\\end{center}"
-             "\\begin{center}\\large\\textit{Patent pending}\\end{center}"
-             "\\section{\\Large{Abstract}}"
-             "So, scientific works get payed for, right? I've got a master plan..."
-             "\\end{titlepage}\n\n");
+        TEXP(LatexConsts::header);
 
+        TEXP(LatexConsts::titlePage);
+
+        TEXP(LatexConsts::workPages[0]);
+        writeTex(logFile);
+        TEXP(LatexConsts::workPages[1]);
         newTree->root = VCALL(root, diff, by, logFile);
 
-        TEXP("\\end{document}\n\n");
+        TEXP(LatexConsts::conclusionPages[0]);
+        VCALL(root, writeTex, logFile);
+        TEXP(LatexConsts::conclusionPages[1]);
+        VCALL(newTree->root, writeTex, logFile);
+        TEXP(LatexConsts::conclusionPages[2]);
+
+        TEXP(LatexConsts::footer);
 
         fclose(logFile);
 
-        system("pdflatex -output-directory=exprs -jobname=log exprs/log.tex >nul");
-        system("start exprs/log.pdf");
+        system(LatexConsts::cmds[0]);
+        system(LatexConsts::cmds[1]);
 
         return newTree;
     }
