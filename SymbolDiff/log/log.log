@@ -1,7 +1,7 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.11) (preloaded format=pdflatex 2020.12.4)  6 DEC 2020 20:12
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.11) (preloaded format=pdflatex 2020.12.4)  7 DEC 2020 10:59
 entering extended mode
-**./exprs/log.tex
-(exprs/log.tex
+**./log.tex
+(log.tex
 LaTeX2e <2020-10-01> patch level 2
 L3 programming layer <2020-10-27> xparse <2020-03-03>
 ("C:\Program Files\MiKTeX\tex/latex/base\article.cls"
@@ -92,8 +92,7 @@ Package: indentfirst 1995/11/23 v1.03 Indent first paragraph (DPC)
 File: l3backend-pdftex.def 2020-09-24 L3 backend support: PDF output (pdfTeX)
 \l__kernel_color_stack_int=\count187
 \l__pdf_internal_box=\box47
-)
-(D:\Workspace\.MIPT\s1\SymbolDiff\exprs\log.aux)
+) (log.aux)
 \openout1 = `log.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 10.
@@ -140,57 +139,62 @@ Overfull \hbox (11.01744pt too wide) in paragraph at lines 12--12
  []$ 
  []
 
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 17.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 17.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 17.
 [1
 
 {C:/Users/Abel/AppData/Local/MiKTeX/pdftex/config/pdftex.map}]
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 18.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 18.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 18.
- [1]
-<exprs/u2642.png, id=19, 108.405pt x 108.405pt>
-File: exprs/u2642.png Graphic file (type png)
-<use exprs/u2642.png>
-Package pdftex.def Info: exprs/u2642.png  used on input line 84.
+Overfull \hbox (6.37599pt too wide) in paragraph at lines 23--25
+[]\OT1/cmr/m/n/12 Let us then be-gin the dif-fer-en-ti-a-tion. We shall use the
+ well-known Belyaev's
+ []
+
+[1] [2] [3] [4] [5] [6]
+<u2642.png, id=37, 108.405pt x 108.405pt>
+File: u2642.png Graphic file (type png)
+<use u2642.png>
+Package pdftex.def Info: u2642.png  used on input line 263.
 (pdftex.def)             Requested size: 108.40472pt x 108.40472pt.
-File: exprs/u2642.png Graphic file (type png)
-<use exprs/u2642.png>
-Package pdftex.def Info: exprs/u2642.png  used on input line 84.
+File: u2642.png Graphic file (type png)
+<use u2642.png>
+Package pdftex.def Info: u2642.png  used on input line 263.
 (pdftex.def)             Requested size: 108.40472pt x 108.40472pt.
-File: exprs/u2642.png Graphic file (type png)
-<use exprs/u2642.png>
-Package pdftex.def Info: exprs/u2642.png  used on input line 84.
+File: u2642.png Graphic file (type png)
+<use u2642.png>
+Package pdftex.def Info: u2642.png  used on input line 263.
 (pdftex.def)             Requested size: 108.40472pt x 108.40472pt.
-File: exprs/u2642.png Graphic file (type png)
-<use exprs/u2642.png>
-Package pdftex.def Info: exprs/u2642.png  used on input line 84.
+File: u2642.png Graphic file (type png)
+<use u2642.png>
+Package pdftex.def Info: u2642.png  used on input line 263.
 (pdftex.def)             Requested size: 108.40472pt x 108.40472pt.
- [2 <./exprs/u2642.png>] (D:\Workspace\.MIPT\s1\SymbolDiff\exprs\log.aux) ) 
+ [7 <./u2642.png>] (log.aux) ) 
 Here is how much of TeX's memory you used:
- 1724 strings out of 479799
- 25016 string characters out of 2879602
- 298339 words of memory out of 3000000
+ 1722 strings out of 479799
+ 24802 string characters out of 2879602
+ 304333 words of memory out of 3000000
  18727 multiletter control sequences out of 15000+200000
  542826 words of font info for 54 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 80i,7n,85p,343b,201s stack positions out of 5000i,500n,10000p,200000b,50000s
-<C:/
-Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program File
-s/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Program Files/MiKTeX/fon
-ts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Program Files/MiKTeX/fonts/type1/pub
-lic/amsfonts/cm/cmmi8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/
-cm/cmr12.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr17.pfb>
-<C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Program Fi
-les/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Program Files/MiKTeX/fon
-ts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX/fonts/type1/pub
-lic/amsfonts/cm/cmsy8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/
-cm/cmti12.pfb>
-Output written on D:\Workspace\.MIPT\s1\SymbolDiff\exprs\log.pdf (3 pages, 1189
-54 bytes).
+ 80i,7n,85p,780b,201s stack positions out of 5000i,500n,10000p,200000b,50000s
+<C:/Program Files/MiKTeX/fonts/type1/public/amsfo
+nts/cm/cmbx12.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmex1
+0.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Pr
+ogram Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi6.pfb><C:/Program Files/M
+iKTeX/fonts/type1/public/amsfonts/cm/cmmi8.pfb><C:/Program Files/MiKTeX/fonts/t
+ype1/public/amsfonts/cm/cmr12.pfb><C:/Program Files/MiKTeX/fonts/type1/public/a
+msfonts/cm/cmr17.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cm
+r6.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Pro
+gram Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/M
+iKTeX/fonts/type1/public/amsfonts/cm/cmsy6.pfb><C:/Program Files/MiKTeX/fonts/t
+ype1/public/amsfonts/cm/cmsy8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/a
+msfonts/cm/cmti12.pfb>
+Output written on log.pdf (8 pages, 157503 bytes).
 PDF statistics:
- 58 PDF objects out of 1000 (max. 8388607)
+ 83 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  6 words of extra memory for PDF output out of 10000 (max. 10000000)
 

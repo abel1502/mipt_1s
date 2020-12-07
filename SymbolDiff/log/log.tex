@@ -1,0 +1,273 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{scalerel}
+\usepackage{newunicodechar}
+\usepackage{graphicx}
+\usepackage{indentfirst}
+\newunicodechar{♂}{\scalerel*{\includegraphics{u2642.png}}{\textrm{\#}}}
+
+\begin{document}
+
+\begin{titlepage}\begin{center}\Large MIPT ICT, 2020\end{center}\begin{center}\Large\textit{Belyaev Andrey Alexeevich}\end{center}\begin{center}\Huge\textbf{\underline{D I F F E R E N T I A T I O N}}\end{center}\begin{center}\large\textit{Patent pending}\end{center}\section{\Large{Abstract}}
+So, scientific works get paid for, right? I've got a master plan... 
+And in case the price is proportional to the word count, here's a little something for you:\par
+\textit{Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.}\par
+The obvious only consequence of the abovestated is that we need to differentiate the so-called \textit{formula ultima} (by x): 
+$$ \frac{\frac{ 1 }{ 2 } \cdot \left(\cos \left( x  +  y \right) - \cos \left( x  -  y \right) +  650 \right)}{ 2 ^{ 365  \cdot \ln \left(\frac{ 12  \cdot  x }{ 7 } +  y \right)}} $$
+
+\end{titlepage}
+
+\section{\Large{The actual work}}
+
+Let us then begin the differentiation. We shall use the well-known Belyaev's algorithm.
+Division is troubling, but I guess we have no choice...
+
+$$ \frac{d}{dx} \frac{f}{g} = \frac{f' \cdot g - f \cdot g'}{g^2} $$
+$$ f(x) = \frac{ 1 }{ 2 } \cdot \left(\cos \left( x  +  y \right) - \cos \left( x  -  y \right) +  650 \right) $$
+$$ g(x) =  2 ^{ 365  \cdot \ln \left(\frac{ 12  \cdot  x }{ 7 } +  y \right)} $$
+
+Exponential differentiation is not as scary as it looks.
+
+$$ \frac{d}{dx} a^f = \ln{a} \cdot a^f \cdot f' $$
+$$ f(x) =  2  $$
+$$ a =  365  \cdot \ln \left(\frac{ 12  \cdot  x }{ 7 } +  y \right) $$
+
+Multiplication is a bit difficult, but we can still manage it.
+
+$$ \frac{d (f \cdot g)}{dx} = f' \cdot g + f \cdot g' $$
+$$ f(x) =  365  $$
+$$ g(x) = \ln \left(\frac{ 12  \cdot  x }{ 7 } +  y \right) $$
+
+Natural logarithm is a beautiful function.
+
+$$ \frac{d}{dx} \ln \left(\frac{ 12  \cdot  x }{ 7 } +  y \right) = \frac{\left(\frac{ 12  \cdot  x }{ 7 } +  y \right)'}{\frac{ 12  \cdot  x }{ 7 } +  y } $$
+
+Thankfully, the derivative is additive.
+
+$$ \frac{d}{dx} \left(\frac{ 12  \cdot  x }{ 7 } +  y \right) = \left(\frac{ 12  \cdot  x }{ 7 }\right)' + \left( y \right)' $$
+
+Any variable other than x may be treated as constant.
+
+$$ \frac{d}{dx} y = 0 $$
+
+Division is troubling, but I guess we have no choice...
+
+$$ \frac{d}{dx} \frac{f}{g} = \frac{f' \cdot g - f \cdot g'}{g^2} $$
+$$ f(x) =  12  \cdot  x  $$
+$$ g(x) =  7  $$
+
+Differentiation of a constant is trivial.
+
+$$ \frac{d}{dx} 7 = 0 $$
+
+Multiplication is a bit difficult, but we can still manage it.
+
+$$ \frac{d (f \cdot g)}{dx} = f' \cdot g + f \cdot g' $$
+$$ f(x) =  12  $$
+$$ g(x) =  x  $$
+
+The derivative of the target variable is obvious.
+
+$$ \frac{dx}{dx} = 1 $$
+
+Differentiation of a constant is trivial.
+
+$$ \frac{d}{dx} 12 = 0 $$
+
+So, this subexpression results in:
+
+$$  0  \cdot  x  +  12  \cdot  1  $$
+
+If we simplify it, we get:
+
+$$  12  $$
+
+So, this subexpression results in:
+
+$$ \frac{\left( 12  \cdot  7  -  12  \cdot  x  \cdot  0 \right)}{ 7 ^{ 2 }} $$
+
+If we simplify it, we get:
+
+$$ \frac{ 84 }{ 49 } $$
+
+So, this subexpression results in:
+
+$$ \frac{ 84 }{ 49 } +  0  $$
+
+If we simplify it, we get:
+
+$$ \frac{ 84 }{ 49 } $$
+
+So, this subexpression results in:
+
+$$ \frac{\frac{ 84 }{ 49 }}{\left(\frac{ 12  \cdot  x }{ 7 } +  y \right)} $$
+
+Differentiation of a constant is trivial.
+
+$$ \frac{d}{dx} 365 = 0 $$
+
+So, this subexpression results in:
+
+$$  0  \cdot \ln \left(\frac{ 12  \cdot  x }{ 7 } +  y \right) +  365  \cdot \frac{\frac{ 84 }{ 49 }}{\left(\frac{ 12  \cdot  x }{ 7 } +  y \right)} $$
+
+If we simplify it, we get:
+
+$$  365  \cdot \frac{\frac{ 84 }{ 49 }}{\left(\frac{ 12  \cdot  x }{ 7 } +  y \right)} $$
+
+So, this subexpression results in:
+
+$$ \ln  2  \cdot  2 ^{ 365  \cdot \ln \left(\frac{ 12  \cdot  x }{ 7 } +  y \right)} \cdot  365  \cdot \frac{\frac{ 84 }{ 49 }}{\left(\frac{ 12  \cdot  x }{ 7 } +  y \right)} $$
+
+Multiplication is a bit difficult, but we can still manage it.
+
+$$ \frac{d (f \cdot g)}{dx} = f' \cdot g + f \cdot g' $$
+$$ f(x) = \frac{ 1 }{ 2 } $$
+$$ g(x) = \cos \left( x  +  y \right) - \cos \left( x  -  y \right) +  650  $$
+
+Thankfully, the derivative is additive.
+
+$$ \frac{d}{dx} \left(\cos \left( x  +  y \right) - \cos \left( x  -  y \right) +  650 \right) = \left(\cos \left( x  +  y \right) - \cos \left( x  -  y \right)\right)' + \left( 650 \right)' $$
+
+Differentiation of a constant is trivial.
+
+$$ \frac{d}{dx} 650 = 0 $$
+
+Thankfully, the derivative is additive (even in subtraction).
+
+$$ \frac{d}{dx} \left(\cos \left( x  +  y \right) - \cos \left( x  -  y \right)\right) = \left(\cos \left( x  +  y \right)\right)' - \left(\cos \left( x  -  y \right)\right)' $$
+
+Cosine turns into negative sine.
+
+$$ \frac{d}{dx} \cos \left( x  -  y \right) = -\sin \left( x  -  y \right) \cdot \left( x  -  y \right)' $$
+
+Thankfully, the derivative is additive (even in subtraction).
+
+$$ \frac{d}{dx} \left( x  -  y \right) = \left( x \right)' - \left( y \right)' $$
+
+Any variable other than x may be treated as constant.
+
+$$ \frac{d}{dx} y = 0 $$
+
+The derivative of the target variable is obvious.
+
+$$ \frac{dx}{dx} = 1 $$
+
+So, this subexpression results in:
+
+$$  1  -  0  $$
+
+If we simplify it, we get:
+
+$$  1  $$
+
+So, this subexpression results in:
+
+$$ - \sin \left( x  -  y \right) \cdot  1  $$
+
+If we simplify it, we get:
+
+$$ - \sin \left( x  -  y \right) $$
+
+Cosine turns into negative sine.
+
+$$ \frac{d}{dx} \cos \left( x  +  y \right) = -\sin \left( x  +  y \right) \cdot \left( x  +  y \right)' $$
+
+Thankfully, the derivative is additive.
+
+$$ \frac{d}{dx} \left( x  +  y \right) = \left( x \right)' + \left( y \right)' $$
+
+Any variable other than x may be treated as constant.
+
+$$ \frac{d}{dx} y = 0 $$
+
+The derivative of the target variable is obvious.
+
+$$ \frac{dx}{dx} = 1 $$
+
+So, this subexpression results in:
+
+$$  1  +  0  $$
+
+If we simplify it, we get:
+
+$$  1  $$
+
+So, this subexpression results in:
+
+$$ - \sin \left( x  +  y \right) \cdot  1  $$
+
+If we simplify it, we get:
+
+$$ - \sin \left( x  +  y \right) $$
+
+So, this subexpression results in:
+
+$$ - \sin \left( x  +  y \right) - - \sin \left( x  -  y \right) $$
+
+So, this subexpression results in:
+
+$$ - \sin \left( x  +  y \right) - - \sin \left( x  -  y \right) +  0  $$
+
+If we simplify it, we get:
+
+$$ - \sin \left( x  +  y \right) - - \sin \left( x  -  y \right) $$
+
+Division is troubling, but I guess we have no choice...
+
+$$ \frac{d}{dx} \frac{f}{g} = \frac{f' \cdot g - f \cdot g'}{g^2} $$
+$$ f(x) =  1  $$
+$$ g(x) =  2  $$
+
+Differentiation of a constant is trivial.
+
+$$ \frac{d}{dx} 2 = 0 $$
+
+Differentiation of a constant is trivial.
+
+$$ \frac{d}{dx} 1 = 0 $$
+
+So, this subexpression results in:
+
+$$ \frac{\left( 0  \cdot  2  -  1  \cdot  0 \right)}{ 2 ^{ 2 }} $$
+
+If we simplify it, we get:
+
+$$  0  $$
+
+So, this subexpression results in:
+
+$$  0  \cdot \left(\cos \left( x  +  y \right) - \cos \left( x  -  y \right) +  650 \right) + \frac{ 1 }{ 2 } \cdot \left(- \sin \left( x  +  y \right) - - \sin \left( x  -  y \right)\right) $$
+
+If we simplify it, we get:
+
+$$ \frac{ 1 }{ 2 } \cdot \left(- \sin \left( x  +  y \right) - - \sin \left( x  -  y \right)\right) $$
+
+So, this subexpression results in:
+
+\begin{equation}
+\resizebox{.9\hsize}{!}{ $
+\frac{\left(\frac{ 1 }{ 2 } \cdot \left(- \sin \left( x  +  y \right) - - \sin \left( x  -  y \right)\right) \cdot  2 ^{ 365  \cdot \ln \left(\frac{ 12  \cdot  x }{ 7 } +  y \right)} - \frac{ 1 }{ 2 } \cdot \left(\cos \left( x  +  y \right) - \cos \left( x  -  y \right) +  650 \right) \cdot \ln  2  \cdot  2 ^{ 365  \cdot \ln \left(\frac{ 12  \cdot  x }{ 7 } +  y \right)} \cdot  365  \cdot \frac{\frac{ 84 }{ 49 }}{\left(\frac{ 12  \cdot  x }{ 7 } +  y \right)}\right)}{\left( 2 ^{ 365  \cdot \ln \left(\frac{ 12  \cdot  x }{ 7 } +  y \right)}\right)^{ 2 }}
+$ }
+\end{equation}
+
+\section{\Large{Conclusion}}
+So yeah, we got the derivative: 
+\begin{equation}
+\resizebox{.9\hsize}{!}{ $ 
+\left(\frac{\frac{ 1 }{ 2 } \cdot \left(\cos \left( x  +  y \right) - \cos \left( x  -  y \right) +  650 \right)}{ 2 ^{ 365  \cdot \ln \left(\frac{ 12  \cdot  x }{ 7 } +  y \right)}}\right)'\left(x\right) = \frac{\left(\frac{ 1 }{ 2 } \cdot \left(- \sin \left( x  +  y \right) - - \sin \left( x  -  y \right)\right) \cdot  2 ^{ 365  \cdot \ln \left(\frac{ 12  \cdot  x }{ 7 } +  y \right)} - \frac{ 1 }{ 2 } \cdot \left(\cos \left( x  +  y \right) - \cos \left( x  -  y \right) +  650 \right) \cdot \ln  2  \cdot  2 ^{ 365  \cdot \ln \left(\frac{ 12  \cdot  x }{ 7 } +  y \right)} \cdot  365  \cdot \frac{\frac{ 84 }{ 49 }}{\left(\frac{ 12  \cdot  x }{ 7 } +  y \right)}\right)}{\left( 2 ^{ 365  \cdot \ln \left(\frac{ 12  \cdot  x }{ 7 } +  y \right)}\right)^{ 2 }} 
+$ }. 
+\end{equation}
+The further simplification of the result, if at all possible, is left as an exercise to the reader.
+Now onto the real business: my payment. \textbf{You owe me.}
+As a wise man once said, \textit{" ♂ Differentiation is three hundred bucks ♂ "} ...
+\section{\Large{References}}
+\begin{enumerate}
+\item Wikipedia. Lots of it. Approx. 40000 BC-2020 AD, I guess...
+\item My glorious mind. Pages 371-378. 2002
+\item A conspect book of Ilya Dedinsky's seminars, Andrew Belyaev, 2020
+\item Jojo references, Dio Brando \& many others, 1880-2000 + a couple of universe lifespan cycles
+\item Linked list's cross-references (as a source of inspiration), God Almighty himself, exist in a separate concept space outside of the temporal continuum
+\item Gachimuchi (in the conclusion), but I was serious: pay me!!!
+\end{enumerate}
+\end{document}

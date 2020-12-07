@@ -168,6 +168,14 @@ namespace SymbolDiff {
         return by != varName;
     }
 
+    unsigned ExprNode::VMIN(Const, getComplexity)() {
+        return 1;
+    }
+
+    unsigned ExprNode::VMIN(Var, getComplexity)() {
+        return 1;
+    }
+
 
     VTYPE_DEF(Const, ExprNode) = {
         ExprNode::VMIN(Leaf, dtor),
@@ -178,6 +186,7 @@ namespace SymbolDiff {
         ExprNode::VMIN(Const, writeTex),
         ExprNode::VMIN(Const, getPriority),
         ExprNode::VMIN(Const, isConstBy),
+        ExprNode::VMIN(Const, getComplexity),
     };
 
     VTYPE_DEF(Var, ExprNode) = {
@@ -189,6 +198,7 @@ namespace SymbolDiff {
         ExprNode::VMIN(Var, writeTex),
         ExprNode::VMIN(Var, getPriority),
         ExprNode::VMIN(Var, isConstBy),
+        ExprNode::VMIN(Var, getComplexity),
     };
 
     //--------------------------------------------------------------------------------
@@ -248,16 +258,16 @@ namespace SymbolDiff {
 
         ExprTree *newTree = ExprTree::create();
 
-        FILE *logFile = fopen("exprs/log.tex", "w");
+        FILE *logFile = fopen(LatexConsts::fileName, "w");
         assert(logFile);
 
         TEXP(LatexConsts::header);
 
-        TEXP(LatexConsts::titlePage);
-
-        TEXP(LatexConsts::workPages[0]);
+        TEXP(LatexConsts::titlePages[0]);
         writeTex(logFile);
-        TEXP(LatexConsts::workPages[1]);
+        TEXP(LatexConsts::titlePages[1]);
+
+        TEXP(LatexConsts::workPage);
         newTree->root = VCALL(root, diff, by, logFile);
 
         TEXP(LatexConsts::conclusionPages[0]);

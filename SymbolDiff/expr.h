@@ -31,8 +31,8 @@ namespace SymbolDiff {
         Priority_Add,
         Priority_Neg,
         Priority_Mul,
-        Priority_Pow,
         Priority_Ufunc,
+        Priority_Pow,
         Priority_Imm,
     };
 
@@ -51,6 +51,7 @@ namespace SymbolDiff {
             VDECL(ExprNode, void, writeTex, FILE *ofile)
             VDECL(ExprNode, Priority_e, getPriority)
             VDECL(ExprNode, bool, isConstBy, char by);
+            VDECL(ExprNode, unsigned, getComplexity);
         };
 
         VTABLE_FIELD
@@ -168,6 +169,7 @@ namespace SymbolDiff {
 
         Priority_e VMIN(Var, getPriority)();
 
+
         bool VMIN(BinOp, isConstBy)(char by);
 
         bool VMIN(UnOp, isConstBy)(char by);
@@ -176,6 +178,14 @@ namespace SymbolDiff {
 
         bool VMIN(Var, isConstBy)(char by);
 
+
+        unsigned VMIN(BinOp, getComplexity)();
+
+        unsigned VMIN(UnOp, getComplexity)();
+
+        unsigned VMIN(Const, getComplexity)();
+
+        unsigned VMIN(Var, getComplexity)();
 
     private:
         union {

@@ -7,7 +7,7 @@
 
 1606752985 d:\workspace\.mipt\s1\symboldiff\general.h
 
-1607072592 source:d:\workspace\.mipt\s1\symboldiff\main.cpp
+1607295193 source:d:\workspace\.mipt\s1\symboldiff\main.cpp
 	<cstdio>
 	<cstdlib>
 	<cassert>
@@ -15,7 +15,7 @@
 	"general.h"
 	"expr.h"
 
-1607032167 d:\workspace\.mipt\s1\symboldiff\expr.h
+1607326843 d:\workspace\.mipt\s1\symboldiff\expr.h
 	"general.h"
 	"vtable.h"
 	"parser.h"
@@ -33,7 +33,7 @@
 
 1606750015 d:\workspace\.mipt\s1\symboldiff\vtable.h
 
-1607273939 source:d:\workspace\.mipt\s1\symboldiff\expr.cpp
+1607277270 source:d:\workspace\.mipt\s1\symboldiff\expr.cpp
 	"expr.h"
 	"latex_consts.h"
 	<cstdio>
@@ -48,7 +48,7 @@
 
 1607031958 d:\workspace\.mipt\s1\symboldiff\expr_dsl_def.h
 
-1607069568 source:d:\workspace\.mipt\s1\symboldiff\expr_binop.cpp
+1607286432 source:d:\workspace\.mipt\s1\symboldiff\expr_binop.cpp
 	"expr.h"
 	<cstdio>
 	<cstdlib>
@@ -59,7 +59,7 @@
 
 1607024944 d:\workspace\.mipt\s1\symboldiff\expr_dsl_undef.h
 
-1607069599 source:d:\workspace\.mipt\s1\symboldiff\expr_unop.cpp
+1607326971 source:d:\workspace\.mipt\s1\symboldiff\expr_unop.cpp
 	"expr.h"
 	<cstdio>
 	<cstdlib>
@@ -68,7 +68,7 @@
 	"expr_dsl_def.h"
 	"expr_dsl_undef.h"
 
-1607030038 source:d:\workspace\.mipt\s1\symboldiff\parser.cpp
+1607286530 source:d:\workspace\.mipt\s1\symboldiff\parser.cpp
 	"parser.h"
 	<cstdlib>
 	<cassert>
@@ -87,5 +87,5 @@
 
 1607024707 d:\workspace\.mipt\s1\symboldiff\tpl_unop.h
 
-1607274302 d:\workspace\.mipt\s1\symboldiff\latex_consts.h
+1607295172 d:\workspace\.mipt\s1\symboldiff\latex_consts.h
 

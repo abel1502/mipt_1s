@@ -136,9 +136,15 @@ namespace SymbolDiff {
 
     #define PRESTORE()     pos = savePos_;
 
+    #if DBG_PARSER
+    #define PGOOD()        printf("Yes %s.\n", __func__); return false;
+
+    #define PBAD()         printf("No %s.\n", __func__); errPos = pos; PRESTORE(); return true;
+    #else
     #define PGOOD()        return false;
 
     #define PBAD()         errPos = pos; PRESTORE(); return true;
+    #endif
 
     #define PEXPECT(C)     if (next() != C) { PBAD(); }
 
@@ -166,7 +172,9 @@ namespace SymbolDiff {
     bool Parser::parseInt(long long *dest) {
         PSAVE();
 
-        //printf(">> N %s\n", buf + pos);
+        #if DBG_PARSER
+        printf(">> Num %.8s\n", buf + pos);
+        #endif
 
         long long result = 0;
 
@@ -198,7 +206,9 @@ namespace SymbolDiff {
     bool Parser::parseBinOp(int *dest) {
         PSAVE();
 
-        //printf(">> BO %s\n", buf + pos);
+        #if DBG_PARSER
+        printf(">> BinOp %.8s\n", buf + pos);
+        #endif
 
         #define CASE_TPL(NAME, STR)                                 \
             if (strncmp(buf + pos, STR, sizeof(STR) - 1) == 0) {    \
@@ -221,7 +231,9 @@ namespace SymbolDiff {
     bool Parser::parseUnOp(int *dest) {
         PSAVE();
 
-        //printf(">> UO %s\n", buf + pos);
+        #if DBG_PARSER
+        printf(">> UnOp %.8s\n", buf + pos);
+        #endif
 
         #define CASE_TPL(NAME, STR)                                 \
             if (strncmp(buf + pos, STR, sizeof(STR) - 1) == 0) {    \
@@ -244,7 +256,9 @@ namespace SymbolDiff {
     bool Parser::parseBinOpNode(ExprNode *dest) {
         PSAVE();
 
-        //printf(">> B %s\n", buf + pos);
+        #if DBG_PARSER
+        printf(">> BinNode %.8s\n", buf + pos);
+        #endif
 
         ExprNode *left  = ExprNode::create();
         ExprNode *right = ExprNode::create();
@@ -265,7 +279,9 @@ namespace SymbolDiff {
     bool Parser::parseUnOpNode(ExprNode *dest) {
         PSAVE();
 
-        //printf(">> U %s\n", buf + pos);
+        #if DBG_PARSER
+        printf(">> UnNode %.8s\n", buf + pos);
+        #endif
 
         ExprNode *child  = ExprNode::create();
         UnOp_e unOp = (UnOp_e)0;
@@ -284,7 +300,9 @@ namespace SymbolDiff {
     bool Parser::parseExprNode(ExprNode *dest) {
         PSAVE();
 
-        //printf(">> E %s\n", buf + pos);
+        #if DBG_PARSER
+        printf(">> Expr %.8s\n", buf + pos);
+        #endif
 
         PEXPECT('(');
 

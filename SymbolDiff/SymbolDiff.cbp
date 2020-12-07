@@ -11,9 +11,10 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="-vvv -i exprs/test.txt" />
+				<Option parameters="-vvv -i exprs/mark.txt" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-DDBG_PARSER=0" />
 				</Compiler>
 			</Target>
 			<Target title="Release">

@@ -107,7 +107,7 @@ namespace SymbolDiff {
         VCALL(child, writeTex, logFile);
         TEXP("\\right)'}{");
         VCALL(child, writeTex, logFile);
-        TEXP(" $$\n\n");
+        TEXP("} $$\n\n");
 
         return DIV_(DIFF_(child), COPY_(child));
     }
@@ -236,6 +236,10 @@ namespace SymbolDiff {
         return VCALL(child, isConstBy, by);
     }
 
+    unsigned ExprNode::VMIN(UnOp, getComplexity)() {
+        return 1 + VCALL(child, getComplexity);
+    }
+
     //--------------------------------------------------------------------------------
 
     VTYPE_DEF(UnOp, ExprNode) = {
@@ -247,6 +251,7 @@ namespace SymbolDiff {
         ExprNode::VMIN(UnOp, writeTex),
         ExprNode::VMIN(UnOp, getPriority),
         ExprNode::VMIN(UnOp, isConstBy),
+        ExprNode::VMIN(UnOp, getComplexity),
     };
 }
 

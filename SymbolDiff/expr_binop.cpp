@@ -99,7 +99,7 @@ namespace SymbolDiff {
              "$$ \\frac{d (f \\cdot g)}{d%c} = f' \\cdot g + f \\cdot g' $$\n"
              "$$ f(x) = ", by);
         VCALL(left, writeTex, logFile);
-        TEXP(" $$\n $$ g(x) = ");
+        TEXP(" $$\n$$ g(x) = ");
         VCALL(right, writeTex, logFile);
         TEXP(" $$\n\n");
 
@@ -111,7 +111,7 @@ namespace SymbolDiff {
              "$$ \\frac{d}{d%c} \\frac{f}{g} = \\frac{f' \\cdot g - f \\cdot g'}{g^2} $$\n"
              "$$ f(x) = ", by);
         VCALL(left, writeTex, logFile);
-        TEXP(" $$\n $$ g(x) = ");
+        TEXP(" $$\n$$ g(x) = ");
         VCALL(right, writeTex, logFile);
         TEXP(" $$\n\n");
 
@@ -124,7 +124,7 @@ namespace SymbolDiff {
                  "$$ \\frac{d}{d%c} f^{a} = a \\cdot f^{a - 1} \\cdot f' $$\n"
                  "$$ f(x) = ", by);
             VCALL(left, writeTex, logFile);
-            TEXP(" $$\n $$ a = ");
+            TEXP(" $$\n$$ a = ");
             VCALL(right, writeTex, logFile);
             TEXP(" $$\n\n");
 
@@ -134,22 +134,30 @@ namespace SymbolDiff {
                  "$$ \\frac{d}{d%c} a^f = \\ln{a} \\cdot a^f \\cdot f' $$\n"
                  "$$ f(x) = ", by);
             VCALL(left, writeTex, logFile);
-            TEXP(" $$\n $$ a = ");
+            TEXP(" $$\n$$ a = ");
             VCALL(right, writeTex, logFile);
             TEXP(" $$\n\n");
 
             return MUL_(MUL_(LN_(COPY_(left)), COPY_(this)), DIFF_(right));
         } else {
-            TEXP("Oops... Now this is awkward. I have no idea how to handle exponential-polynomial hybrid differentiation.\n"
+            /*TEXP("Oops... Now this is awkward. I have no idea how to handle exponential-polynomial hybrid differentiation.\n"
                  "Just write this on my gravestone..."
                  "$$ \\frac{d}{d%c} ", by);
             VCALL(this, writeTex, logFile);
             TEXP(" = ? $$\n\n");
 
-            return VAR_('Ú');
+            return VAR_('Ú');*/
 
-            //assert(false);
-            //return nullptr;
+            TEXP("I kind of had to look this up, but eventually I figured out that the\n"
+                 "derivative for this kind of stuff is called \"generalized power rule\":\n"
+                 "$$ (f^g)' = f^g\\cdot \\left(f'\\cdot\\frac{g}{f}+g'\\cdot\\ln{f}\\right) $$\n");
+            TEXP("$$ f(x) = ");
+            VCALL(left, writeTex, logFile);
+            TEXP(" $$\n$$ g(x) = ");
+            VCALL(right, writeTex, logFile);
+            TEXP(" $$\n\n");
+
+            return MUL_(COPY_(this), ADD_(MUL_(DIFF_(left), DIV_(COPY_(left), COPY_(right))), MUL_(DIFF_(right), LN_(left))));
         }
     }
 
@@ -464,6 +472,10 @@ namespace SymbolDiff {
         return VCALL(left, isConstBy, by) && VCALL(right, isConstBy, by);
     }
 
+    unsigned ExprNode::VMIN(BinOp, getComplexity)() {
+        return 1 + VCALL(left, getComplexity) + VCALL(right, getComplexity);
+    }
+
     //--------------------------------------------------------------------------------
 
     VTYPE_DEF(BinOp, ExprNode) = {
@@ -475,6 +487,7 @@ namespace SymbolDiff {
         ExprNode::VMIN(BinOp, writeTex),
         ExprNode::VMIN(BinOp, getPriority),
         ExprNode::VMIN(BinOp, isConstBy),
+        ExprNode::VMIN(BinOp, getComplexity),
     };
 }
 
