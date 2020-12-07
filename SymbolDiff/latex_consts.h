@@ -46,9 +46,9 @@ namespace SymbolDiff {
         constexpr const char *conclusionPages[] = {
             "\\section{\\Large{Conclusion}}\n"
             "So yeah, we got the derivative: \n"
-            "$ \\left(",
+            "$ (",
 
-            "\\right)'\\left(x\\right) = ",
+            ")'(x) = ",
 
             " $. \n"
             "The further simplification of the result, if at all possible, ""is left as an exercise to the reader.\n"

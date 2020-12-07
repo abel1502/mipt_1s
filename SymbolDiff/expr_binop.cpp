@@ -395,7 +395,7 @@ namespace SymbolDiff {
     }
 
     static void writeTexFrac_(FILE *ofile, ExprNode *left, ExprNode *right, bool lBrackets, bool rBrackets) {
-        const unsigned THRESHOLD = 10;
+        const unsigned THRESHOLD = 16;
 
         unsigned lCompl = VCALL(left,  getComplexity);
         unsigned rCompl = VCALL(right, getComplexity);
@@ -420,7 +420,7 @@ namespace SymbolDiff {
         Priority_e rprio = VCALL(right, getPriority);
 
         bool lBrackets = lprio < prio || (lprio == prio && binOp == BinOp_Pow);
-        bool rBrackets = rprio < prio || (lprio == prio && binOp == BinOp_Sub || binOp == BinOp_Div);
+        bool rBrackets = rprio < prio || (lprio == prio && (binOp == BinOp_Sub || binOp == BinOp_Div));
 
         #define LEFT_   writeTexParentheses_(ofile, left,  lBrackets);
         #define RIGHT_  writeTexParentheses_(ofile, right, rBrackets);
