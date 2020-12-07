@@ -40,15 +40,13 @@ namespace SymbolDiff {
 
     #include "expr_dsl_def.h"
 
-    #define TEXP(FMT, ...)  fprintf(logFile, FMT, ##__VA_ARGS__)
-
     ExprNode *ExprNode::VMIN(BinOp, diff)(char by, FILE *logFile) {
         ExprNode *result = (this->*binOpDifferentiators[binOp])(by, logFile);
 
-        TEXP("So, this subexpression results in:\n\n"
-             "$$ ");
-        VCALL(result, writeTex, logFile);
-        TEXP(" $$\n\n");
+        TEXP("So, this subexpression results in:\\par\n"
+             "$ ");
+        result->writeTex(logFile);
+        TEXP(" $\\par\n");
 
         int cycles = 0;
         bool wasTrivial = false;
@@ -58,10 +56,10 @@ namespace SymbolDiff {
         }
 
         if (cycles > 1) {
-            TEXP("If we simplify it, we get:\n\n"
-                 "$$ ");
-            VCALL(result, writeTex, logFile);
-            TEXP(" $$\n\n");
+            TEXP("If we simplify it, we get:\\par\n"
+                 "$ ");
+            result->writeTex(logFile);
+            TEXP(" $\\par\n");
         }
 
         return result;
@@ -69,99 +67,97 @@ namespace SymbolDiff {
 
 
     ExprNode *ExprNode::VMIN(BinOp_Add, diff)(char by, FILE *logFile) {
-        TEXP("Thankfully, the derivative is additive.\n\n"
-             "$$ \\frac{d}{d%c} \\left(", by);
-        VCALL(this, writeTex, logFile);
-        TEXP("\\right) = \\left(");
-        VCALL(left, writeTex, logFile);
-        TEXP("\\right)' + \\left(");
-        VCALL(right, writeTex, logFile);
-        TEXP("\\right)' $$\n\n");
+        TEXP("Thankfully, the derivative is additive.\\par\n"
+             "$ \\frac{d}{d%c} (", by);
+        this->writeTex(logFile);
+        TEXP(") = (");
+        left->writeTex(logFile);
+        TEXP(")' + (");
+        right->writeTex(logFile);
+        TEXP(")' $\\par\n");
 
         return ADD_(DIFF_(left), DIFF_(right));
     }
 
     ExprNode *ExprNode::VMIN(BinOp_Sub, diff)(char by, FILE *logFile) {
-        TEXP("Thankfully, the derivative is additive (even in subtraction).\n\n"
-             "$$ \\frac{d}{d%c} \\left(", by);
-        VCALL(this, writeTex, logFile);
-        TEXP("\\right) = \\left(");
-        VCALL(left, writeTex, logFile);
-        TEXP("\\right)' - \\left(");
-        VCALL(right, writeTex, logFile);
-        TEXP("\\right)' $$\n\n");
+        TEXP("Thankfully, the derivative is additive (even in subtraction).\\par\n"
+             "$ \\frac{d}{d%c} (", by);
+        this->writeTex(logFile);
+        TEXP(") = (");
+        left->writeTex(logFile);
+        TEXP(")' - (");
+        right->writeTex(logFile);
+        TEXP(")' $\\par\n");
 
         return SUB_(DIFF_(left), DIFF_(right));
     }
 
     ExprNode *ExprNode::VMIN(BinOp_Mul, diff)(char by, FILE *logFile) {
-        TEXP("Multiplication is a bit difficult, but we can still manage it.\n\n"
-             "$$ \\frac{d (f \\cdot g)}{d%c} = f' \\cdot g + f \\cdot g' $$\n"
-             "$$ f(x) = ", by);
-        VCALL(left, writeTex, logFile);
-        TEXP(" $$\n$$ g(x) = ");
-        VCALL(right, writeTex, logFile);
-        TEXP(" $$\n\n");
+        TEXP("Multiplication is a bit difficult, but we can still manage it.\\par\n"
+             "$ \\frac{d (f \\cdot g)}{d%c} = f' \\cdot g + f \\cdot g' $\\par\n"
+             "$ f(x) = ", by);
+        left->writeTex(logFile);
+        TEXP(" $\\par\n$ g(x) = ");
+        right->writeTex(logFile);
+        TEXP(" $\\par\n");
 
         return ADD_(MUL_(DIFF_(left), COPY_(right)), MUL_(COPY_(left), DIFF_(right)));
     }
 
     ExprNode *ExprNode::VMIN(BinOp_Div, diff)(char by, FILE *logFile) {
-        TEXP("Division is troubling, but I guess we have no choice...\n\n"
-             "$$ \\frac{d}{d%c} \\frac{f}{g} = \\frac{f' \\cdot g - f \\cdot g'}{g^2} $$\n"
-             "$$ f(x) = ", by);
-        VCALL(left, writeTex, logFile);
-        TEXP(" $$\n$$ g(x) = ");
-        VCALL(right, writeTex, logFile);
-        TEXP(" $$\n\n");
+        TEXP("Division is troubling, but I guess we have no choice...\\par\n"
+             "$ \\frac{d}{d%c} \\frac{f}{g} = \\frac{f' \\cdot g - f \\cdot g'}{g^2} $\\par\n"
+             "$ f(x) = ", by);
+        left->writeTex(logFile);
+        TEXP(" $\\par\n$ g(x) = ");
+        right->writeTex(logFile);
+        TEXP(" $\\par\n");
 
         return DIV_(SUB_(MUL_(DIFF_(left), COPY_(right)), MUL_(COPY_(left), DIFF_(right))), POW_(COPY_(right), CONST_(2)));
     }
 
     ExprNode *ExprNode::VMIN(BinOp_Pow, diff)(char by, FILE *logFile) {
         if (VCALL(right, isConstBy, by)) {
-            TEXP("Polynomial differentiation is a piece of cake.\n\n"
-                 "$$ \\frac{d}{d%c} f^{a} = a \\cdot f^{a - 1} \\cdot f' $$\n"
-                 "$$ f(x) = ", by);
-            VCALL(left, writeTex, logFile);
-            TEXP(" $$\n$$ a = ");
-            VCALL(right, writeTex, logFile);
-            TEXP(" $$\n\n");
+            TEXP("Polynomial differentiation is a piece of cake.\\par\n"
+                 "$ \\frac{d}{d%c} f^{a} = a \\cdot f^{a - 1} \\cdot f' $\\par\n"
+                 "$ f(x) = ", by);
+            left->writeTex(logFile);
+            TEXP(" $\\par\n$ a = ");
+            right->writeTex(logFile);
+            TEXP(" $\\par\n");
 
             return MUL_(MUL_(COPY_(right), POW_(COPY_(left), SUB_(COPY_(right), CONST_(1)))), DIFF_(left));
         } else if (VCALL(left, isConstBy, by)) {
             TEXP("Exponential differentiation is not as scary as it looks.\n\n"
-                 "$$ \\frac{d}{d%c} a^f = \\ln{a} \\cdot a^f \\cdot f' $$\n"
-                 "$$ f(x) = ", by);
-            VCALL(left, writeTex, logFile);
-            TEXP(" $$\n$$ a = ");
-            VCALL(right, writeTex, logFile);
-            TEXP(" $$\n\n");
+                 "$ \\frac{d}{d%c} a^f = \\ln{a} \\cdot a^f \\cdot f' $\\par\n"
+                 "$ f(x) = ", by);
+            left->writeTex(logFile);
+            TEXP(" $\\par\n$ a = ");
+            right->writeTex(logFile);
+            TEXP(" $\\par\n");
 
             return MUL_(MUL_(LN_(COPY_(left)), COPY_(this)), DIFF_(right));
         } else {
             /*TEXP("Oops... Now this is awkward. I have no idea how to handle exponential-polynomial hybrid differentiation.\n"
                  "Just write this on my gravestone..."
                  "$$ \\frac{d}{d%c} ", by);
-            VCALL(this, writeTex, logFile);
+            writeTex(logFile);
             TEXP(" = ? $$\n\n");
 
             return VAR_('Ú');*/
 
             TEXP("I kind of had to look this up, but eventually I figured out that the\n"
-                 "derivative for this kind of stuff is called \"generalized power rule\":\n"
-                 "$$ (f^g)' = f^g\\cdot \\left(f'\\cdot\\frac{g}{f}+g'\\cdot\\ln{f}\\right) $$\n");
-            TEXP("$$ f(x) = ");
-            VCALL(left, writeTex, logFile);
-            TEXP(" $$\n$$ g(x) = ");
-            VCALL(right, writeTex, logFile);
-            TEXP(" $$\n\n");
+                 "derivative for this kind of stuff is called \"generalized power rule\":\\par\n"
+                 "$ (f^g)' = f^g\\cdot (f'\\cdot\\frac{g}{f}+g'\\cdot\\ln{f}) $\\par\n");
+            TEXP("$ f(x) = ");
+            left->writeTex(logFile);
+            TEXP(" $\\par\n$ g(x) = ");
+            right->writeTex(logFile);
+            TEXP(" $\\par\n");
 
             return MUL_(COPY_(this), ADD_(MUL_(DIFF_(left), DIV_(COPY_(left), COPY_(right))), MUL_(DIFF_(right), LN_(left))));
         }
     }
-
-    #undef TEXP
 
     ExprNode *ExprNode::VMIN(BinOp, simplify)(bool *wasTrivial) {
         int cnt = 0;
@@ -386,6 +382,37 @@ namespace SymbolDiff {
         return ExprNode::create()->ctorBinOp(binOp, VCALL(left, copy), VCALL(right, copy));
     }
 
+    static void writeTexParentheses_(FILE *ofile, ExprNode *node, bool doParetheses) {
+        if (doParetheses) {
+            fprintf(ofile, "(");
+        }
+
+        node->writeTex(ofile);
+
+        if (doParetheses) {
+            fprintf(ofile, ")");
+        }
+    }
+
+    static void writeTexFrac_(FILE *ofile, ExprNode *left, ExprNode *right, bool lBrackets, bool rBrackets) {
+        const unsigned THRESHOLD = 10;
+
+        unsigned lCompl = VCALL(left,  getComplexity);
+        unsigned rCompl = VCALL(right, getComplexity);
+
+        if (lCompl >= THRESHOLD || rCompl >= THRESHOLD) {
+            writeTexParentheses_(ofile, left,  lBrackets);
+            fprintf(ofile, " \\div ");
+            writeTexParentheses_(ofile, right, rBrackets);
+        } else {
+            fprintf(ofile, "\\frac{");
+            writeTexParentheses_(ofile, left,  false);
+            fprintf(ofile, "}{");
+            writeTexParentheses_(ofile, right, false);
+            fprintf(ofile, "}");
+        }
+    }
+
     void ExprNode::VMIN(BinOp, writeTex)(FILE *ofile) {
         Priority_e  prio = VCALL(this,  getPriority);
         Priority_e lprio = VCALL(left,  getPriority);
@@ -393,54 +420,32 @@ namespace SymbolDiff {
         Priority_e rprio = VCALL(right, getPriority);
 
         bool lBrackets = lprio < prio || (lprio == prio && binOp == BinOp_Pow);
-        bool rBrackets = rprio < prio;
+        bool rBrackets = rprio < prio || (lprio == prio && binOp == BinOp_Sub || binOp == BinOp_Div);
 
-        #define LEFT_                           \
-            if (lBrackets) {                    \
-                fprintf(ofile, "\\left(");      \
-            }                                   \
-                                                \
-            VCALL(left, writeTex, ofile);       \
-                                                \
-            if (lBrackets) {                    \
-                fprintf(ofile, "\\right)");     \
-            }
-
-        #define RIGHT_                          \
-            if (rBrackets) {                    \
-                fprintf(ofile, "\\left(");      \
-            }                                   \
-                                                \
-            VCALL(right, writeTex, ofile);      \
-                                                \
-            if (rBrackets) {                    \
-                fprintf(ofile, "\\right)");     \
-            }
+        #define LEFT_   writeTexParentheses_(ofile, left,  lBrackets);
+        #define RIGHT_  writeTexParentheses_(ofile, right, rBrackets);
 
         switch (binOp) {
         case BinOp_Add:
         case BinOp_Sub:
-            LEFT_;
+            LEFT_
             fprintf(ofile, " %s ", binOpStrings[binOp]);
-            RIGHT_;
+            RIGHT_
             break;
         case BinOp_Mul:
-            LEFT_;
+            LEFT_
             fprintf(ofile, " \\cdot ");
-            RIGHT_;
+            RIGHT_
             break;
         case BinOp_Div:
-            fprintf(ofile, "\\frac{");
-            LEFT_;
-            fprintf(ofile, "}{");
-            RIGHT_;
-            fprintf(ofile, "}");
+            writeTexFrac_(ofile, left, right, lBrackets, rBrackets);
             break;
         case BinOp_Pow:
-            LEFT_;
-            fprintf(ofile, "^{");
+            fprintf(ofile, "{");
+            LEFT_
+            fprintf(ofile, "}^{");
             rBrackets = false;
-            RIGHT_;
+            RIGHT_
             fprintf(ofile, "}");
             break;
         default:

@@ -34,15 +34,13 @@ namespace SymbolDiff {
 
     #include "expr_dsl_def.h"
 
-    #define TEXP(FMT, ...)  fprintf(logFile, FMT, ##__VA_ARGS__)
-
     ExprNode *ExprNode::VMIN(UnOp, diff)(char by, FILE *logFile) {
         ExprNode *result = (this->*unOpDifferentiators[unOp])(by, logFile);
 
-        TEXP("So, this subexpression results in:\n\n"
-             "$$ ");
-        VCALL(result, writeTex, logFile);
-        TEXP(" $$\n\n");
+        TEXP("So, this subexpression results in:\\par\n"
+             "$ ");
+        result->writeTex(logFile);
+        TEXP(" $\\par\n");
 
         int cycles = 0;
         bool wasTrivial = false;
@@ -52,10 +50,10 @@ namespace SymbolDiff {
         }
 
         if (cycles > 1) {
-            TEXP("If we simplify it, we get:\n\n"
-                 "$$ ");
-            VCALL(result, writeTex, logFile);
-            TEXP(" $$\n\n");
+            TEXP("If we simplify it, we get:\\par\n"
+                 "$ ");
+            result->writeTex(logFile);
+            TEXP(" $\\par\n");
         }
 
         return result;
@@ -63,56 +61,54 @@ namespace SymbolDiff {
 
 
     ExprNode *ExprNode::VMIN(UnOp_Neg, diff)(char by, FILE *logFile) {
-        TEXP("I don't think this needs clarification.\n\n"
-             "$$ \\frac{d}{d%c} \\left(", by);
-        VCALL(this, writeTex, logFile);
-        TEXP("\\right) = -\\left(");
-        VCALL(child, writeTex, logFile);
-        TEXP("\\right)'$$\n\n");
+        TEXP("I don't think this needs clarification.\\par\n"
+             "$ \\frac{d}{d%c} (", by);
+        writeTex(logFile);
+        TEXP(") = -(");
+        child->writeTex(logFile);
+        TEXP(")'$\\par\n");
 
         return NEG_(DIFF_(child));
     }
 
     ExprNode *ExprNode::VMIN(UnOp_Sin, diff)(char by, FILE *logFile) {
-        TEXP("Sine turns into cosine.\n\n"
-             "$$ \\frac{d}{d%c} ", by);
-        VCALL(this, writeTex, logFile);
-        TEXP(" = \\cos \\left(");
-        VCALL(child, writeTex, logFile);
-        TEXP("\\right) \\cdot \\left(");
-        VCALL(child, writeTex, logFile);
-        TEXP("\\right)' $$\n\n");
+        TEXP("Sine turns into cosine.\\par\n"
+             "$ \\frac{d}{d%c} ", by);
+        writeTex(logFile);
+        TEXP(" = \\cos (");
+        child->writeTex(logFile);
+        TEXP(") \\cdot (");
+        child->writeTex(logFile);
+        TEXP(")' $\\par\n");
 
         return MUL_(COS_(COPY_(child)), DIFF_(child));
     }
 
     ExprNode *ExprNode::VMIN(UnOp_Cos, diff)(char by, FILE *logFile) {
-        TEXP("Cosine turns into negative sine.\n\n"
-             "$$ \\frac{d}{d%c} ", by);
-        VCALL(this, writeTex, logFile);
-        TEXP(" = -\\sin \\left(");
-        VCALL(child, writeTex, logFile);
-        TEXP("\\right) \\cdot \\left(");
-        VCALL(child, writeTex, logFile);
-        TEXP("\\right)' $$\n\n");
+        TEXP("Cosine turns into negative sine.\\par\n"
+             "$ \\frac{d}{d%c} ", by);
+        writeTex(logFile);
+        TEXP(" = -\\sin (");
+        child->writeTex(logFile);
+        TEXP(") \\cdot (");
+        child->writeTex(logFile);
+        TEXP(")' $\\par\n");
 
         return NEG_(MUL_(SIN_(COPY_(child)), DIFF_(child)));
     }
 
     ExprNode *ExprNode::VMIN(UnOp_Ln, diff)(char by, FILE *logFile) {
-        TEXP("Natural logarithm is a beautiful function.\n\n"
-             "$$ \\frac{d}{d%c} ", by);
-        VCALL(this, writeTex, logFile);
-        TEXP(" = \\frac{\\left(");
-        VCALL(child, writeTex, logFile);
-        TEXP("\\right)'}{");
-        VCALL(child, writeTex, logFile);
-        TEXP("} $$\n\n");
+        TEXP("Natural logarithm is a beautiful function.\\par\n"
+             "$ \\frac{d}{d%c} ", by);
+        writeTex(logFile);
+        TEXP(" = \\frac{(");
+        child->writeTex(logFile);
+        TEXP(")'}{");
+        child->writeTex(logFile);
+        TEXP("} $\\par\n");
 
         return DIV_(DIFF_(child), COPY_(child));
     }
-
-    #undef TEXP
 
 
     ExprNode *ExprNode::VMIN(UnOp, simplify)(bool *wasTrivial) {
@@ -192,13 +188,13 @@ namespace SymbolDiff {
 
         #define CHILD_                          \
             if (cBrackets) {                    \
-                fprintf(ofile, "\\left(");      \
+                fprintf(ofile, "(");      \
             }                                   \
                                                 \
-            VCALL(child, writeTex, ofile);      \
+            child->writeTex(ofile);      \
                                                 \
             if (cBrackets) {                    \
-                fprintf(ofile, "\\right)");     \
+                fprintf(ofile, ")");     \
             }
 
         switch (unOp) {

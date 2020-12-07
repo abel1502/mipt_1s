@@ -102,30 +102,26 @@ namespace SymbolDiff {
 
     #include "expr_dsl_def.h"
 
-    #define TEXP(FMT, ...)  fprintf(logFile, FMT, ##__VA_ARGS__)
-
     ExprNode *ExprNode::VMIN(Const, diff)(char by, FILE *logFile) {
-        TEXP("Differentiation of a constant is trivial.\n\n"
-             "$$ \\frac{d}{d%c} %lld = 0 $$\n\n", by, value);
+        TEXP("Differentiation of a constant is trivial.\\par\n"
+             "$ \\frac{d}{d%c} %lld = 0 $\\par\n", by, value);
 
         return CONST_(0);
     }
 
     ExprNode *ExprNode::VMIN(Var, diff)(char by, FILE *logFile) {
         if (varName == by) {
-            TEXP("The derivative of the target variable is obvious.\n\n"
-                 "$$ \\frac{d%c}{d%c} = 1 $$\n\n", varName, by);
+            TEXP("The derivative of the target variable is obvious.\\par\n"
+                 "$ \\frac{d%c}{d%c} = 1 $\\par\n", varName, by);
 
             return CONST_(1);
         }
 
-        TEXP("Any variable other than %c may be treated as constant.\n\n"
-             "$$ \\frac{d}{d%c} %c = 0 $$\n\n", by, by, varName);
+        TEXP("Any variable other than %c may be treated as constant.\\par\n"
+             "$ \\frac{d}{d%c} %c = 0 $\\par\n", by, by, varName);
 
         return CONST_(0);
     }
-
-    #undef TEXP
 
     ExprNode *ExprNode::VMIN(Leaf, simplify)(bool *wasTrivial) {
         *wasTrivial = true;
@@ -147,6 +143,10 @@ namespace SymbolDiff {
 
     void ExprNode::VMIN(Var, writeTex)(FILE *ofile) {
         fprintf(ofile, " %c ", varName);
+    }
+
+    void ExprNode::writeTex(FILE *ofile) {
+        VCALL(this, writeTex, ofile);
     }
 
     Priority_e ExprNode::VMIN(Const, getPriority)() {
@@ -232,7 +232,7 @@ namespace SymbolDiff {
         assert(root);
 
         fprintf(ofile, "$$ ");
-        VCALL(root, writeTex, ofile);
+        root->writeTex(ofile);
         fprintf(ofile, " $$\n");
     }
 
@@ -250,8 +250,6 @@ namespace SymbolDiff {
         while (!wasTrivial)
             root = VCALL(root, simplify, &wasTrivial);
     }
-
-    #define TEXP(FMT, ...)  fprintf(logFile, FMT, ##__VA_ARGS__)
 
     ExprTree *ExprTree::diff(char by) {
         assert(root);
@@ -271,9 +269,9 @@ namespace SymbolDiff {
         newTree->root = VCALL(root, diff, by, logFile);
 
         TEXP(LatexConsts::conclusionPages[0]);
-        VCALL(root, writeTex, logFile);
+        root->writeTex(logFile);
         TEXP(LatexConsts::conclusionPages[1]);
-        VCALL(newTree->root, writeTex, logFile);
+        newTree->root->writeTex(logFile);
         TEXP(LatexConsts::conclusionPages[2]);
 
         TEXP(LatexConsts::footer);
@@ -285,8 +283,6 @@ namespace SymbolDiff {
 
         return newTree;
     }
-
-    #undef TEXP
 
 }
 

@@ -12,8 +12,11 @@ namespace SymbolDiff {
             "\\usepackage{newunicodechar}\n"
             "\\usepackage{graphicx}\n"
             "\\usepackage{indentfirst}\n"
-            "\\newunicodechar{\u2642}{\\scalerel*{\\includegraphics{log/u2642.png}}{\\textrm{" "\\#" /*"\\textbigcircle"*/ "}}}\n\n"
-            "\\begin{document}\n\n";
+            "\\usepackage{amsmath, nccmath}\n"
+            "\\newunicodechar{\u2642}{\\scalerel*{\\includegraphics{log/u2642.png}}{\\textrm{" "\\#" /*"\\textbigcircle"*/ "}}}\n"
+            "\\setlength{\\parskip}{1em}\n"
+            "\\begin{document}\n"
+            "\\begin{fleqn}[\\parindent]\n";
 
         constexpr const char *titlePages[] = {
             "\\begin{titlepage}"
@@ -29,7 +32,7 @@ namespace SymbolDiff {
             "aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse "
             "cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in "
             "culpa qui officia deserunt mollit anim id est laborum.}\\par\n"
-            "The obvious only consequence of the abovestated is that we need to differentiate the so-called \\textit{formula ultima} (by x): \n",
+            "The obvious only consequence of the abovestated is that we need to differentiate the so-called \\textit{formula ultima} (by x): \\par\n",
 
             "\n"
             "\\end{titlepage}\n\n",
@@ -63,6 +66,7 @@ namespace SymbolDiff {
         };
 
         constexpr const char footer[] =
+            "\\end{fleqn}\n"
             "\\end{document}\n";
 
         // TODO: Merge?

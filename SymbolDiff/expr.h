@@ -152,6 +152,8 @@ namespace SymbolDiff {
         #undef CASE_TPL
 
 
+        #define TEXP(FMT, ...)  fprintf(logFile, FMT, ##__VA_ARGS__)
+
         void VMIN(BinOp, writeTex)(FILE *ofile);
 
         void VMIN(UnOp, writeTex)(FILE *ofile);
@@ -159,6 +161,8 @@ namespace SymbolDiff {
         void VMIN(Const, writeTex)(FILE *ofile);
 
         void VMIN(Var, writeTex)(FILE *ofile);
+
+        void writeTex(FILE *ofile);
 
 
         Priority_e VMIN(BinOp, getPriority)();
