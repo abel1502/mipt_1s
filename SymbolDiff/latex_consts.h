@@ -13,6 +13,7 @@ namespace SymbolDiff {
             "\\usepackage{graphicx}\n"
             "\\usepackage{indentfirst}\n"
             "\\usepackage{amsmath, nccmath}\n"
+            "\\usepackage{hyperref}\n"
             "\\newunicodechar{\u2642}{\\scalerel*{\\includegraphics{log/u2642.png}}{\\textrm{" "\\#" /*"\\textbigcircle"*/ "}}}\n"
             "\\setlength{\\parskip}{1em}\n"
             "\\begin{document}\n"
@@ -32,7 +33,7 @@ namespace SymbolDiff {
             "aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse "
             "cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in "
             "culpa qui officia deserunt mollit anim id est laborum.}\\par\n"
-            "The obvious only consequence of the abovestated is that we need to differentiate the so-called \\textit{formula ultima} (by x): \\par\n",
+            "The obvious only consequence of the abovestated is that we need to differentiate the so-called \\textit{formula ultima} (by %c): \\par\n",
 
             "\n"
             "\\end{titlepage}\n\n",
@@ -62,6 +63,7 @@ namespace SymbolDiff {
             "\\item Jojo references, Dio Brando \\& many others, 1880-2000 + a couple of universe lifespan cycles\n"
             "\\item Linked list's cross-references (as a source of inspiration), God Almighty himself, exist in a separate concept space outside of the temporal continuum\n"
             "\\item Gachimuchi (in the conclusion), but I was serious: pay me!!!\n"
+            "\\item \\url{https://github.com/abel1502/mipt_1s}, Andrew Belyaev again, 2020"
             "\\end{enumerate}\n",
         };
 
@@ -71,7 +73,7 @@ namespace SymbolDiff {
 
         // TODO: Merge?
         constexpr const char *cmds[] = {
-            "pdflatex -output-directory=log -jobname=log log/log.tex" /*" >nul"*/,
+            "pdflatex -output-directory=log -jobname=log log/log.tex" " >nul",
             "start log/log.pdf",
         };
 

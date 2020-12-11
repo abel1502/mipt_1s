@@ -262,6 +262,8 @@ namespace SymbolDiff {
 
         ExprNode *left  = ExprNode::create();
         ExprNode *right = ExprNode::create();
+        REQUIRE(left && right);  // If any of these aren't created, we can't resume the parsing
+
         BinOp_e binOp = (BinOp_e)0;
 
         if (parseExprNode(left) || parseBinOp((int *)&binOp) || parseExprNode(right)) {

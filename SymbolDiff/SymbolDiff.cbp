@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="-vvv -i exprs/mark.txt" />
+				<Option parameters="-vvv -i exprs/mark.txt -b x" />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-DDBG_PARSER=0" />
@@ -32,6 +32,7 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-std=c++20" />
 			<Add option="-fexceptions" />
 		</Compiler>
 		<Unit filename="expr.cpp" />

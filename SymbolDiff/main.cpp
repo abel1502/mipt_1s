@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <getopt.h>
+#include <cstring>
 
 #include "general.h"
 #include "expr.h"
@@ -12,59 +13,22 @@ using namespace SymbolDiff;
 
 static void showHelp(const char *binName) {
     printf("This program can differentiate expressions and produce latex reports on the process.\n"
-           "Usage:  %s [-h] [-v] -i ifile -o ofile\n"
+           "Usage:  %s [-h] [-v] -i ifile [-b by]\n"
            "  -h        - show this and exit\n"
            "  -v        - increase verbosity\n"
            "  -i ifile  - the name of the input file containing the expression to differentiate\n"
-           "  -o ofile  - the name of the output file\n"
+           "  -b by     - the variable to differentiate by (single character!), x by default\n"
            "\n", binName);
 }
 
 
 int main(int argc, char **argv) {
-    /*verbosity = 3;
-
-    ExprNode *tmp = ExprNode::read("( (1) + ( sin((-(2)) * ((x) ^ ((15) * (y)))) ) )");
-
-    if (tmp) {
-        printf("$$ ");
-        VCALL(tmp, writeTex, stdout);
-        printf(" $$\n");
-
-        VCALL(tmp, dump);
-        printf("\n");
-
-        ExprNode *diff = VCALL(tmp, diff, 'x');
-
-        VCALL(diff, dump);
-        printf("\n");
-
-        bool wasTrivial = false;
-        while (!wasTrivial)
-            diff = VCALL(diff, simplify, &wasTrivial);
-
-        printf("$$ ");
-        VCALL(diff, writeTex, stdout);
-        printf(" $$\n");
-
-        VCALL(diff, dump);
-        printf("\n");
-
-        diff->destroy();
-        tmp->destroy();
-    } else {
-        printf("Corrupt expression, sorry(...\n");
-    }
-
-
-    return 0;*/
-
-
     FILE *ifile = nullptr;
+    char by = 'x';
 
     int c = 0;
 
-    while ((c = getopt(argc, argv, "+i:vh")) != -1) {
+    while ((c = getopt(argc, argv, "+i:b:vh")) != -1) {
         switch (c) {
         case 'h':
             if (ifile)  fclose(ifile);
@@ -78,6 +42,15 @@ int main(int argc, char **argv) {
                 ERR("Couldn't open %s to read", optarg);
                 return 2;
             }
+
+            break;
+        case 'b':
+            if (strlen(optarg) != 1) {
+                ERR("Variable name must contain exactly 1 character");
+                return 1;
+            }
+
+            by = optarg[0];
 
             break;
         case 'v':
@@ -134,7 +107,7 @@ int main(int argc, char **argv) {
         expr.dump();
     }
 
-    ExprTree *deriv = expr.diff();
+    ExprTree *deriv = expr.diff(by);
 
     if (verbosity >= 2) {
         printf("Derivative: ");
@@ -147,6 +120,8 @@ int main(int argc, char **argv) {
         printf("Simplified derivative: ");
         deriv->dump();
     }*/
+
+    printf("Done.\n");
 
     expr.dtor();
     deriv->dtor();

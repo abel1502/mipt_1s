@@ -11,7 +11,7 @@ namespace SymbolDiff {
     ExprNode *ExprNode::ctorUnOp(UnOp_e new_unOp, ExprNode *new_child) {
         VSETTYPE(this, UnOp);
 
-        assert(new_child);
+        REQUIRE(new_child);
 
         unOp = new_unOp;
         child = new_child;
@@ -177,7 +177,7 @@ namespace SymbolDiff {
 
 
     ExprNode *ExprNode::VMIN(UnOp, copy)() {
-        return ExprNode::create()->ctorUnOp(unOp, VCALL(child, copy));
+        return CCRN(ExprNode, ctorUnOp, unOp, VCALL(child, copy));
     }
 
     void ExprNode::VMIN(UnOp, writeTex)(FILE *ofile) {

@@ -11,7 +11,7 @@ namespace SymbolDiff {
     ExprNode *ExprNode::ctorBinOp(BinOp_e new_binOp, ExprNode *new_left, ExprNode *new_right) {
         VSETTYPE(this, BinOp);
 
-        assert(new_left && new_right);
+        if (!new_left || !new_right)  return nullptr;
 
         binOp = new_binOp;
         left = new_left;
@@ -127,6 +127,7 @@ namespace SymbolDiff {
             TEXP(" $\\par\n");
 
             return MUL_(MUL_(COPY_(right), POW_(COPY_(left), SUB_(COPY_(right), CONST_(1)))), DIFF_(left));
+
         } else if (VCALL(left, isConstBy, by)) {
             TEXP("Exponential differentiation is not as scary as it looks.\n\n"
                  "$ \\frac{d}{d%c} a^f = \\ln{a} \\cdot a^f \\cdot f' $\\par\n"
@@ -137,6 +138,7 @@ namespace SymbolDiff {
             TEXP(" $\\par\n");
 
             return MUL_(MUL_(LN_(COPY_(left)), COPY_(this)), DIFF_(right));
+
         } else {
             /*TEXP("Oops... Now this is awkward. I have no idea how to handle exponential-polynomial hybrid differentiation.\n"
                  "Just write this on my gravestone..."
@@ -167,7 +169,6 @@ namespace SymbolDiff {
             left = VCALL(left, simplify, wasTrivial);
             cnt++;
         }
-
 
         *wasTrivial = false;
         while (!*wasTrivial) {
@@ -379,7 +380,7 @@ namespace SymbolDiff {
 
 
     ExprNode *ExprNode::VMIN(BinOp, copy)() {
-        return ExprNode::create()->ctorBinOp(binOp, VCALL(left, copy), VCALL(right, copy));
+        return CCRN(ExprNode, ctorBinOp, binOp, VCALL(left, copy), VCALL(right, copy));
     }
 
     static void writeTexParentheses_(FILE *ofile, ExprNode *node, bool doParetheses) {

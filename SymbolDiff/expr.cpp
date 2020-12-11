@@ -58,7 +58,7 @@ namespace SymbolDiff {
     ExprNode *ExprNode::read(Parser *parser) {
         ExprNode *result = ExprNode::create();
 
-        if (parser->parse(result)) {
+        if (result && parser->parse(result)) {
             result->destroy();
 
             result = nullptr;
@@ -130,11 +130,11 @@ namespace SymbolDiff {
     }
 
     ExprNode *ExprNode::VMIN(Const, copy)() {
-        return ExprNode::create()->ctorConst(value);
+        return CCRN(ExprNode, ctorConst, value);
     }
 
     ExprNode *ExprNode::VMIN(Var, copy)() {
-        return ExprNode::create()->ctorVar(varName);
+        return CCRN(ExprNode, ctorVar, varName);
     }
 
     void ExprNode::VMIN(Const, writeTex)(FILE *ofile) {
@@ -256,12 +256,14 @@ namespace SymbolDiff {
 
         ExprTree *newTree = ExprTree::create();
 
+        if (!newTree)  return nullptr;
+
         FILE *logFile = fopen(LatexConsts::fileName, "w");
         assert(logFile);
 
         TEXP(LatexConsts::header);
 
-        TEXP(LatexConsts::titlePages[0]);
+        TEXP(LatexConsts::titlePages[0], by);
         writeTex(logFile);
         TEXP(LatexConsts::titlePages[1]);
 
