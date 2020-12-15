@@ -1,0 +1,88 @@
+/*
+	Native tokens:
+	
+	ENDMARKER  - end of input data
+	NAME       - valid identifier
+	NUM        - valid number (integer or double, any)
+	
+	Comments are skipped by the tokenizer
+*/
+
+
+// === Some convenience templates  ===
+
+LIST<ITEM, SEP>	::= ITEM {SEP ITEM}*
+
+
+// === ALF itself ===
+
+MAIN 			::= FUNC_DEFS ENDMARKER
+
+FUNC_DEFS		::= FUNC_DEF*
+
+FUNC_DEF 		::= 'def' TYPESPEC ':' NAME '(' FUNC_ARGS_DEF ')' COMPOUND_STMT
+
+// TODO: Maybe remove the comma
+FUNC_ARGS_DEF	::= LIST<FUNC_ARG_DEF, ','>?
+
+FUNC_ARG_DEF	::= TYPESPEC ':' NAME
+
+// TODO: replace low-level types with high-level, as well as add signedness markers
+TYPESPEC		::= ['dbl' 'int4' 'int8']
+
+STMTS			::= STMT*
+
+STMT			::= COMPOUND_STMT 	|
+					RETURN_STMT		|
+					LOOP_STMT		|
+					COND_STMT		|
+					VARDECL_STMT	|
+					EXPR_STMT
+
+COMPOUND_STMT	::= '{' STMTS '}'
+
+RETURN_STMT		::= 'ret' EXPR? ';'
+
+// TODO: Parentheses, maybe?
+LOOP_STMT		::= 'while' EXPR COMPOUND_STMT
+
+COND_STMT		::= 'if' EXPR COMPOUND_STMT
+
+VARDECL_STMT	::= VARDECL {'=' EXPR}? ';'
+
+EXPR_STMT		::= EXPR? ';'
+
+EXPR			::= ASGN_EXPR | BOOLOP_EXPR
+
+ASGN_EXPR		::= VAR {'=' | '+=' | '-=' | '*=' | '/=' | '%='} EXPR
+
+OR_EXPR			::= LIST<AND_EXPR, '||'>
+
+AND_EXPR		::= LIST<CMP_EXPR, '&&'>
+
+// TODO: Handling this would be weird, maybe should change it
+CMP_EXPR		::= LIST<ADD_EXPR, ['>=' '<=' '>' '<' '==' '!=']>
+
+ADD_EXPR		::= LIST<MUL_EXPR, ['+' '-']>
+
+MUL_EXPR		::= LIST<UNARY_EXPR, ['*' '/' '%']>
+
+// TODO: Just had an idea that I should maintain a bitmask of allowed expected types throughout the tree traversal.
+//       Then nested functions may filter the mask, and whenever it gets empty, you know you're dealing with incompatible types.
+
+UNARY_EXPR		::= '-' UNARY_EXPR |
+					'(' EXPR ')' |
+					TYPESPEC ':' UNARY_EXPR |
+					NUM |
+					FUNC_CALL |
+					VAR
+
+VAR				::= NAME
+
+VARDECL			::= 'var' TYPESPEC ':' VAR
+
+FUNC_CALL		::= NAME '(' FUNC_ARGS ')'
+
+FUNC_ARGS		::= LIST<FUNC_ARG, ','>? 
+
+FUNC_ARG		::= EXPR

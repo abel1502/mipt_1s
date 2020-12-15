@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="SoftLang" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/SoftLang" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="-vvv" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/SoftLang" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+			<Add option="-D__USE_MINGW_ANSI_STDIO=1" />
+			<Add directory="$(PROJECT_DIR)/include/" />
+			<Add directory="$(PROJECT_DIR)/source/" />
+			<Add directory="$(PROJECT_DIR)/dsl/" />
+		</Compiler>
+		<Unit filename="dsl/tokens.dsl.h" />
+		<Unit filename="include/ast.h" />
+		<Unit filename="include/filebuf.h" />
+		<Unit filename="include/general.h" />
+		<Unit filename="include/lexer.h" />
+		<Unit filename="include/parser.h" />
+		<Unit filename="source/ast.cpp" />
+		<Unit filename="source/filebuf.cpp" />
+		<Unit filename="source/general.cpp" />
+		<Unit filename="source/lexer.cpp" />
+		<Unit filename="source/main.cpp" />
+		<Unit filename="source/parser.cpp" />
+		<Extensions>
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

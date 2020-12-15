@@ -1,0 +1,57 @@
+#ifndef GENERAL_H_GUARD
+#define GENERAL_H_GUARD
+
+#include <new>
+
+
+#define ERR(msg, ...) err_(__func__, __LINE__, msg, ##__VA_ARGS__)
+
+
+/*  Alright, with new requirements come new standards.
+    Now ctor must return zero on failure and non-zero on success
+    (Type doesn't matter for the factory methods)
+    It's also preferable (though not required) that the default ctor
+    always returns 0 (essentially a c-style noexcept) */
+#define FACTORIES(CLS)                          \
+    static CLS *create() {                      \
+        CLS *self = new (std::nothrow) CLS();   \
+                                                \
+        if (!self)  return nullptr;             \
+                                                \
+        if (self->ctor()) {                     \
+            self->destroy();                    \
+            return nullptr;                     \
+        }                                       \
+                                                \
+        return self;                            \
+    }                                           \
+                                                \
+    void destroy() {                            \
+        dtor();                                 \
+        delete this;                            \
+    }
+
+
+// The TRY macro is intended for use to forward any error (i.e. non-zero) return code
+// from an expression out of the context function. Useful for work with ctor's in the
+// new format.
+#define TMPVARNAME_HELPER1(A, B)    A ## B
+#define TMPVARNAME  TMPVARNAME_HELPER1(tmp_, __LINE__)
+#define TRY(STMT)   { auto TMPVARNAME = (STMT); if (!TMPVARNAME) return TMPVARNAME; }
+
+
+// TODO: Throw
+#define REQUIRE(STMT)                                   \
+    if (!(STMT)) {                                      \
+        ERR("Requirement not satisfied: %s\n", #STMT);  \
+        abort();                                        \
+    }
+
+
+extern int verbosity;
+
+void err_(const char *funcName, int lineNo, const char *msg, ...);
+
+
+#endif // GENERAL_H_GUARD
+
