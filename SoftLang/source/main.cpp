@@ -4,9 +4,11 @@
 #include <getopt.h>
 
 #include "general.h"
+#include "lexer.h"
+#include "filebuf.h"
 
 
-//using namespace SoftLang;
+using namespace SoftLang;
 
 
 static void showBanner() {
@@ -31,6 +33,32 @@ static void showHelp(const char *binName) {
 
 
 int main(int argc, char **argv) {
+
+    verbosity = 3;
+
+    const char testCode[] =
+        "def int4:main() {\n"
+        "    var int4:a;\n"
+        "    var int4:b = 5;\n"
+        "    b *= 17;\n"
+        "    a = (b + 7 - 1) / 2;\n"
+        "    ret a + b;"
+        "}\n";
+
+    FileBuf buf{};
+    REQUIRE(!buf.ctor(testCode));
+
+    Lexer lexer{};
+    REQUIRE(!lexer.ctor(&buf));
+
+    lexer.dump();
+
+    lexer.dtor();
+
+    buf.dtor();
+
+    return 0;
+
     FILE *ifile = nullptr;
     FILE *ofile = nullptr;
 
