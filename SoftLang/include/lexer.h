@@ -46,9 +46,22 @@ namespace SoftLang {
             #undef DEF_PUNCT
         };
 
+        static const unsigned MAX_ID_LEN = 64;
+
+        // WARNING: Should be manually adjusted
+        static const unsigned MAX_PUNCT_LEN = 2;
+        static const unsigned MAX_KWD_LEN = 5;
+
         FACTORIES(Token)
 
         bool ctor();
+
+        bool ctorEnd();
+        bool ctorErr();
+        bool ctorName(const char *new_start, unsigned new_length);
+        bool ctorNum(unsigned long long new_integer, double new_fraction, int new_exp, bool new_intFlag);
+        bool ctorKwd(Kwd_e new_kwd);
+        bool ctorPunct(Punct_e new_punct);
 
         // TODO: Constructors for different types
 
@@ -61,6 +74,14 @@ namespace SoftLang {
 
         /// Returns PUNCT_ERROR for non-punct tokens
         Punct_e getPunct() const;
+
+        const char *strKwd() const;
+
+        const char *strPunct() const;
+
+        const char *strKwdName() const;
+
+        const char *strPunctName() const;
 
         // TODO: TOK_NAME interface
 
@@ -78,6 +99,8 @@ namespace SoftLang {
         bool isNum() const;
         bool isKwd() const;
         bool isPunct() const;
+
+        void dump() const;
 
     private:
         Type_e type;
@@ -130,6 +153,8 @@ namespace SoftLang {
 
         void restore(unsigned saved);
 
+        void dump() const;
+
     private:
         const FileBuf *buf;
 
@@ -143,7 +168,23 @@ namespace SoftLang {
 
         bool resize(unsigned new_capacity);
 
-        bool appendTok()
+        bool appendTok();
+
+        static bool parseTok(Token *dest, FileBufIterator *iter);
+
+        static bool parseNumber(Token *dest, FileBufIterator *iter);
+
+        static bool parseIdentifier(Token *dest, FileBufIterator *iter);
+
+        static bool parsePunct(Token *dest, FileBufIterator *iter);
+
+        static int recognizeDigit(char c);
+
+        static Token::Kwd_e recognizeKwd(const char *src, unsigned *len);
+
+        static Token::Punct_e recognizePunct(const char *src, unsigned *len);
+
+        static bool isIdChar(char c);
 
     };
 
