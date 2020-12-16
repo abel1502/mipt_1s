@@ -291,31 +291,81 @@ namespace SoftLang {
         FileBufIterator iter{};
         TRY_B(iter.ctor(buf));
 
-        while (true) {
+        while (!getEnd()) {
             TRY_BC(appendTok(), iter.dtor());
 
             assert(size > 0);
 
             TRY_BC(parseTok(&tokens[size - 1], &iter), iter.dtor());
 
-            if (tokens[size - 1].isErr()) {
+            if (getError()) {
                 ERR("Syntax error at pos #%zu (near \"%.5s\")", iter.getPos(), iter.getPtr());
 
                 iter.dtor();
 
-                return true;
-            }
-
-            if (tokens[size - 1].isEnd()) {
-                assert(iter.isEof());
-
-                break;
+                return false;  // Still not considered an error, but is marked via the TOK_ERROR token
             }
         }
 
         iter.dtor();
 
         return false;
+    }
+
+    const Token *Lexer::cur() const {
+        assert(!getError() && getEnd());
+
+        if (pos >= size)
+            return getEnd();
+
+        return &tokens[pos];
+    }
+
+    const Token *Lexer::peek(int delta) const {
+        assert(!getError() && getEnd());
+
+        if (pos + delta >= size)
+            return getEnd();
+
+        return &tokens[pos + delta];
+    }
+
+    const Token *Lexer::next() {
+        const Token *tmp = cur();
+
+        pos++;
+
+        return tmp;
+    }
+
+    const Token *Lexer::prev() {
+        const Token *tmp = cur();
+
+        pos--;
+
+        return tmp;
+    }
+
+    unsigned Lexer::backup() const {
+        return pos;
+    }
+
+    void Lexer::restore(unsigned saved) {
+        pos = saved;
+    }
+
+    const Token *Lexer::getError() const {
+        if (size != 0 && tokens[size - 1].isErr())
+            return &tokens[size - 1];
+
+        return nullptr;
+    }
+
+    const Token *Lexer::getEnd() const {
+        if (size != 0 && tokens[size - 1].isEnd())
+            return &tokens[size - 1];
+
+        return nullptr;
     }
 
     bool Lexer::resize(unsigned new_capacity) {

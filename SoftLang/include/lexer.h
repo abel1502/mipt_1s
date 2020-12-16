@@ -63,8 +63,6 @@ namespace SoftLang {
         bool ctorKwd(Kwd_e new_kwd);
         bool ctorPunct(Punct_e new_punct);
 
-        // TODO: Constructors for different types
-
         void dtor();
 
         Type_e getType() const;
@@ -123,7 +121,7 @@ namespace SoftLang {
             struct {
                 unsigned long long integer;
                 double fraction;
-                int exp;  // TODO
+                int exp;
                 bool intFlag;
             };
         };
@@ -143,19 +141,23 @@ namespace SoftLang {
 
         bool parse();
 
-        const Token *cur();
+        const Token *cur() const;
 
-        const Token *peek(int delta);
+        const Token *peek(int delta) const;
 
         const Token *next();
 
         const Token *prev();
 
-        unsigned backup();
+        unsigned backup() const;
 
         void restore(unsigned saved);
 
         void dump() const;
+
+        const Token *getError() const;
+
+        const Token *getEnd() const;
 
     private:
         const FileBuf *buf;

@@ -53,7 +53,7 @@
         if (verbosity >= 3) {                           \
             ERR("Error caught in \"%s\"", #STMT);       \
         }                                               \
-        CLEANUP                                         \
+        CLEANUP;                                        \
         return TMPVARNAME;                              \
     }                                                   \
 }
@@ -61,7 +61,7 @@
 // Boolean try with cleanup
 #define TRY_BC(STMT, CLEANUP)  {    \
     if (STMT) {                     \
-        CLEANUP                     \
+        CLEANUP;                    \
         return true;                \
     }                               \
 }
