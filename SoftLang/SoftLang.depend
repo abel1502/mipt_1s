@@ -5,25 +5,38 @@
 	<cerrno>
 	"general.h"
 
-1608036964 d:\workspace\.mipt\s1\softlang\\include\\general.h
+1608102185 d:\workspace\.mipt\s1\softlang\\include\\general.h
 	<new>
 
-1608048391 source:d:\workspace\.mipt\s1\softlang\source\main.cpp
+1608109944 source:d:\workspace\.mipt\s1\softlang\source\main.cpp
 	<cstdio>
 	<cstdlib>
 	<cassert>
 	<getopt.h>
 	"general.h"
+	"lexer.h"
+	"filebuf.h"
 
 1607338903 source:d:\workspace\.mipt\s1\softlang\source\ast.cpp
 	"ast.h"
 
 1607338902 d:\workspace\.mipt\s1\softlang\\include\\ast.h
 
-1608048310 source:d:\workspace\.mipt\s1\softlang\source\lexer.cpp
+1608111038 source:d:\workspace\.mipt\s1\softlang\source\lexer.cpp
 	"lexer.h"
+	<cstdlib>
+	<cmath>
+	<cassert>
+	<cctype>
+	<cstring>
+	"tokens.dsl.h"
+	"tokens.dsl.h"
+	"tokens.dsl.h"
+	"tokens.dsl.h"
+	"tokens.dsl.h"
+	"tokens.dsl.h"
 
-1608048346 d:\workspace\.mipt\s1\softlang\\include\\lexer.h
+1608109638 d:\workspace\.mipt\s1\softlang\\include\\lexer.h
 	"general.h"
 	"filebuf.h"
 	<cstdlib>
@@ -38,13 +51,14 @@
 
 1607339483 d:\workspace\.mipt\s1\softlang\\include\\parser.h
 
-1608037036 d:\workspace\.mipt\s1\softlang\\include\\filebuf.h
+1608104492 d:\workspace\.mipt\s1\softlang\\include\\filebuf.h
 	"general.h"
 	<cstdio>
 	<cstdlib>
 	<sys/stat.h>
 
-1608037132 source:d:\workspace\.mipt\s1\softlang\source\filebuf.cpp
+1608105158 source:d:\workspace\.mipt\s1\softlang\source\filebuf.cpp
 	"filebuf.h"
 	<cassert>
+	<cctype>
 

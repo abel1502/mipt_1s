@@ -32,13 +32,28 @@
     }
 
 
+// TODO: Maybe implement a traceback stack and error messages?
+
 // The TRY macro is intended for use to forward any error (i.e. non-zero) return code
 // from an expression out of the context function. Useful for work with ctor's in the
 // new format.
 #define TMPVARNAME_HELPER1(A, B)    A ## B
 #define TMPVARNAME  TMPVARNAME_HELPER1(tmp_, __LINE__)
-#define TRY(STMT)   { auto TMPVARNAME = (STMT); if (!TMPVARNAME) return TMPVARNAME; }
-
+#define TRY(STMT)  {                                    \
+    auto TMPVARNAME = (STMT);                           \
+    if (TMPVARNAME) {                                   \
+        if (verbosity >= 3) {                           \
+            ERR("Error caught in \"%s\"", #STMT);       \
+        }                                               \
+        return TMPVARNAME;                              \
+    }                                                   \
+}
+/*
+#define TRY(STMT)  {    \
+    if (stmt)           \
+        return true;    \
+}
+*/
 
 // TODO: Throw
 #define REQUIRE(STMT)                                   \
