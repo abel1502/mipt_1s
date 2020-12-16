@@ -22,6 +22,9 @@ namespace SoftLang {
         /// Memory read constructor
         bool ctor(const char *src, size_t amount);
 
+        /// Memory read constructor with implicit amount
+        bool ctor(const char *src);
+
         void dtor();
 
         unsigned getSize() const;
@@ -52,11 +55,13 @@ namespace SoftLang {
 
         char prev();
 
+        void skipSpace();
+
         bool isEof() const;
 
         size_t getPos() const;
 
-        const char *getCtx() const;
+        const char *getPtr() const;
 
     private:
         const FileBuf *buf;

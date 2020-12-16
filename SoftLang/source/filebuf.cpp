@@ -1,6 +1,7 @@
 #include "filebuf.h"
 
 #include <cassert>
+#include <cctype>
 
 
 namespace SoftLang {
@@ -73,6 +74,10 @@ namespace SoftLang {
         return true;
     }
 
+    bool FileBuf::ctor(const char *src) {
+        return ctor(src, strlen(src));
+    }
+
     void FileBuf::dtor() {
         free(buf);
 
@@ -142,6 +147,12 @@ namespace SoftLang {
         return tmp;
     }
 
+    void FileBufIterator::skipSpace() {
+        while (isspace(cur())) {
+            next();
+        }
+    }
+
     bool FileBufIterator::isEof() const {
         return !cur();
     }
@@ -150,11 +161,11 @@ namespace SoftLang {
         return pos;
     }
 
-    const char *FileBufIterator::getCtx() const {
+    const char *FileBufIterator::getPtr() const {
         if (pos >= buf->getSize())
-            return "<EOF>";
+            return "\0";
 
-        return buf + pos;
+        return buf->getData() + pos;
     }
 
 }
