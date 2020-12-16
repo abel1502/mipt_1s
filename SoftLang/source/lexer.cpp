@@ -158,7 +158,6 @@ namespace SoftLang {
             #undef DEF_PUNCT
 
         default:
-            printf("[%d %d]\n", type, punct);
             assert(false);
             return nullptr;
         }
@@ -264,36 +263,9 @@ namespace SoftLang {
     }
 
     bool Lexer::ctor(const FileBuf *src) {
-        TRY(ctor());
+        TRY_B(ctor());
 
         buf = src;
-
-        FileBufIterator iter{};
-        TRY(iter.ctor(buf));
-
-        while (true) {
-            TRY(appendTok());
-
-            assert(size > 0);
-
-            TRY(parseTok(&tokens[size - 1], &iter));
-
-            if (tokens[size - 1].isErr()) {
-                ERR("Syntax error at pos #%zu (near \"%.5s\")", iter.getPos(), iter.getPtr());
-
-                iter.dtor();
-
-                return true;
-            }
-
-            if (tokens[size - 1].isEnd()) {
-                assert(iter.isEof());
-
-                break;
-            }
-        }
-
-        iter.dtor();
 
         return false;
     }
@@ -315,11 +287,42 @@ namespace SoftLang {
         capacity = 0;
     }
 
+    bool Lexer::parse() {
+        FileBufIterator iter{};
+        TRY_B(iter.ctor(buf));
+
+        while (true) {
+            TRY_BC(appendTok(), iter.dtor());
+
+            assert(size > 0);
+
+            TRY_BC(parseTok(&tokens[size - 1], &iter), iter.dtor());
+
+            if (tokens[size - 1].isErr()) {
+                ERR("Syntax error at pos #%zu (near \"%.5s\")", iter.getPos(), iter.getPtr());
+
+                iter.dtor();
+
+                return true;
+            }
+
+            if (tokens[size - 1].isEnd()) {
+                assert(iter.isEof());
+
+                break;
+            }
+        }
+
+        iter.dtor();
+
+        return false;
+    }
+
     bool Lexer::resize(unsigned new_capacity) {
         assert(new_capacity >= capacity);
 
         Token *newTokens = (Token *)realloc(tokens, new_capacity * sizeof(Token));
-        TRY(!newTokens);
+        TRY_B(!newTokens);
 
         tokens = newTokens;
         capacity = new_capacity;
@@ -331,7 +334,7 @@ namespace SoftLang {
         assert(capacity != 0);
 
         if (size + 1 >= capacity) {
-            TRY(resize(capacity * 2));
+            TRY_B(resize(capacity * 2));
         }
 
         size++;
@@ -350,7 +353,7 @@ namespace SoftLang {
         char tmp = iter->cur();
 
         if (tmp == '\0') {
-            TRY(dest->ctorEnd());
+            TRY_B(dest->ctorEnd());
             return false;
         }
 
@@ -481,12 +484,12 @@ namespace SoftLang {
         if (integerLen == 0 && isInteger) {
             ERR("Syntex error: malformed number");
 
-            TRY(dest->ctorErr());
+            TRY_B(dest->ctorErr());
 
             return false;
         }
 
-        TRY(dest->ctorNum(integer, fraction, exp, isInteger));
+        TRY_B(dest->ctorNum(integer, fraction, exp, isInteger));
 
         return false;
     }
@@ -503,7 +506,7 @@ namespace SoftLang {
         if (len == Token::MAX_ID_LEN && isIdChar(iter->cur())) {
             ERR("Syntax error: identifier too long");  // TODO: wrapper
 
-            TRY(dest->ctorErr());
+            TRY_B(dest->ctorErr());
 
             return false;
         }
@@ -513,12 +516,12 @@ namespace SoftLang {
         Token::Kwd_e kwd = recognizeKwd(idStart, &kwdLen);
 
         if (kwd != Token::KWD_ERROR && kwdLen == len) {
-            TRY(dest->ctorKwd(kwd));
+            TRY_B(dest->ctorKwd(kwd));
 
             return false;
         }
 
-        TRY(dest->ctorName(idStart, len));
+        TRY_B(dest->ctorName(idStart, len));
 
         return false;
     }
@@ -531,7 +534,7 @@ namespace SoftLang {
         if (punct == Token::PUNCT_ERROR) {
             ERR("Syntax error: unrecognized punctuation symbol");
 
-            TRY(dest->ctorErr());
+            TRY_B(dest->ctorErr());
 
             return false;
         }
@@ -539,7 +542,7 @@ namespace SoftLang {
         for (unsigned i = 0; i < len; ++i)
             iter->next();
 
-        TRY(dest->ctorPunct(punct));
+        TRY_B(dest->ctorPunct(punct));
 
         return false;
     }

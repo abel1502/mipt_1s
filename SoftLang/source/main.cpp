@@ -50,6 +50,7 @@ int main(int argc, char **argv) {
 
     Lexer lexer{};
     REQUIRE(!lexer.ctor(&buf));
+    REQUIRE(!lexer.parse());
 
     lexer.dump();
 

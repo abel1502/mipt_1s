@@ -141,6 +141,8 @@ namespace SoftLang {
 
         void dtor();
 
+        bool parse();
+
         const Token *cur();
 
         const Token *peek(int delta);

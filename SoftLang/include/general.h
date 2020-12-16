@@ -34,26 +34,39 @@
 
 // TODO: Maybe implement a traceback stack and error messages?
 
+
+#define TMPVARNAME$_HELPER1(A, B)    A ## B
+#define TMPVARNAME  TMPVARNAME$_HELPER1(tmp_, __LINE__)
+
 // The TRY macro is intended for use to forward any error (i.e. non-zero) return code
 // from an expression out of the context function. Useful for work with ctor's in the
 // new format.
-#define TMPVARNAME_HELPER1(A, B)    A ## B
-#define TMPVARNAME  TMPVARNAME_HELPER1(tmp_, __LINE__)
-#define TRY(STMT)  {                                    \
+#define TRY(STMT)  TRY_C(STMT, )
+
+// Boolean try
+#define TRY_B(STMT)  TRY_BC(STMT, )
+
+// TRY with cleanup
+#define TRY_C(STMT, CLEANUP)  {                         \
     auto TMPVARNAME = (STMT);                           \
     if (TMPVARNAME) {                                   \
         if (verbosity >= 3) {                           \
             ERR("Error caught in \"%s\"", #STMT);       \
         }                                               \
+        CLEANUP                                         \
         return TMPVARNAME;                              \
     }                                                   \
 }
-/*
-#define TRY(STMT)  {    \
-    if (stmt)           \
-        return true;    \
+
+// Boolean try with cleanup
+#define TRY_BC(STMT, CLEANUP)  {    \
+    if (STMT) {                     \
+        CLEANUP                     \
+        return true;                \
+    }                               \
 }
-*/
+
+
 
 // TODO: Throw
 #define REQUIRE(STMT)                                   \
