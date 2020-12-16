@@ -8,7 +8,7 @@
 
 
 /*  Alright, with new requirements come new standards.
-    Now ctor must return zero on failure and non-zero on success
+    Now ctor must return zero on success and non-zero on failure
     (Type doesn't matter for the factory methods)
     It's also preferable (though not required) that the default ctor
     always returns 0 (essentially a c-style noexcept) */
@@ -43,13 +43,28 @@
 // new format.
 #define TRY(STMT)  TRY_C(STMT, )
 
+// Try not (for when success is represented with a non-zero value - a pointer, for example)
+#define TRY_N(STMT)  TRY_NC(STMT, )
+
 // Boolean try
 #define TRY_B(STMT)  TRY_BC(STMT, )
 
-// TRY with cleanup
+// Try with cleanup
 #define TRY_C(STMT, CLEANUP)  {                         \
     auto TMPVARNAME = (STMT);                           \
     if (TMPVARNAME) {                                   \
+        if (verbosity >= 3) {                           \
+            ERR("Error caught in \"%s\"", #STMT);       \
+        }                                               \
+        CLEANUP;                                        \
+        return TMPVARNAME;                              \
+    }                                                   \
+}
+
+// Try not with cleanup
+#define TRY_NC(STMT, CLEANUP)  {                         \
+    auto TMPVARNAME = (STMT);                           \
+    if (!TMPVARNAME) {                                  \
         if (verbosity >= 3) {                           \
             ERR("Error caught in \"%s\"", #STMT);       \
         }                                               \

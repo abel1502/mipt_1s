@@ -11,7 +11,7 @@ namespace SoftLang {
 
         buf = nullptr;
 
-        return true;
+        return false;
     }
 
     bool FileBuf::ctor(const char *name, const char *mode) {
@@ -50,7 +50,7 @@ namespace SoftLang {
             file = nullptr;
         }
 
-        return true;
+        return false;
     }
 
     bool FileBuf::ctor(const char *src, size_t amount) {
