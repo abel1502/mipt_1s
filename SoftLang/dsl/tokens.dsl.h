@@ -1,9 +1,12 @@
 // DEF_KWD(NAMR, STR)
 // DEF_PUNCT(NAME, STR)
 
+/* Some of the symbols may remain unused, but I still included them just in case */
+
 DEF_PUNCT(COLON,    ":")
 DEF_PUNCT(SEMI,     ";")
 DEF_PUNCT(COMMA,    ",")
+DEF_PUNCT(DOT,      ".")
 
 DEF_PUNCT(LPAR,     "(")
 DEF_PUNCT(RPAR,     ")")
