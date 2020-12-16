@@ -39,10 +39,12 @@
 		</Compiler>
 		<Unit filename="dsl/tokens.dsl.h" />
 		<Unit filename="include/ast.h" />
+		<Unit filename="include/dict.h" />
 		<Unit filename="include/filebuf.h" />
 		<Unit filename="include/general.h" />
 		<Unit filename="include/lexer.h" />
 		<Unit filename="include/parser.h" />
+		<Unit filename="include/vtable.h" />
 		<Unit filename="source/ast.cpp" />
 		<Unit filename="source/filebuf.cpp" />
 		<Unit filename="source/general.cpp" />

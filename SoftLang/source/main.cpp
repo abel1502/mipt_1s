@@ -6,6 +6,7 @@
 #include "general.h"
 #include "lexer.h"
 #include "filebuf.h"
+#include "dict.h"
 
 
 using namespace SoftLang;
@@ -35,6 +36,14 @@ static void showHelp(const char *binName) {
 int main(int argc, char **argv) {
 
     verbosity = 3;
+
+    StrDict<int> test{};
+    REQUIRE(!test.ctor());
+
+    REQUIRE(!test.set("Tests", 17));
+    printf("%d\n", test.get("Tests"));
+
+    test.dtor();
 
     const char testCode[] =
         "def int4:main() {\n"
