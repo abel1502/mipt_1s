@@ -44,6 +44,7 @@
 		<Unit filename="include/general.h" />
 		<Unit filename="include/lexer.h" />
 		<Unit filename="include/parser.h" />
+		<Unit filename="include/vector.h" />
 		<Unit filename="include/vtable.h" />
 		<Unit filename="source/ast.cpp" />
 		<Unit filename="source/filebuf.cpp" />
