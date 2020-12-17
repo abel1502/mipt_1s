@@ -4,7 +4,7 @@
 #include <getopt.h>
 
 #include "general.h"
-#include "lexer.h"
+#include "parser.h"
 #include "filebuf.h"
 #include "dict.h"
 
@@ -37,19 +37,22 @@ int main(int argc, char **argv) {
 
     verbosity = 3;
 
-    StrDict<int> test{};
+    /*StrDict<int> test{};
     REQUIRE(!test.ctor());
 
     REQUIRE(!test.set("Tests", 17));
     printf("%d\n", test.get("Tests"));
 
-    test.dtor();
+    test.dtor();*/
 
     const char testCode[] =
         "def int4:main() {\n"
         "    var int4:a;\n"
         "    var int4:b = 5;\n"
         "    b *= 17;\n"
+        "    while b > 55 {\n"
+        "        b -= 2;\n"
+        "    }\n"
         "    a = (b + 7 - 1) / 2;\n"
         "    ret a + b;"
         "}\n";
@@ -57,13 +60,21 @@ int main(int argc, char **argv) {
     FileBuf buf{};
     REQUIRE(!buf.ctor(testCode));
 
+    /*
     Lexer lexer{};
     REQUIRE(!lexer.ctor(&buf));
     REQUIRE(!lexer.parse());
 
     lexer.dump();
-
     lexer.dtor();
+    */
+
+    Parser parser{};
+    REQUIRE(!parser.ctor(&buf));
+
+    printf("%s\n", parser.parse() ? "Wrong syntax" : "Correct syntax");
+
+    parser.dtor();
 
     buf.dtor();
 

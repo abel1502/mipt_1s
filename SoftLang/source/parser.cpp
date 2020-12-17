@@ -98,50 +98,258 @@ namespace SoftLang {
             return ERR_PARSER_SYS;
         }
 
-        TRY(parse_FUNC_DEFS());
+        P_REQ_NONTERM(FUNC_DEFS);
 
-        // TODO
+        if (!cur()->isEnd()) {
+            P_BAD();
+        }
+
+        P_OK();
     }
 
     Parser::Error_e Parser::parse_FUNC_DEFS() {
-        //
+        while (true) {
+            P_TRY(parse_FUNC_DEF(), , P_OK());
+        }
     }
 
-    Parser::Error_e Parser::parse_FUNC_DEF();
+    Parser::Error_e Parser::parse_FUNC_DEF() {
+        P_REQ_KWD(DEF);
+        P_REQ_NONTERM(TYPESPEC);
+        P_REQ_PUNCT(COLON);
 
-    Parser::Error_e Parser::parse_FUNC_ARGS_DEF();
+        if (!cur()->isName()) {
+            P_BAD();
+        }
+        next();
 
-    Parser::Error_e Parser::parse_FUNC_ARG_DEF();
+        P_REQ_PUNCT(LPAR);
+        P_REQ_NONTERM(FUNC_ARGS_DEF);
+        P_REQ_PUNCT(RPAR);
+        P_REQ_NONTERM(COMPOUND_STMT);
 
-    Parser::Error_e Parser::parse_TYPESPEC();
+        P_OK();
+    }
 
-    Parser::Error_e Parser::parse_STMTS();
+    Parser::Error_e Parser::parse_FUNC_ARGS_DEF() {
+        P_TRY(parse_FUNC_ARG_DEF(), , P_OK());
 
-    Parser::Error_e Parser::parse_STMT();
+        while (cur()->getPunct() == Token::PUNCT_COMMA) {
+            next();
 
-    Parser::Error_e Parser::parse_COMPOUND_STMT();
+            P_REQ_NONTERM(FUNC_ARG_DEF);
+        }
 
-    Parser::Error_e Parser::parse_RETURN_STMT();
+        P_OK();
+    }
 
-    Parser::Error_e Parser::parse_LOOP_STMT();
+    Parser::Error_e Parser::parse_FUNC_ARG_DEF() {
+        P_REQ_NONTERM(TYPESPEC);
+        P_REQ_PUNCT(COLON);
 
-    Parser::Error_e Parser::parse_COND_STMT();
+        if (!cur()->isName()) {
+            P_BAD();
+        }
+        next();
 
-    Parser::Error_e Parser::parse_VARDECL_STMT();
+        P_OK();
+    }
 
-    Parser::Error_e Parser::parse_EXPR_STMT();
+    Parser::Error_e Parser::parse_TYPESPEC() {
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wswitch-enum"
 
-    Parser::Error_e Parser::parse_EXPR();
+        switch (next()->getKwd()) {
+        case Token::KWD_DBL:
+            P_OK();
+        case Token::KWD_INT4:
+            P_OK();
+        case Token::KWD_INT8:
+            P_OK();
+        default:
+            prev();
+            P_BAD();
+        }
 
-    Parser::Error_e Parser::parse_ASGN_EXPR();
+        #pragma GCC diagnostic pop
+    }
 
-    Parser::Error_e Parser::parse_OR_EXPR();
+    Parser::Error_e Parser::parse_STMTS() {
+        while (true) {
+            P_TRY(parse_STMT(), , P_OK());
+        }
+    }
 
-    Parser::Error_e Parser::parse_AND_EXPR();
+    Parser::Error_e Parser::parse_STMT() {
+        unsigned saved = backup();
 
-    Parser::Error_e Parser::parse_CMP_EXPR();
+        P_TRY(parse_COMPOUND_STMT(),  P_OK(), restore(saved));
+        P_TRY(parse_RETURN_STMT(),    P_OK(), restore(saved));
+        P_TRY(parse_LOOP_STMT(),      P_OK(), restore(saved));
+        P_TRY(parse_COND_STMT(),      P_OK(), restore(saved));
+        P_TRY(parse_VARDECT_STMT(),   P_OK(), restore(saved));
+        P_TRY(parse_EXPR_STMT(),      P_OK(), restore(saved));
 
-    Parser::Error_e Parser::parse_ADD_EXPR();
+        P_REQ_PUNCT(SEMI);
+
+        P_OK();
+    }
+
+    Parser::Error_e Parser::parse_COMPOUND_STMT() {
+        P_REQ_PUNCT(LBRACE);
+
+        P_REQ_NONTERM(STMTS);
+
+        P_REQ_PUNCT(RBRACE);
+
+        P_OK();
+    }
+
+    Parser::Error_e Parser::parse_RETURN_STMT() {
+        P_REQ_KWD(RET);
+
+        unsigned saved = backup();
+        P_TRY(parse_EXPR(), , restore(saved));
+
+        P_REQ_PUNCT(SEMI);
+
+        P_OK();
+    }
+
+    Parser::Error_e Parser::parse_LOOP_STMT() {
+        P_REQ_KWD(WHILE);
+
+        P_REQ_NONTERM(EXPR);
+
+        P_REQ_NONTERM(COMPOUND_STMT);
+
+        P_OK();
+    }
+
+    Parser::Error_e Parser::parse_COND_STMT() {
+        P_REQ_KWD(IF);
+
+        P_REQ_NONTERM(EXPR);
+
+        P_REQ_NONTERM(COMPOUND_STMT);
+
+        P_OK();
+    }
+
+    Parser::Error_e Parser::parse_VARDECL_STMT() {
+        P_REQ_NONTERM(VARDECL);
+
+        if (cur()->getPunct() == Token::PUNCT_EQ) {
+            next();
+
+            P_REQ_NONTERM(EXPR);
+        }
+
+        P_REQ_PUNCT(SEMI);
+
+        P_OK();
+    }
+
+    Parser::Error_e Parser::parse_EXPR_STMT() {
+        P_REQ_NONTERM(EXPR);
+
+        P_REQ_PUNCT(SEMI);
+
+        P_OK();
+    }
+
+    Parser::Error_e Parser::parse_EXPR() {
+        unsigned saved = backup();
+
+        P_TRY(parse_ASGN_EXPR(),  P_OK(), restore(saved));
+        P_TRY(parse_OR_EXPR(),    P_OK(), restore(saved));
+
+        P_BAD();
+    }
+
+    Parser::Error_e Parser::parse_ASGN_EXPR() {
+        P_REQ_NONTERM(VAR);
+
+        switch (next()->getPunct()) {
+        case Token::PUNCT_EQ:
+            break;
+        case Token::PUNCT_ADDEQ:
+            break;
+        case Token::PUNCT_SUBEQ:
+            break;
+        case Token::PUNCT_MULEQ:
+            break;
+        case Token::PUNCT_DIVEQ:
+            break;
+        case Token::PUNCT_MODEQ:
+            break;
+        default:
+            prev();
+            P_BAD();
+        }
+
+        P_REQ_NONTERM(EXPR);
+
+        P_OK();
+    }
+
+    Parser::Error_e Parser::parse_OR_EXPR() {
+        bool reapeat = true;
+
+        while (repeat) {
+            P_REQ_NONTERM(AND_EXPR);
+
+            repeat = next()->getPunct() == Token::PUNCT_OR;
+        }
+        prev();
+
+        P_OK();
+    }
+
+    Parser::Error_e Parser::parse_AND_EXPR() {
+        bool reapeat = true;
+
+        while (repeat) {
+            P_REQ_NONTERM(CMP_EXPR);
+
+            repeat = next()->getPunct() == Token::PUNCT_AND;
+        }
+        prev();
+
+        P_OK();
+    }
+
+    Parser::Error_e Parser::parse_CMP_EXPR() {
+        bool reapeat = true;
+
+        while (repeat) {
+            P_REQ_NONTERM(ADD_EXPR);
+
+            switch (next()->getPunct()) {
+            case Token::PUNCT_EQEQ:
+                break;
+            case Token::PUNCT_NEQ:
+                break;
+            case Token::PUNCT_GEQ:
+                break;
+            case Token::PUNCT_LEQ:
+                break;
+            case Token::PUNCT_GT:
+                break;
+            case Token::PUNCT_LT:
+                break;
+            default:
+                repeat = false;
+                prev();
+                break;
+            }
+        }
+
+        P_OK();
+    }
+
+    Parser::Error_e Parser::parse_ADD_EXPR() {
+    }
 
     Parser::Error_e Parser::parse_MUL_EXPR();
 
