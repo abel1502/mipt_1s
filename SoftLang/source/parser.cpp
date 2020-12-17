@@ -103,7 +103,7 @@ namespace SoftLang {
 
         P_TRYSYS(!lexer.getEnd());
 
-        P_REQ_NONTERM(FUNC_DEFS(prog));
+        P_REQ_NONTERM(FUNC_DEFS, prog);
 
         if (!cur()->isEnd())
             goto error;
@@ -121,7 +121,7 @@ namespace SoftLang {
 
         P_TRYSYS(prog->ctor());
 
-        while (true) {
+        while (repeat) {
             P_TRY(parse_FUNC_DEF(prog), , repeat = false);
         }
 
@@ -291,13 +291,14 @@ namespace SoftLang {
 
     Parser::Error_e Parser::parse_RETURN_STMT(Statement *stmt) {
         Expression *expr = nullptr;
+        unsigned saved = 0;
 
         P_TRYSYS(stmt->ctorReturn());
         P_TRYSYS(stmt->makeExpr(&expr));
 
         P_REQ_KWD(RET);
 
-        unsigned saved = backup();
+        saved = backup();
         P_TRY(parse_EXPR(expr),
               ,
               restore(saved); expr->dtor(); expr->ctorVoid());
@@ -313,14 +314,16 @@ namespace SoftLang {
     }
 
     Parser::Error_e Parser::parse_LOOP_STMT(Statement *stmt) {
-        Code *code = nullptr;
+        Expression *cond = nullptr;
+        Code       *code = nullptr;
 
         P_TRYSYS(stmt->ctorLoop());
+        P_TRYSYS(stmt->makeExpr(&cond));
         P_TRYSYS(stmt->makeCode(&code));
 
         P_REQ_KWD(WHILE);
 
-        P_REQ_NONTERM(EXPR);
+        P_REQ_NONTERM(EXPR, cond);
 
         P_REQ_NONTERM(COMPOUND_STMT, code);
 
@@ -333,16 +336,18 @@ namespace SoftLang {
     }
 
     Parser::Error_e Parser::parse_COND_STMT(Statement *stmt) {
-        Code *code    = nullptr;
-        Code *altCode = nullptr;
+        Expression *cond    = nullptr;
+        Code       *code    = nullptr;
+        Code       *altCode = nullptr;
 
         P_TRYSYS(stmt->ctorCond());
+        P_TRYSYS(stmt->makeExpr(&cond));
         P_TRYSYS(stmt->makeCode(&code));
         P_TRYSYS(stmt->makeAltCode(&altCode));
 
         P_REQ_KWD(IF);
 
-        P_REQ_NONTERM(EXPR);
+        P_REQ_NONTERM(EXPR, cond);
 
         P_REQ_NONTERM(COMPOUND_STMT, code);
 
@@ -418,13 +423,13 @@ namespace SoftLang {
     }
 
     Parser::Error_e Parser::parse_ASGN_EXPR(Expression *expr) {
-        Var *var = nullptr;
+        Expression *var = nullptr;
         Expression *child = nullptr;
         P_TRYSYS(expr->ctorAsgn());
-        P_TRYSYS(stmt->makeVar(&var));
-        P_TRYSYS(stmt->makeChild(&child));
+        P_TRYSYS(expr->makeVar(&var));
+        P_TRYSYS(expr->makeChild(&child));
 
-        P_REQ_NONTERM(VAR, var);
+        P_REQ_NONTERM(VAR_EXPR, var);
 
         #pragma GCC diagnostic push
         #pragma GCC diagnostic ignored "-Wswitch-enum"
@@ -648,10 +653,18 @@ namespace SoftLang {
     }
 
     Parser::Error_e Parser::parse_UNARY_EXPR(Expression *expr) {  // TODO: Finish semantics
+        TypeSpec ts{};
+        Expression *child = nullptr;
+        bool isTypeCast = false;
+        unsigned saved = backup();
+
         if (cur()->getPunct() == Token::PUNCT_SUB) {
             next();
 
-            P_REQ_NONTERM(UNARY_EXPR);
+            P_TRYSYS(expr->ctorNeg());
+            P_TRYSYS(expr->makeChild(&child));
+
+            P_REQ_NONTERM(UNARY_EXPR, child);
 
             P_OK();
         }
@@ -659,7 +672,7 @@ namespace SoftLang {
         if (cur()->getPunct() == Token::PUNCT_ADD) {
             next();
 
-            P_REQ_NONTERM(UNARY_EXPR);
+            P_REQ_NONTERM(UNARY_EXPR, expr);
 
             P_OK();
         }
@@ -667,103 +680,137 @@ namespace SoftLang {
         if (cur()->getPunct() == Token::PUNCT_LPAR) {
             next();
 
-            P_REQ_NONTERM(EXPR);
+            P_REQ_NONTERM(EXPR, expr);
 
             P_REQ_PUNCT(RPAR);
 
             P_OK();
         }
 
-        bool isTypeCast = false;
         // It's a single-lexem nonterminal, so we don't need to back up the position
-        P_TRY(parse_TYPESPEC(), isTypeCast = true, );
+        P_TRY(parse_TYPESPEC(&ts), isTypeCast = true, );
 
         if (isTypeCast) {
+            P_TRYSYS(expr->ctorCast(ts));
+            P_TRYSYS(expr->makeChild(&child));
+
             P_REQ_PUNCT(COLON);
-            P_REQ_NONTERM(UNARY_EXPR);
+            P_REQ_NONTERM(UNARY_EXPR, child);
 
             P_OK();
         }
 
         if (cur()->isNum()) {
-            next();
+            P_TRYSYS(expr->ctorNum(next()));
 
             P_OK();
         }
 
-        unsigned saved = backup();
-        bool isFuncCall = false;
-        P_TRY(parse_FUNC_CALL(), isFuncCall = true, restore(saved));
+        P_TRY(parse_FUNC_CALL(expr), P_OK(), restore(saved));
 
-        if (isFuncCall) {
-            // For future handling
-
-            P_OK();
-        }
-
-        P_REQ_NONTERM(VAR);
+        P_REQ_NONTERM(VAR_EXPR, expr);
 
         P_OK();
 
     error:
         expr->dtor();
+        ts.dtor();
 
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_VAR() {
+    Parser::Error_e Parser::parse_VAR_EXPR(Expression *expr) {
+        const Token *name = nullptr;
+
+        P_REQ_NONTERM(VAR, &name);
+
+        P_TRYSYS(expr->ctorVar(name));
+
+        P_OK();
+
+    error:
+        P_BAD();
+    }
+
+    Parser::Error_e Parser::parse_VAR(const Token **name) {
         if (cur()->isName()) {
-            next();
+            *name = next();
+
             P_OK();
         }
 
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_VARDECL() {
+    Parser::Error_e Parser::parse_VARDECL(Var *var) {
+        TypeSpec ts{};
+        const Token *name = nullptr;
+
         P_REQ_KWD(VAR);
 
-        P_REQ_NONTERM(TYPESPEC);
+        P_REQ_NONTERM(TYPESPEC, &ts);
 
         P_REQ_PUNCT(COLON);
 
-        P_REQ_NONTERM(VAR);
+        P_REQ_NONTERM(VAR, &name);
+
+        P_TRYSYS(var->ctor(ts, name));
 
         P_OK();
+
+    error:
+        ts.dtor();
+
+        P_BAD();
     }
 
-    Parser::Error_e Parser::parse_FUNC() {
+    // Identical to VAR, but separated for clearance reasons
+    Parser::Error_e Parser::parse_FUNC(const Token **name) {
         if (cur()->isName()) {
-            next();
+            *name = next();
+
             P_OK();
         }
 
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_FUNC_CALL() {
-        P_REQ_NONTERM(FUNC);
+    Parser::Error_e Parser::parse_FUNC_CALL(Expression *expr) {
+        const Token *name = nullptr;
+
+        P_REQ_NONTERM(FUNC, &name);
+
+        P_TRYSYS(expr->ctorFuncCall(name));
 
         P_REQ_PUNCT(LPAR);
 
-        P_REQ_NONTERM(FUNC_ARGS);
+        P_REQ_NONTERM(FUNC_ARGS, expr);
 
         P_REQ_PUNCT(RPAR);
 
         P_OK();
+
+    error:
+        P_BAD();
     }
 
-    Parser::Error_e Parser::parse_FUNC_ARGS() {
+    Parser::Error_e Parser::parse_FUNC_ARGS(Expression *expr) {
+        Expression *child = nullptr;
+
         bool repeat = true;
 
         while (repeat) {
-            P_REQ_NONTERM(EXPR);
+            P_TRYSYS(expr->makeChild(&child));
+            P_REQ_NONTERM(EXPR, child);
 
             repeat = next()->getPunct() == Token::PUNCT_COMMA;
         }
         prev();
 
         P_OK();
+
+    error:
+        P_BAD();
     }
 
     #undef P_TRY

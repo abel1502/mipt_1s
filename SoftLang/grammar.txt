@@ -55,7 +55,7 @@ EXPR_STMT		::= EXPR ';'
 
 EXPR			::= ASGN_EXPR | /*OR_EXPR*/ CMP_EXPR
 
-ASGN_EXPR		::= VAR ['=' '+=' '-=' '*=' '/=' '%='] EXPR
+ASGN_EXPR		::= VAR_EXPR ['=' '+=' '-=' '*=' '/=' '%='] EXPR
 
 /*
 OR_EXPR			::= LIST<AND_EXPR, '||'>
@@ -80,7 +80,9 @@ UNARY_EXPR		::= '-' UNARY_EXPR 			|
 					TYPESPEC ':' UNARY_EXPR |
 					NUM 					|
 					FUNC_CALL 				|
-					VAR
+					VAR_EXPR
+
+VAR_EXPR		::= VAR  // Turns out this is quite useful for semantics
 
 VAR				::= NAME
 

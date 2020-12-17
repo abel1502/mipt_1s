@@ -84,21 +84,23 @@ namespace SoftLang {
 
         Error_e parse_EXPR_STMT(Statement *stmt);
 
-        Error_e parse_EXPR(Expr *expr);
+        Error_e parse_EXPR(Expression *expr);
 
-        Error_e parse_ASGN_EXPR(Expr *expr);
+        Error_e parse_ASGN_EXPR(Expression *expr);
 
-        /*Error_e parse_OR_EXPR(Expr *expr);
+        /*Error_e parse_OR_EXPR(Expression *expr);
 
-        Error_e parse_AND_EXPR(Expr *expr);*/
+        Error_e parse_AND_EXPR(Expression *expr);*/
 
-        Error_e parse_CMP_EXPR(Expr *expr);
+        Error_e parse_CMP_EXPR(Expression *expr);
 
-        Error_e parse_ADD_EXPR(Expr *expr);
+        Error_e parse_ADD_EXPR(Expression *expr);
 
-        Error_e parse_MUL_EXPR(Expr *expr);
+        Error_e parse_MUL_EXPR(Expression *expr);
 
-        Error_e parse_UNARY_EXPR(Expr *expr);
+        Error_e parse_UNARY_EXPR(Expression *expr);
+
+        Error_e parse_VAR_EXPR(Expression *expr);
 
         Error_e parse_VAR(const Token **name);
 
@@ -106,9 +108,9 @@ namespace SoftLang {
 
         Error_e parse_FUNC(const Token **name);
 
-        Error_e parse_FUNC_CALL(Expr *expr);
+        Error_e parse_FUNC_CALL(Expression *expr);
 
-        Error_e parse_FUNC_ARGS(Expr *expr);
+        Error_e parse_FUNC_ARGS(Expression *expr);
 
     };
 

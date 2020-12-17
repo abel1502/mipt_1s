@@ -20,7 +20,7 @@
 1608200829 source:d:\workspace\.mipt\s1\softlang\source\ast.cpp
 	"ast.h"
 
-1608208814 d:\workspace\.mipt\s1\softlang\\include\\ast.h
+1608238085 d:\workspace\.mipt\s1\softlang\\include\\ast.h
 	"general.h"
 	"parser.h"
 	"vector.h"
@@ -56,7 +56,7 @@
 	"parser.h"
 	<cassert>
 
-1608213267 d:\workspace\.mipt\s1\softlang\\include\\parser.h
+1608237783 d:\workspace\.mipt\s1\softlang\\include\\parser.h
 	"general.h"
 	"filebuf.h"
 	"lexer.h"

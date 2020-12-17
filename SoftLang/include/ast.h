@@ -43,6 +43,8 @@ namespace SoftLang {
 
         bool ctor();
 
+        bool ctor(TypeSpec ts, const Token *name);
+
         void dtor();
 
     private:
@@ -82,7 +84,7 @@ namespace SoftLang {
             OP_EQ,
             OP_NEQ,
             OP_GEQ,
-            OP_LULEQ,
+            OP_LEQ,
             OP_LT,
             OP_GT,
 
@@ -104,6 +106,8 @@ namespace SoftLang {
         //
 
     };
+
+    class Code;
 
     class Statement {  // Abstract
     public:
@@ -177,7 +181,7 @@ namespace SoftLang {
         /// This one will always return &code
         bool makeCode(Code **code);
 
-        bool write(FILE *ofile);
+        bool compile(FILE *ofile);
 
     private:
 
@@ -202,7 +206,7 @@ namespace SoftLang {
         ///  requires that the resulting pointer isn't stored, since it may break upon reallocation)
         bool makeFunction(Function **dest);
 
-        bool write(FILE *ofile);
+        bool compile(FILE *ofile);
 
     private:
 
