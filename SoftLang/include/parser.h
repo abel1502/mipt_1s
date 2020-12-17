@@ -26,6 +26,18 @@ namespace SoftLang {
 
         void dtor();
 
+        inline const Token *cur() const;
+
+        inline const Token *peek(int delta) const;
+
+        inline const Token *next();
+
+        inline const Token *prev();
+
+        inline unsigned backup() const;
+
+        inline void restore(unsigned saved);
+
         Error_e parse();
 
         Error_e parse_FUNC_DEFS();

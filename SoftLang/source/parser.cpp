@@ -1,5 +1,7 @@
 #include "parser.h"
 
+#include <cassert>
+
 
 namespace SoftLang {
 
@@ -17,6 +19,30 @@ namespace SoftLang {
 
     void Parser::dtor() {
         lexer.dtor();
+    }
+
+    inline const Token *Parser::cur() const {
+        return lexer.cur();
+    }
+
+    inline const Token *Parser::peek(int delta) const {
+        return lexer.peek(delta);
+    }
+
+    inline const Token *Parser::next() {
+        return lexer.next();
+    }
+
+    inline const Token *Parser::prev() {
+        return lexer.prev();
+    }
+
+    inline unsigned Parser::backup() const {
+        return lexer.backup();
+    }
+
+    inline void Parser::restore(unsigned saved) {
+        lexer.restore(saved);
     }
 
     Parser::Error_e Parser::parse() {
