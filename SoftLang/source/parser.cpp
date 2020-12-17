@@ -117,12 +117,7 @@ namespace SoftLang {
         P_REQ_KWD(DEF);
         P_REQ_NONTERM(TYPESPEC);
         P_REQ_PUNCT(COLON);
-
-        if (!cur()->isName()) {
-            P_BAD();
-        }
-        next();
-
+        P_REQ_NONTERM(FUNC);
         P_REQ_PUNCT(LPAR);
         P_REQ_NONTERM(FUNC_ARGS_DEF);
         P_REQ_PUNCT(RPAR);
@@ -187,7 +182,7 @@ namespace SoftLang {
         P_TRY(parse_RETURN_STMT(),    P_OK(), restore(saved));
         P_TRY(parse_LOOP_STMT(),      P_OK(), restore(saved));
         P_TRY(parse_COND_STMT(),      P_OK(), restore(saved));
-        P_TRY(parse_VARDECT_STMT(),   P_OK(), restore(saved));
+        P_TRY(parse_VARDECL_STMT(),   P_OK(), restore(saved));
         P_TRY(parse_EXPR_STMT(),      P_OK(), restore(saved));
 
         P_REQ_PUNCT(SEMI);
@@ -270,6 +265,9 @@ namespace SoftLang {
     Parser::Error_e Parser::parse_ASGN_EXPR() {
         P_REQ_NONTERM(VAR);
 
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wswitch-enum"
+
         switch (next()->getPunct()) {
         case Token::PUNCT_EQ:
             break;
@@ -288,13 +286,15 @@ namespace SoftLang {
             P_BAD();
         }
 
+        #pragma GCC diagnostic pop
+
         P_REQ_NONTERM(EXPR);
 
         P_OK();
     }
 
     Parser::Error_e Parser::parse_OR_EXPR() {
-        bool reapeat = true;
+        bool repeat = true;
 
         while (repeat) {
             P_REQ_NONTERM(AND_EXPR);
@@ -307,7 +307,7 @@ namespace SoftLang {
     }
 
     Parser::Error_e Parser::parse_AND_EXPR() {
-        bool reapeat = true;
+        bool repeat = true;
 
         while (repeat) {
             P_REQ_NONTERM(CMP_EXPR);
@@ -320,10 +320,13 @@ namespace SoftLang {
     }
 
     Parser::Error_e Parser::parse_CMP_EXPR() {
-        bool reapeat = true;
+        bool repeat = true;
 
         while (repeat) {
             P_REQ_NONTERM(ADD_EXPR);
+
+            #pragma GCC diagnostic push
+            #pragma GCC diagnostic ignored "-Wswitch-enum"
 
             switch (next()->getPunct()) {
             case Token::PUNCT_EQEQ:
@@ -343,27 +346,172 @@ namespace SoftLang {
                 prev();
                 break;
             }
+
+            #pragma GCC diagnostic pop
         }
 
         P_OK();
     }
 
     Parser::Error_e Parser::parse_ADD_EXPR() {
+        bool repeat = true;
+
+        while (repeat) {
+            P_REQ_NONTERM(MUL_EXPR);
+
+            #pragma GCC diagnostic push
+            #pragma GCC diagnostic ignored "-Wswitch-enum"
+
+            switch (next()->getPunct()) {
+            case Token::PUNCT_ADD:
+                break;
+            case Token::PUNCT_SUB:
+                break;
+            default:
+                repeat = false;
+                prev();
+                break;
+            }
+
+            #pragma GCC diagnostic pop
+        }
+
+        P_OK();
     }
 
-    Parser::Error_e Parser::parse_MUL_EXPR();
+    Parser::Error_e Parser::parse_MUL_EXPR() {
+        bool repeat = true;
 
-    Parser::Error_e Parser::parse_UNARY_EXPR();
+        while (repeat) {
+            P_REQ_NONTERM(UNARY_EXPR);
 
-    Parser::Error_e Parser::parse_VAR();
+            #pragma GCC diagnostic push
+            #pragma GCC diagnostic ignored "-Wswitch-enum"
 
-    Parser::Error_e Parser::parse_VARDECL();
+            switch (next()->getPunct()) {
+            case Token::PUNCT_MUL:
+                break;
+            case Token::PUNCT_DIV:
+                break;
+            case Token::PUNCT_MOD:
+                break;
+            default:
+                repeat = false;
+                prev();
+                break;
+            }
 
-    Parser::Error_e Parser::parse_FUNC_CALL();
+            #pragma GCC diagnostic pop
+        }
 
-    Parser::Error_e Parser::parse_FUNC_ARGS();
+        P_OK();
+    }
 
-    Parser::Error_e Parser::parse_FUNC_ARG();
+    Parser::Error_e Parser::parse_UNARY_EXPR() {
+        if (cur()->getPunct() == Token::PUNCT_SUB) {
+            next();
+
+            P_REQ_NONTERM(UNARY_EXPR);
+
+            P_OK();
+        }
+
+        if (cur()->getPunct() == Token::PUNCT_LPAR) {
+            next();
+
+            P_REQ_NONTERM(EXPR);
+
+            P_REQ_PUNCT(RPAR);
+
+            P_OK();
+        }
+
+        bool isTypeCast = false;
+        // It's a single-lexem nonterminal, so we don't need to back up the position
+        P_TRY(parse_TYPESPEC(), isTypeCast = true, );
+
+        if (isTypeCast) {
+            P_REQ_PUNCT(COLON);
+            P_REQ_NONTERM(UNARY_EXPR);
+
+            P_OK();
+        }
+
+        if (cur()->isNum()) {
+            next();
+
+            P_OK();
+        }
+
+        unsigned saved = backup();
+        bool isFuncCall = false;
+        P_TRY(parse_FUNC_CALL(), isFuncCall = true, restore(saved));
+
+        if (isFuncCall) {
+            // For future handling
+
+            P_OK();
+        }
+
+        P_REQ_NONTERM(VAR);
+
+        P_OK();
+    }
+
+    Parser::Error_e Parser::parse_VAR() {
+        if (cur()->isName()) {
+            next();
+            P_OK();
+        }
+
+        P_BAD();
+    }
+
+    Parser::Error_e Parser::parse_VARDECL() {
+        P_REQ_KWD(VAR);
+
+        P_REQ_NONTERM(TYPESPEC);
+
+        P_REQ_PUNCT(COLON);
+
+        P_REQ_NONTERM(VAR);
+
+        P_OK();
+    }
+
+    Parser::Error_e Parser::parse_FUNC() {
+        if (cur()->isName()) {
+            next();
+            P_OK();
+        }
+
+        P_BAD();
+    }
+
+    Parser::Error_e Parser::parse_FUNC_CALL() {
+        P_REQ_NONTERM(FUNC);
+
+        P_REQ_PUNCT(LPAR);
+
+        P_REQ_NONTERM(FUNC_ARGS);
+
+        P_REQ_PUNCT(RPAR);
+
+        P_OK();
+    }
+
+    Parser::Error_e Parser::parse_FUNC_ARGS() {
+        bool repeat = true;
+
+        while (repeat) {
+            P_REQ_NONTERM(AND_EXPR);
+
+            repeat = next()->getPunct() == Token::PUNCT_COMMA;
+        }
+        prev();
+
+        P_OK();
+    }
 
     #undef P_TRY
     #undef P_OK

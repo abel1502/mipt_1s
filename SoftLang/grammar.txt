@@ -20,7 +20,7 @@ MAIN 			::= FUNC_DEFS ENDMARKER
 
 FUNC_DEFS		::= FUNC_DEF*
 
-FUNC_DEF 		::= 'def' TYPESPEC ':' NAME '(' FUNC_ARGS_DEF ')' COMPOUND_STMT
+FUNC_DEF 		::= 'def' TYPESPEC ':' FUNC '(' FUNC_ARGS_DEF ')' COMPOUND_STMT
 
 // TODO: Maybe remove the comma
 FUNC_ARGS_DEF	::= LIST<FUNC_ARG_DEF, ','>?
@@ -82,8 +82,8 @@ VAR				::= NAME
 
 VARDECL			::= 'var' TYPESPEC ':' VAR
 
-FUNC_CALL		::= NAME '(' FUNC_ARGS ')'
+FUNC			::= NAME
 
-FUNC_ARGS		::= LIST<FUNC_ARG, ','>? 
+FUNC_CALL		::= FUNC '(' FUNC_ARGS ')'
 
-FUNC_ARG		::= EXPR
+FUNC_ARGS		::= LIST<EXPR, ','>?

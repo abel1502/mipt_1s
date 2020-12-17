@@ -86,11 +86,11 @@ namespace SoftLang {
 
         Error_e parse_VARDECL();
 
+        Error_e parse_FUNC();
+
         Error_e parse_FUNC_CALL();
 
         Error_e parse_FUNC_ARGS();
-
-        Error_e parse_FUNC_ARG();
 
     private:
         Lexer lexer;

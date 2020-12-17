@@ -8,7 +8,7 @@
 1608192203 d:\workspace\.mipt\s1\softlang\\include\\general.h
 	<new>
 
-1608194615 source:d:\workspace\.mipt\s1\softlang\source\main.cpp
+1608196068 source:d:\workspace\.mipt\s1\softlang\source\main.cpp
 	<cstdio>
 	<cstdlib>
 	<cassert>
@@ -47,13 +47,13 @@
 	"tokens.dsl.h"
 	"tokens.dsl.h"
 
-1608111971 d:\workspace\.mipt\s1\softlang\\dsl\\tokens.dsl.h
+1608197890 d:\workspace\.mipt\s1\softlang\\dsl\\tokens.dsl.h
 
-1608194600 source:d:\workspace\.mipt\s1\softlang\source\parser.cpp
+1608199631 source:d:\workspace\.mipt\s1\softlang\source\parser.cpp
 	"parser.h"
 	<cassert>
 
-1608191640 d:\workspace\.mipt\s1\softlang\\include\\parser.h
+1608198713 d:\workspace\.mipt\s1\softlang\\include\\parser.h
 	"general.h"
 	"filebuf.h"
 	"lexer.h"
