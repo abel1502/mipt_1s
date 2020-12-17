@@ -4,9 +4,21 @@
 #include "general.h"
 #include "filebuf.h"
 #include "lexer.h"
+#include "ast.h"
 
 
 namespace SoftLang {
+
+    class TypeSpec;
+    class Var;
+    class Scope;
+    class BinaryExpr;
+    class UnaryExpr;
+    class Expression;
+    class Statement;
+    class Code;
+    class Function;
+    class Program;
 
     class Parser {
     public:
@@ -38,62 +50,65 @@ namespace SoftLang {
 
         inline void restore(unsigned saved);
 
-        Error_e parse();
-
-        Error_e parse_FUNC_DEFS();
-
-        Error_e parse_FUNC_DEF();
-
-        Error_e parse_FUNC_ARGS_DEF();
-
-        Error_e parse_FUNC_ARG_DEF();
-
-        Error_e parse_TYPESPEC();
-
-        Error_e parse_STMTS();
-
-        Error_e parse_STMT();
-
-        Error_e parse_COMPOUND_STMT();
-
-        Error_e parse_RETURN_STMT();
-
-        Error_e parse_LOOP_STMT();
-
-        Error_e parse_COND_STMT();
-
-        Error_e parse_VARDECL_STMT();
-
-        Error_e parse_EXPR_STMT();
-
-        Error_e parse_EXPR();
-
-        Error_e parse_ASGN_EXPR();
-
-        Error_e parse_OR_EXPR();
-
-        Error_e parse_AND_EXPR();
-
-        Error_e parse_CMP_EXPR();
-
-        Error_e parse_ADD_EXPR();
-
-        Error_e parse_MUL_EXPR();
-
-        Error_e parse_UNARY_EXPR();
-
-        Error_e parse_VAR();
-
-        Error_e parse_VARDECL();
-
-        Error_e parse_FUNC();
-
-        Error_e parse_FUNC_CALL();
-
-        Error_e parse_FUNC_ARGS();
+        Error_e parse(Program *prog);
 
     private:
+
         Lexer lexer;
+
+        Error_e parse_FUNC_DEFS(Program *prog);
+
+        Error_e parse_FUNC_DEF(Program *prog);
+
+        Error_e parse_FUNC_ARGS_DEF(Function *func);
+
+        Error_e parse_FUNC_ARG_DEF(Var *arg);
+
+        Error_e parse_TYPESPEC(TypeSpec *ts);
+
+        Error_e parse_STMTS(Code *code);
+
+        Error_e parse_STMT(Statement *stmt);
+
+        Error_e parse_COMPOUND_STMT(Code *code);
+
+        Error_e parse_COMPOUND_STMT(Statement *stmt);
+
+        Error_e parse_RETURN_STMT(Statement *stmt);
+
+        Error_e parse_LOOP_STMT(Statement *stmt);
+
+        Error_e parse_COND_STMT(Statement *stmt);
+
+        Error_e parse_VARDECL_STMT(Statement *stmt);
+
+        Error_e parse_EXPR_STMT(Statement *stmt);
+
+        Error_e parse_EXPR(Expr *expr);
+
+        Error_e parse_ASGN_EXPR(Expr *expr);
+
+        /*Error_e parse_OR_EXPR(Expr *expr);
+
+        Error_e parse_AND_EXPR(Expr *expr);*/
+
+        Error_e parse_CMP_EXPR(Expr *expr);
+
+        Error_e parse_ADD_EXPR(Expr *expr);
+
+        Error_e parse_MUL_EXPR(Expr *expr);
+
+        Error_e parse_UNARY_EXPR(Expr *expr);
+
+        Error_e parse_VAR(const Token **name);
+
+        Error_e parse_VARDECL(Var *var);
+
+        Error_e parse_FUNC(const Token **name);
+
+        Error_e parse_FUNC_CALL(Expr *expr);
+
+        Error_e parse_FUNC_ARGS(Expr *expr);
 
     };
 

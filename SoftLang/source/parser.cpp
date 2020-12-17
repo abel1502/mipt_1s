@@ -64,6 +64,13 @@ namespace SoftLang {
         }                                   \
     }
 
+    // TODO: Maybe goto error_sys?
+    #define P_TRYSYS(STMT) {                \
+        if (STMT) {                         \
+            return ERR_PARSER_SYS;          \
+        }                                   \
+    }
+
     #define P_OK() \
         return ERR_PARSER_OK;
 
@@ -72,95 +79,147 @@ namespace SoftLang {
 
     #define P_REQ_KWD(KWD)                                                                              \
         if (cur()->getKwd() != Token::KWD_##KWD) { /* Will automatically account for non-kwd tokens */  \
-            P_BAD();                                                                                    \
+            goto error;                                                                                 \
         }                                                                                               \
         next();
 
     #define P_REQ_PUNCT(PUNCT)                                      \
         if (cur()->getPunct() != Token::PUNCT_##PUNCT) { /* Same */ \
-            P_BAD();                                                \
+            goto error;                                             \
         }                                                           \
         next();
 
     #define P_REQ_NONTERM(NONTERM, ...) \
-        P_TRY(parse_##NONTERM(__VA_ARGS__), , P_BAD())
+        P_TRY(parse_##NONTERM(__VA_ARGS__), , goto error)
 
-    Parser::Error_e Parser::parse() {
-        if (lexer.parse()) {
-            return ERR_PARSER_SYS;
-        }
+    Parser::Error_e Parser::parse(Program *prog) {
+        assert(prog);
+
+        P_TRYSYS(lexer.parse());
 
         if (lexer.getError()) {
             return ERR_PARSER_LEX;
         }
 
-        if (!lexer.getEnd()) {
-            return ERR_PARSER_SYS;
-        }
+        P_TRYSYS(!lexer.getEnd());
 
-        P_REQ_NONTERM(FUNC_DEFS);
+        P_REQ_NONTERM(FUNC_DEFS(prog));
 
-        if (!cur()->isEnd()) {
-            P_BAD();
-        }
+        if (!cur()->isEnd())
+            goto error;
 
         P_OK();
+
+    error:
+        prog->dtor();  // Most of the things are cleaned up here (in a recursive destructor), so
+                       // functionwise error's should only care about destroying the objects they
+        P_BAD();       // had created within their respective functions
     }
 
-    Parser::Error_e Parser::parse_FUNC_DEFS() {
+    Parser::Error_e Parser::parse_FUNC_DEFS(Program *prog) {
+        bool repeat = true;
+
+        P_TRYSYS(prog->ctor());
+
         while (true) {
-            P_TRY(parse_FUNC_DEF(), , P_OK());
+            P_TRY(parse_FUNC_DEF(prog), , repeat = false);
         }
-    }
-
-    Parser::Error_e Parser::parse_FUNC_DEF() {
-        P_REQ_KWD(DEF);
-        P_REQ_NONTERM(TYPESPEC);
-        P_REQ_PUNCT(COLON);
-        P_REQ_NONTERM(FUNC);
-        P_REQ_PUNCT(LPAR);
-        P_REQ_NONTERM(FUNC_ARGS_DEF);
-        P_REQ_PUNCT(RPAR);
-        P_REQ_NONTERM(COMPOUND_STMT);
 
         P_OK();
     }
 
-    Parser::Error_e Parser::parse_FUNC_ARGS_DEF() {
-        P_TRY(parse_FUNC_ARG_DEF(), , P_OK());
+    Parser::Error_e Parser::parse_FUNC_DEF(Program *prog) {
+        Function *func = nullptr;
+        TypeSpec ts{};
+        const Token *name = nullptr;
+        Code *code = nullptr;
+
+        P_TRYSYS(prog->makeFunction(&func));
+
+        P_REQ_KWD(DEF);
+
+        P_TRY(parse_TYPESPEC(&ts),
+              P_REQ_PUNCT(COLON),
+              ts.dtor(); ts.ctor(TypeSpec::T_VOID));
+
+        P_REQ_NONTERM(FUNC, &name);
+        P_REQ_PUNCT(LPAR);
+
+        func->ctor(ts, name);
+
+        P_REQ_NONTERM(FUNC_ARGS_DEF, func);
+        P_REQ_PUNCT(RPAR);
+
+        P_TRYSYS(func->makeCode(&code));
+
+        P_REQ_NONTERM(COMPOUND_STMT, code);
+        P_OK();
+
+    error:
+        ts.dtor();
+
+        P_BAD();
+    }
+
+    Parser::Error_e Parser::parse_FUNC_ARGS_DEF(Function *func) {
+        Var *arg = nullptr;
+
+        P_TRYSYS(func->makeArg(&arg));
+        P_TRY(parse_FUNC_ARG_DEF(arg), , P_OK());
 
         while (cur()->getPunct() == Token::PUNCT_COMMA) {
             next();
 
-            P_REQ_NONTERM(FUNC_ARG_DEF);
+            P_TRYSYS(func->makeArg(&arg));
+            P_REQ_NONTERM(FUNC_ARG_DEF, arg);
         }
 
         P_OK();
+
+    error:
+        P_BAD();
     }
 
-    Parser::Error_e Parser::parse_FUNC_ARG_DEF() {
-        P_REQ_NONTERM(TYPESPEC);
+    Parser::Error_e Parser::parse_FUNC_ARG_DEF(Var *arg) {
+        TypeSpec ts{};
+
+        P_REQ_NONTERM(TYPESPEC, &ts);
         P_REQ_PUNCT(COLON);
 
         if (!cur()->isName()) {
-            P_BAD();
+            goto error;
         }
-        next();
+
+        P_TRYSYS(arg->ctor(ts, next()));
 
         P_OK();
+
+    error:
+        ts.dtor();
+
+        P_BAD();
     }
 
-    Parser::Error_e Parser::parse_TYPESPEC() {
+    Parser::Error_e Parser::parse_TYPESPEC(TypeSpec *ts) {
         #pragma GCC diagnostic push
         #pragma GCC diagnostic ignored "-Wswitch-enum"
 
         switch (next()->getKwd()) {
         case Token::KWD_DBL:
+            ts->ctor(TypeSpec::T_DBL);
+
             P_OK();
+
         case Token::KWD_INT4:
+            ts->ctor(TypeSpec::T_INT4);
+
             P_OK();
+
         case Token::KWD_INT8:
+            ts->ctor(TypeSpec::T_INT8);
+
             P_OK();
+
         default:
             prev();
             P_BAD();
@@ -169,131 +228,251 @@ namespace SoftLang {
         #pragma GCC diagnostic pop
     }
 
-    Parser::Error_e Parser::parse_STMTS() {
+    Parser::Error_e Parser::parse_STMTS(Code *code) {
+        P_TRYSYS(code->ctor());
+
         while (true) {
-            P_TRY(parse_STMT(), , P_OK());
+            Statement *stmt = nullptr;
+            P_TRYSYS(code->makeStatement(&stmt));
+
+            P_TRY(parse_STMT(stmt), , P_OK());
+
+            /*if (stmt->isEmpty()) {  // TODO: ?
+                code->popStatement();
+            }*/
         }
     }
 
-    Parser::Error_e Parser::parse_STMT() {
+    Parser::Error_e Parser::parse_STMT(Statement *stmt) {
         unsigned saved = backup();
 
-        P_TRY(parse_COMPOUND_STMT(),  P_OK(), restore(saved));
-        P_TRY(parse_RETURN_STMT(),    P_OK(), restore(saved));
-        P_TRY(parse_LOOP_STMT(),      P_OK(), restore(saved));
-        P_TRY(parse_COND_STMT(),      P_OK(), restore(saved));
-        P_TRY(parse_VARDECL_STMT(),   P_OK(), restore(saved));
-        P_TRY(parse_EXPR_STMT(),      P_OK(), restore(saved));
+        P_TRY(parse_COMPOUND_STMT(stmt),  P_OK(), restore(saved));
+        P_TRY(parse_RETURN_STMT(stmt),    P_OK(), restore(saved));
+        P_TRY(parse_LOOP_STMT(stmt),      P_OK(), restore(saved));
+        P_TRY(parse_COND_STMT(stmt),      P_OK(), restore(saved));
+        P_TRY(parse_VARDECL_STMT(stmt),   P_OK(), restore(saved));
+        P_TRY(parse_EXPR_STMT(stmt),      P_OK(), restore(saved));
 
         P_REQ_PUNCT(SEMI);
+        P_TRYSYS(stmt->ctorEmpty());
 
         P_OK();
+
+    error:
+        P_BAD();
     }
 
-    Parser::Error_e Parser::parse_COMPOUND_STMT() {
+    Parser::Error_e Parser::parse_COMPOUND_STMT(Code *code) {
         P_REQ_PUNCT(LBRACE);
 
-        P_REQ_NONTERM(STMTS);
+        P_REQ_NONTERM(STMTS, code);
 
         P_REQ_PUNCT(RBRACE);
 
         P_OK();
+
+    error:
+        P_BAD();
     }
 
-    Parser::Error_e Parser::parse_RETURN_STMT() {
+    Parser::Error_e Parser::parse_COMPOUND_STMT(Statement *stmt) {
+        Code *code = nullptr;
+
+        P_TRYSYS(stmt->ctorCompound());
+        P_TRYSYS(stmt->makeCode(&code));
+
+        P_REQ_NONTERM(COMPOUND_STMT, code);
+
+    error:
+        stmt->dtor();
+
+        P_BAD();
+    }
+
+    Parser::Error_e Parser::parse_RETURN_STMT(Statement *stmt) {
+        Expression *expr = nullptr;
+
+        P_TRYSYS(stmt->ctorReturn());
+        P_TRYSYS(stmt->makeExpr(&expr));
+
         P_REQ_KWD(RET);
 
         unsigned saved = backup();
-        P_TRY(parse_EXPR(), , restore(saved));
+        P_TRY(parse_EXPR(expr),
+              ,
+              restore(saved); expr->dtor(); expr->ctorVoid());
 
         P_REQ_PUNCT(SEMI);
 
         P_OK();
+
+    error:
+        stmt->dtor();
+
+        P_BAD();
     }
 
-    Parser::Error_e Parser::parse_LOOP_STMT() {
+    Parser::Error_e Parser::parse_LOOP_STMT(Statement *stmt) {
+        Code *code = nullptr;
+
+        P_TRYSYS(stmt->ctorLoop());
+        P_TRYSYS(stmt->makeCode(&code));
+
         P_REQ_KWD(WHILE);
 
         P_REQ_NONTERM(EXPR);
 
-        P_REQ_NONTERM(COMPOUND_STMT);
+        P_REQ_NONTERM(COMPOUND_STMT, code);
 
         P_OK();
+
+    error:
+        stmt->dtor();
+
+        P_BAD();
     }
 
-    Parser::Error_e Parser::parse_COND_STMT() {
+    Parser::Error_e Parser::parse_COND_STMT(Statement *stmt) {
+        Code *code    = nullptr;
+        Code *altCode = nullptr;
+
+        P_TRYSYS(stmt->ctorCond());
+        P_TRYSYS(stmt->makeCode(&code));
+        P_TRYSYS(stmt->makeAltCode(&altCode));
+
         P_REQ_KWD(IF);
 
         P_REQ_NONTERM(EXPR);
 
-        P_REQ_NONTERM(COMPOUND_STMT);
+        P_REQ_NONTERM(COMPOUND_STMT, code);
+
+        if (cur()->getKwd() == Token::KWD_ELSE) {
+            next();
+
+            P_REQ_NONTERM(COMPOUND_STMT, altCode);
+        } else {
+            altCode->ctor();
+        }
 
         P_OK();
+
+    error:
+        stmt->dtor();
+
+        P_BAD();
     }
 
-    Parser::Error_e Parser::parse_VARDECL_STMT() {
-        P_REQ_NONTERM(VARDECL);
+    Parser::Error_e Parser::parse_VARDECL_STMT(Statement *stmt) {
+        Var *var = nullptr;
+        Expression *expr = nullptr;  // TODO: Make sure that fields necessary for every virtual type of Stmt don't overlap
+
+        P_TRYSYS(stmt->ctorVardecl());
+        P_TRYSYS(stmt->makeVar(&var));
+        P_TRYSYS(stmt->makeExpr(&expr));
+
+        P_REQ_NONTERM(VARDECL, var);
 
         if (cur()->getPunct() == Token::PUNCT_EQ) {
             next();
 
-            P_REQ_NONTERM(EXPR);
+            P_REQ_NONTERM(EXPR, expr);
+        } else {
+            expr->ctorVoid();
         }
 
         P_REQ_PUNCT(SEMI);
 
         P_OK();
-    }
 
-    Parser::Error_e Parser::parse_EXPR_STMT() {
-        P_REQ_NONTERM(EXPR);
-
-        P_REQ_PUNCT(SEMI);
-
-        P_OK();
-    }
-
-    Parser::Error_e Parser::parse_EXPR() {
-        unsigned saved = backup();
-
-        P_TRY(parse_ASGN_EXPR(),  P_OK(), restore(saved));
-        P_TRY(parse_OR_EXPR(),    P_OK(), restore(saved));
+    error:
+        stmt->dtor();
 
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_ASGN_EXPR() {
-        P_REQ_NONTERM(VAR);
+    Parser::Error_e Parser::parse_EXPR_STMT(Statement *stmt) {
+        Expression *expr = nullptr;
+        P_TRYSYS(stmt->ctorExpr());
+        P_TRYSYS(stmt->makeExpr(&expr));
+
+        P_REQ_NONTERM(EXPR, expr);
+
+        P_REQ_PUNCT(SEMI);
+
+        P_OK();
+
+    error:
+        stmt->dtor();
+
+        P_BAD();
+    }
+
+    Parser::Error_e Parser::parse_EXPR(Expression *expr) {
+        unsigned saved = backup();
+
+        P_TRY(parse_ASGN_EXPR(expr),  P_OK(), restore(saved));
+        //P_TRY(parse_OR_EXPR(expr),    P_OK(), restore(saved));
+        P_TRY(parse_CMP_EXPR(expr),   P_OK(), restore(saved));
+
+        P_BAD();
+    }
+
+    Parser::Error_e Parser::parse_ASGN_EXPR(Expression *expr) {
+        Var *var = nullptr;
+        Expression *child = nullptr;
+        P_TRYSYS(expr->ctorAsgn());
+        P_TRYSYS(stmt->makeVar(&var));
+        P_TRYSYS(stmt->makeChild(&child));
+
+        P_REQ_NONTERM(VAR, var);
 
         #pragma GCC diagnostic push
         #pragma GCC diagnostic ignored "-Wswitch-enum"
 
         switch (next()->getPunct()) {
         case Token::PUNCT_EQ:
+            expr->setAsgnMode(Expression::AM_EQ);
             break;
+
         case Token::PUNCT_ADDEQ:
+            expr->setAsgnMode(Expression::AM_ADDEQ);
             break;
+
         case Token::PUNCT_SUBEQ:
+            expr->setAsgnMode(Expression::AM_SUBEQ);
             break;
+
         case Token::PUNCT_MULEQ:
+            expr->setAsgnMode(Expression::AM_MULEQ);
             break;
+
         case Token::PUNCT_DIVEQ:
+            expr->setAsgnMode(Expression::AM_DIVEQ);
             break;
+
         case Token::PUNCT_MODEQ:
+            expr->setAsgnMode(Expression::AM_MODEQ);
             break;
+
         default:
             prev();
-            P_BAD();
+
+            goto error;
         }
 
         #pragma GCC diagnostic pop
 
-        P_REQ_NONTERM(EXPR);
+        P_REQ_NONTERM(EXPR, child);
 
         P_OK();
+
+    error:
+        expr->dtor();
+
+        P_BAD();
     }
 
-    Parser::Error_e Parser::parse_OR_EXPR() {
+    /*Parser::Error_e Parser::parse_OR_EXPR() {
         bool repeat = true;
 
         while (repeat) {
@@ -317,98 +496,167 @@ namespace SoftLang {
         prev();
 
         P_OK();
-    }
+    }*/
 
-    Parser::Error_e Parser::parse_CMP_EXPR() {
+    Parser::Error_e Parser::parse_CMP_EXPR(Expression *expr) {
+        Expression *child = nullptr;
+
+        P_TRYSYS(expr->ctorPolyOp());
+
         bool repeat = true;
+        unsigned ind = 0;
 
         while (repeat) {
-            P_REQ_NONTERM(ADD_EXPR);
+            P_TRYSYS(expr->makeChild(&child));
+            P_REQ_NONTERM(ADD_EXPR, child);
 
             #pragma GCC diagnostic push
             #pragma GCC diagnostic ignored "-Wswitch-enum"
 
             switch (next()->getPunct()) {
             case Token::PUNCT_EQEQ:
+                expr->setOp(ind, Expression::OP_EQ);
                 break;
+
             case Token::PUNCT_NEQ:
+                expr->setOp(ind, Expression::OP_NEQ);
                 break;
+
             case Token::PUNCT_GEQ:
+                expr->setOp(ind, Expression::OP_GEQ);
                 break;
+
             case Token::PUNCT_LEQ:
+                expr->setOp(ind, Expression::OP_LEQ);
                 break;
+
             case Token::PUNCT_GT:
+                expr->setOp(ind, Expression::OP_GT);
                 break;
+
             case Token::PUNCT_LT:
+                expr->setOp(ind, Expression::OP_LT);
                 break;
+
             default:
                 repeat = false;
                 prev();
                 break;
             }
 
+            ind++;
+
             #pragma GCC diagnostic pop
         }
 
         P_OK();
+
+    error:
+        expr->dtor();
+
+        P_BAD();
     }
 
-    Parser::Error_e Parser::parse_ADD_EXPR() {
+    Parser::Error_e Parser::parse_ADD_EXPR(Expression *expr) {
+        Expression *child = nullptr;
+
+        P_TRYSYS(expr->ctorPolyOp());
+
         bool repeat = true;
+        unsigned ind = 0;
 
         while (repeat) {
-            P_REQ_NONTERM(MUL_EXPR);
+            P_TRYSYS(expr->makeChild(&child));
+            P_REQ_NONTERM(MUL_EXPR, child);
 
             #pragma GCC diagnostic push
             #pragma GCC diagnostic ignored "-Wswitch-enum"
 
             switch (next()->getPunct()) {
             case Token::PUNCT_ADD:
+                expr->setOp(ind, Expression::OP_ADD);
                 break;
+
             case Token::PUNCT_SUB:
+                expr->setOp(ind, Expression::OP_SUB);
                 break;
+
             default:
                 repeat = false;
                 prev();
                 break;
             }
 
+            ind++;
+
             #pragma GCC diagnostic pop
         }
 
         P_OK();
+
+    error:
+        expr->dtor();
+
+        P_BAD();
     }
 
-    Parser::Error_e Parser::parse_MUL_EXPR() {
+    Parser::Error_e Parser::parse_MUL_EXPR(Expression *expr) {
+        Expression *child = nullptr;
+
+        P_TRYSYS(expr->ctorPolyOp());
+
         bool repeat = true;
+        unsigned ind = 0;
 
         while (repeat) {
-            P_REQ_NONTERM(UNARY_EXPR);
+            P_TRYSYS(expr->makeChild(&child));
+            P_REQ_NONTERM(UNARY_EXPR, child);
 
             #pragma GCC diagnostic push
             #pragma GCC diagnostic ignored "-Wswitch-enum"
 
             switch (next()->getPunct()) {
             case Token::PUNCT_MUL:
+                expr->setOp(ind, Expression::OP_MUL);
                 break;
+
             case Token::PUNCT_DIV:
+                expr->setOp(ind, Expression::OP_DIV);
                 break;
+
             case Token::PUNCT_MOD:
+                expr->setOp(ind, Expression::OP_MOD);
                 break;
+
             default:
                 repeat = false;
                 prev();
                 break;
             }
 
+            ind++;
+
             #pragma GCC diagnostic pop
         }
 
         P_OK();
+
+    error:
+        expr->dtor();
+
+        P_BAD();
     }
 
-    Parser::Error_e Parser::parse_UNARY_EXPR() {
+    Parser::Error_e Parser::parse_UNARY_EXPR(Expression *expr) {  // TODO: Finish semantics
         if (cur()->getPunct() == Token::PUNCT_SUB) {
+            next();
+
+            P_REQ_NONTERM(UNARY_EXPR);
+
+            P_OK();
+        }
+
+        if (cur()->getPunct() == Token::PUNCT_ADD) {
             next();
 
             P_REQ_NONTERM(UNARY_EXPR);
@@ -456,6 +704,11 @@ namespace SoftLang {
         P_REQ_NONTERM(VAR);
 
         P_OK();
+
+    error:
+        expr->dtor();
+
+        P_BAD();
     }
 
     Parser::Error_e Parser::parse_VAR() {
@@ -504,7 +757,7 @@ namespace SoftLang {
         bool repeat = true;
 
         while (repeat) {
-            P_REQ_NONTERM(AND_EXPR);
+            P_REQ_NONTERM(EXPR);
 
             repeat = next()->getPunct() == Token::PUNCT_COMMA;
         }
@@ -514,6 +767,7 @@ namespace SoftLang {
     }
 
     #undef P_TRY
+    #undef P_TRYSYS
     #undef P_OK
     #undef P_BAD
     #undef P_REQ_KWD
