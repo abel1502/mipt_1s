@@ -42,7 +42,7 @@ namespace SoftLang {
             size = 0;
         }
 
-        bool set(const char *key, T value) {
+        bool set(const char *key, T &value) {
             Item *tmp = find(key);
 
             if (tmp) {
@@ -77,7 +77,7 @@ namespace SoftLang {
             return true;
         }
 
-        T get(const char *key, T defaultVal={}) {
+        const T &get(const char *key, T &defaultVal={}) {
             const Item *tmp = find(key);
 
             if (tmp)

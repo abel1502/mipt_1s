@@ -6,7 +6,6 @@
 #include "general.h"
 #include "parser.h"
 #include "filebuf.h"
-#include "dict.h"
 
 
 using namespace SoftLang;
@@ -54,6 +53,13 @@ int main(int argc, char **argv) {
         "        b -= 2;\n"
         "    }\n"
         "    a = (b + 7 - 1) / 2;\n"
+        "    \n"
+        "    if a > 10 {\n"
+        "        print_int8(int8:a);\n"
+        "    } else {\n"
+        "        print_dbl(dbl:a + 0xff.ff);\n"
+        "    }\n"
+        "    \n"
         "    ret a + b;"
         "}\n";
 
@@ -72,7 +78,9 @@ int main(int argc, char **argv) {
     Parser parser{};
     REQUIRE(!parser.ctor(&buf));
 
-    printf("%s\n", parser.parse() ? "Wrong syntax" : "Correct syntax");
+    Program prog;
+
+    printf("%s\n", parser.parse(&prog) ? "Wrong syntax" : "Correct syntax");
 
     parser.dtor();
 
