@@ -45,6 +45,46 @@ namespace SoftLang {
         lexer.restore(saved);
     }
 
+    #define P_TRY(STMT, ONSUCC, ONFAIL) {   \
+        switch (STMT) {                     \
+        case ERR_PARSER_OK:                 \
+            ONSUCC;                         \
+            break;                          \
+        case ERR_PARSER_SYS:                \
+            return ERR_PARSER_SYS;          \
+        case ERR_PARSER_LEX:                \
+            assert(false);                  \
+            return ERR_PARSER_LEX;          \
+        case ERR_PARSER_SYNTAX:             \
+            ONFAIL;                         \
+            break;                          \
+        default:                            \
+            assert(false);                  \
+            break;                          \
+        }                                   \
+    }
+
+    #define P_OK() \
+        return ERR_PARSER_OK;
+
+    #define P_BAD() \
+        return ERR_PARSER_SYNTAX;
+
+    #define P_REQ_KWD(KWD)                                                                              \
+        if (cur()->getKwd() != Token::KWD_##KWD) { /* Will automatically account for non-kwd tokens */  \
+            P_BAD();                                                                                    \
+        }                                                                                               \
+        next();
+
+    #define P_REQ_PUNCT(PUNCT)                                      \
+        if (cur()->getPunct() != Token::PUNCT_##PUNCT) { /* Same */ \
+            P_BAD();                                                \
+        }                                                           \
+        next();
+
+    #define P_REQ_NONTERM(NONTERM, ...) \
+        P_TRY(parse_##NONTERM(__VA_ARGS__), , P_BAD())
+
     Parser::Error_e Parser::parse() {
         if (lexer.parse()) {
             return ERR_PARSER_SYS;
@@ -116,5 +156,12 @@ namespace SoftLang {
     Parser::Error_e Parser::parse_FUNC_ARGS();
 
     Parser::Error_e Parser::parse_FUNC_ARG();
+
+    #undef P_TRY
+    #undef P_OK
+    #undef P_BAD
+    #undef P_REQ_KWD
+    #undef P_REQ_PUNCT
+    #undef P_REQ_NONTERM
 
 }
