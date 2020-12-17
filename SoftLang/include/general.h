@@ -35,8 +35,8 @@
 // TODO: Maybe implement a traceback stack and error messages?
 
 
-#define TMPVARNAME$_HELPER1(A, B)    A ## B
-#define TMPVARNAME  TMPVARNAME$_HELPER1(tmp_, __LINE__)
+#define TMPVARNAME$_HELPER(A, B)    A ## B
+#define TMPVARNAME  TMPVARNAME$_HELPER(tmp_, __LINE__)
 
 // The TRY macro is intended for use to forward any error (i.e. non-zero) return code
 // from an expression out of the context function. Useful for work with ctor's in the
