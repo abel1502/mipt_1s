@@ -20,7 +20,7 @@ MAIN 			::= FUNC_DEFS ENDMARKER
 
 FUNC_DEFS		::= FUNC_DEF*
 
-FUNC_DEF 		::= 'def' TYPESPEC ':' FUNC '(' FUNC_ARGS_DEF ')' COMPOUND_STMT
+FUNC_DEF 		::= 'def' [TYPESPEC ':'] FUNC '(' FUNC_ARGS_DEF ')' COMPOUND_STMT
 
 // TODO: Maybe remove the comma
 FUNC_ARGS_DEF	::= LIST<FUNC_ARG_DEF, ','>?
@@ -47,21 +47,24 @@ RETURN_STMT		::= 'ret' EXPR? ';'
 // TODO: Parentheses, maybe?
 LOOP_STMT		::= 'while' EXPR COMPOUND_STMT
 
-COND_STMT		::= 'if' EXPR COMPOUND_STMT
+COND_STMT		::= 'if' EXPR COMPOUND_STMT {'else' COMPOUND_STMT}?
 
 VARDECL_STMT	::= VARDECL {'=' EXPR}? ';'
 
 EXPR_STMT		::= EXPR ';'
 
-EXPR			::= ASGN_EXPR | OR_EXPR
+EXPR			::= ASGN_EXPR | /*OR_EXPR*/ CMP_EXPR
 
 ASGN_EXPR		::= VAR ['=' '+=' '-=' '*=' '/=' '%='] EXPR
 
+/*
 OR_EXPR			::= LIST<AND_EXPR, '||'>
 
 AND_EXPR		::= LIST<CMP_EXPR, '&&'>
+*/
 
 // TODO: Handling this would be weird, maybe should change it
+//    - screw it, we don't have time, we'll just make it the unpleasant way
 CMP_EXPR		::= LIST<ADD_EXPR, ['==' '!=' '>=' '<=' '>' '<']>
 
 ADD_EXPR		::= LIST<MUL_EXPR, ['+' '-']>
@@ -71,11 +74,12 @@ MUL_EXPR		::= LIST<UNARY_EXPR, ['*' '/' '%']>
 // TODO: Just had an idea that I should maintain a bitmask of allowed expected types throughout the tree traversal.
 //       Then nested functions may filter the mask, and whenever it gets empty, you know you're dealing with incompatible types.
 
-UNARY_EXPR		::= '-' UNARY_EXPR |
-					'(' EXPR ')' |
+UNARY_EXPR		::= '-' UNARY_EXPR 			|
+					'+' UNARY_EXPR 			|
+					'(' EXPR ')' 			|
 					TYPESPEC ':' UNARY_EXPR |
-					NUM |
-					FUNC_CALL |
+					NUM 					|
+					FUNC_CALL 				|
 					VAR
 
 VAR				::= NAME
