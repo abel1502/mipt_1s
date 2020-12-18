@@ -152,7 +152,7 @@ namespace SoftLang {
 
         P_TRYSYS(func->makeCode(&code));
 
-        P_REQ_NONTERM(COMPOUND_STMT, code);
+        P_REQ_NONTERM(COMPOUND_STMT, code, nullptr);
 
         P_TRYSYS(func->registerArgs());
 
@@ -236,21 +236,21 @@ namespace SoftLang {
             Statement *stmt = nullptr;
             P_TRYSYS(code->makeStatement(&stmt));
 
-            P_TRY(parse_STMT(stmt), , P_OK());
+            P_TRY(parse_STMT(stmt, code->getScope()), , P_OK());
 
             code->simplifyLastEmpty();
         }
     }
 
-    Parser::Error_e Parser::parse_STMT(Statement *stmt) {
+    Parser::Error_e Parser::parse_STMT(Statement *stmt, const Scope *parentScope) {
         unsigned saved = backup();
 
-        P_TRY(parse_COMPOUND_STMT(stmt),  P_OK(), restore(saved); stmt->dtor());
-        P_TRY(parse_RETURN_STMT(stmt),    P_OK(), restore(saved); stmt->dtor());
-        P_TRY(parse_LOOP_STMT(stmt),      P_OK(), restore(saved); stmt->dtor());
-        P_TRY(parse_COND_STMT(stmt),      P_OK(), restore(saved); stmt->dtor());
-        P_TRY(parse_VARDECL_STMT(stmt),   P_OK(), restore(saved); stmt->dtor());
-        P_TRY(parse_EXPR_STMT(stmt),      P_OK(), restore(saved); stmt->dtor());
+        P_TRY(parse_COMPOUND_STMT(stmt, parentScope),  P_OK(), restore(saved); stmt->dtor());
+        P_TRY(parse_RETURN_STMT  (stmt),               P_OK(), restore(saved); stmt->dtor());
+        P_TRY(parse_LOOP_STMT    (stmt, parentScope),  P_OK(), restore(saved); stmt->dtor());
+        P_TRY(parse_COND_STMT    (stmt, parentScope),  P_OK(), restore(saved); stmt->dtor());
+        P_TRY(parse_VARDECL_STMT (stmt),               P_OK(), restore(saved); stmt->dtor());
+        P_TRY(parse_EXPR_STMT    (stmt),               P_OK(), restore(saved); stmt->dtor());
 
         P_REQ_PUNCT(SEMI);
 
@@ -263,10 +263,12 @@ namespace SoftLang {
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_COMPOUND_STMT(Code *code) {
+    Parser::Error_e Parser::parse_COMPOUND_STMT(Code *code, const Scope *parentScope) {
         P_REQ_PUNCT(LBRACE);
 
         P_REQ_NONTERM(STMTS, code);
+
+        code->getScope()->setParent(parentScope);
 
         P_REQ_PUNCT(RBRACE);
 
@@ -276,13 +278,13 @@ namespace SoftLang {
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_COMPOUND_STMT(Statement *stmt) {
+    Parser::Error_e Parser::parse_COMPOUND_STMT(Statement *stmt, const Scope *parentScope) {
         Code *code = nullptr;
 
         P_TRYSYS(stmt->ctorCompound());
         P_TRYSYS(stmt->makeCode(&code));
 
-        P_REQ_NONTERM(COMPOUND_STMT, code);
+        P_REQ_NONTERM(COMPOUND_STMT, code, parentScope);
 
     error:
         P_BAD();
@@ -312,7 +314,7 @@ namespace SoftLang {
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_LOOP_STMT(Statement *stmt) {
+    Parser::Error_e Parser::parse_LOOP_STMT(Statement *stmt, const Scope *parentScope) {
         Expression *cond = nullptr;
         Code       *code = nullptr;
 
@@ -324,7 +326,7 @@ namespace SoftLang {
 
         P_REQ_NONTERM(EXPR, cond);
 
-        P_REQ_NONTERM(COMPOUND_STMT, code);
+        P_REQ_NONTERM(COMPOUND_STMT, code, parentScope);
 
         P_OK();
 
@@ -332,7 +334,7 @@ namespace SoftLang {
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_COND_STMT(Statement *stmt) {
+    Parser::Error_e Parser::parse_COND_STMT(Statement *stmt, const Scope *parentScope) {
         Expression *cond    = nullptr;
         Code       *code    = nullptr;
         Code       *altCode = nullptr;
@@ -346,12 +348,12 @@ namespace SoftLang {
 
         P_REQ_NONTERM(EXPR, cond);
 
-        P_REQ_NONTERM(COMPOUND_STMT, code);
+        P_REQ_NONTERM(COMPOUND_STMT, code, parentScope);
 
         if (cur()->getKwd() == Token::KWD_ELSE) {
             next();
 
-            P_REQ_NONTERM(COMPOUND_STMT, altCode);
+            P_REQ_NONTERM(COMPOUND_STMT, altCode, parentScope);
         } else {
             altCode->ctor();
         }
@@ -364,7 +366,7 @@ namespace SoftLang {
 
     Parser::Error_e Parser::parse_VARDECL_STMT(Statement *stmt) {
         Var *var = nullptr;
-        Expression *expr = nullptr;  // TODO: Make sure that fields necessary for every virtual type of Stmt don't overlap
+        Expression *expr = nullptr;
 
         P_TRYSYS(stmt->ctorVarDecl());
         P_TRYSYS(stmt->makeVar(&var));

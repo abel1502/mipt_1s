@@ -70,15 +70,15 @@ namespace SoftLang {
 
         Error_e parse_STMT(Statement *stmt);
 
-        Error_e parse_COMPOUND_STMT(Code *code);
+        Error_e parse_COMPOUND_STMT(Code *code, const Scope *parentScope);
 
-        Error_e parse_COMPOUND_STMT(Statement *stmt);
+        Error_e parse_COMPOUND_STMT(Statement *stmt, const Scope *parentScope);
 
         Error_e parse_RETURN_STMT(Statement *stmt);
 
-        Error_e parse_LOOP_STMT(Statement *stmt);
+        Error_e parse_LOOP_STMT(Statement *stmt, const Scope *parentScope);
 
-        Error_e parse_COND_STMT(Statement *stmt);
+        Error_e parse_COND_STMT(Statement *stmt, const Scope *parentScope);
 
         Error_e parse_VARDECL_STMT(Statement *stmt);
 
