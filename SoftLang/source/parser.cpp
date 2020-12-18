@@ -426,7 +426,7 @@ namespace SoftLang {
         Expression *var = nullptr;
         Expression *child = nullptr;
         P_TRYSYS(expr->ctorAsgn());
-        P_TRYSYS(expr->makeVar(&var));
+        P_TRYSYS(expr->makeChild(&var));
         P_TRYSYS(expr->makeChild(&child));
 
         P_REQ_NONTERM(VAR_EXPR, var);
@@ -724,7 +724,7 @@ namespace SoftLang {
 
         P_REQ_NONTERM(VAR, &name);
 
-        P_TRYSYS(expr->ctorVar(name));
+        P_TRYSYS(expr->ctorVarRef(name));
 
         P_OK();
 
