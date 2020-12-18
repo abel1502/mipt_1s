@@ -131,6 +131,12 @@ namespace SoftLang {
 
     class Lexer {
     public:
+        static inline const char LINE_COMMENT_START[] = "//";
+        static inline const char BLOCK_COMMENT_START[] = "/*";
+        static inline const char BLOCK_COMMENT_END[] = "*/";
+
+        static_assert(sizeof(LINE_COMMENT_START) == 3);
+
         FACTORIES(Lexer)
 
         bool ctor();
@@ -181,6 +187,8 @@ namespace SoftLang {
         static bool parseIdentifier(Token *dest, FileBufIterator *iter);
 
         static bool parsePunct(Token *dest, FileBufIterator *iter);
+
+        static void skipSpace(FileBufIterator *iter);
 
         static int recognizeDigit(char c);
 

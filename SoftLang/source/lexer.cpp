@@ -398,7 +398,7 @@ namespace SoftLang {
         assert(dest);
         assert(iter);
 
-        iter->skipSpace();
+        skipSpace(iter);
 
         char tmp = iter->cur();
 
@@ -595,6 +595,47 @@ namespace SoftLang {
         TRY_B(dest->ctorPunct(punct));
 
         return false;
+    }
+
+    void Lexer::skipSpace(FileBufIterator *iter) {
+        bool repeat = true;
+
+        while (repeat) {
+            repeat = false;
+
+            if (isspace(iter->cur())) {
+                iter->skipSpace();
+                repeat = true;
+            }
+
+            if (strncmp(iter->getPtr(), LINE_COMMENT_START, sizeof(LINE_COMMENT_START)) == 0) {
+                for (unsigned i = 0; i < sizeof(LINE_COMMENT_START); ++i)
+                    iter->next();
+
+                char tmp = iter->next();
+                while (tmp != '\0' && tmp != '\n' && tmp != '\r')
+                    tmp = iter->next();
+                iter->prev();
+
+                repeat = true;
+            }
+
+            if (strncmp(iter->getPtr(), BLOCK_COMMENT_START, sizeof(BLOCK_COMMENT_START)) == 0) {
+                for (unsigned i = 0; i < sizeof(BLOCK_COMMENT_START); ++i)
+                    iter->next();
+
+                while (iter->cur() != 0 && strncmp(iter->getPtr(), BLOCK_COMMENT_END, sizeof(BLOCK_COMMENT_END)) != 0)
+                    iter->next();
+
+                for (unsigned i = 0; i < sizeof(BLOCK_COMMENT_END); ++i)
+                    iter->next();
+
+                repeat = true;
+            }
+
+            if (iter->cur() == '\0')
+                repeat = false;
+        }
     }
 
     int Lexer::recognizeDigit(char c) {
