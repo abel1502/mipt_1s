@@ -19,6 +19,52 @@ namespace SoftLang {
         type = TypeSpec::T_VOID;
     }
 
+    bool TypeSpec::compile(FILE *ofile) {
+        switch (type) {
+        case TypeSpec::T_DBL:
+            fprintf(ofile, "df:");
+            break;
+
+        case TypeSpec::T_INT4:
+            fprintf(ofile, "dwl:");
+            break;
+
+        case TypeSpec::T_INT8:
+            fprintf(ofile, "qwl:");
+            break;
+
+        case TypeSpec::T_VOID:
+            ERR("Void is not a valid type");
+            // FALLTHROUGH
+        default:
+            return true;
+        }
+
+        return false;
+    }
+
+    uint32_t TypeSpec::getSize() const {
+        switch (type) {
+        case TypeSpec::T_DBL:
+            return 8;
+
+        case TypeSpec::T_INT4:
+            return 4;
+
+        case TypeSpec::T_INT8:
+            return 8;
+
+        case TypeSpec::T_VOID:
+            return 0;  // TODO: Fail?
+
+        default:
+            break;
+        }
+
+        assert(false);
+        return -1;
+    }
+
     bool Var::ctor() {
         ts = {};
         name = nullptr;
@@ -38,15 +84,40 @@ namespace SoftLang {
         name = {};
     }
 
+    bool Var::compile(const Scope *scope, FILE *ofile) {
+        if (!scope->hasVar(this)) {
+            ERR("Unknown variable \"%.*s\"", name->getLength(), name->getStr());
+
+            return true;
+        }
+
+        uint32_t offset = scope->getOffset(this);
+
+        TRY_B(ts.compile(ofile));
+        fprintf(ofile, "[rzx+%u]", offset);
+
+        return false;
+    }
+
+    const TypeSpec Var::getType() const {
+        return ts;
+    }
+
+    const Token *Var::getName() const {
+        return name;
+    }
+
     bool Scope::ctor() {
         TRY_B(vars.ctor());
         prog = nullptr;
+        curOffset = 0;
 
         return false;
     }
 
     bool Scope::ctor(const Program *new_prog) {
-        TRY_B(vars.ctor());
+        TRY_B(ctor());
+
         prog = new_prog;
 
         return false;
@@ -55,6 +126,33 @@ namespace SoftLang {
     void Scope::dtor() {
         vars.dtor();
         prog = nullptr;
+    }
+
+    uint32_t Scope::getOffset(const Var *var) const {
+        if (!hasVar(var))
+            return -1;
+
+        return vars.get(var->getName());
+    }
+
+    bool Scope::hasVar(const Var *var) const {
+        return vars.contains(var->getName());
+    }
+
+    bool Scope::addVar(const Var *var) {
+        if (hasVar(var)) {
+            ERR("Redeclaration of variable \"%.*s\"", var->getName()->getLength(), var->getName()->getStr());
+
+            return true;
+        }
+
+        uint32_t offset = curOffset;
+
+        curOffset += var->getType().getSize();
+
+        TRY_B(vars.set(var->getName(), offset));
+
+        return false;
     }
 
     bool Expression::ctor() {
@@ -216,6 +314,7 @@ namespace SoftLang {
     #define DEF_TYPE(NAME) \
         VTYPE_DEF(NAME, Expression) = { \
             Expression::VMIN(NAME, dtor), \
+            Expression::VMIN(NAME, compile), \
         }
     #include "exprtypes.dsl.h"
     #undef DEF_TYPE
@@ -376,6 +475,7 @@ namespace SoftLang {
     #define DEF_TYPE(NAME) \
         VTYPE_DEF(NAME, Statement) = { \
             Statement::VMIN(NAME, dtor), \
+            Statement::VMIN(NAME, compile), \
         };
     #include "stmttypes.dsl.h"
     #undef DEF_TYPE

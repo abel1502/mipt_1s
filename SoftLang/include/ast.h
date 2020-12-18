@@ -31,11 +31,17 @@ namespace SoftLang {
 
         void dtor();
 
+        bool compile(FILE *ofile);
+
+        uint32_t getSize() const;
+
     private:
 
         Type_e type;
 
     };
+
+    class Scope;
 
     class Var {
     public:
@@ -47,6 +53,12 @@ namespace SoftLang {
         bool ctor(TypeSpec new_ts, const Token *new_name);
 
         void dtor();
+
+        bool compile(const Scope *scope, FILE *ofile);
+
+        const TypeSpec getType() const;
+
+        const Token *getName() const;
 
     private:
 
@@ -68,13 +80,17 @@ namespace SoftLang {
 
         void dtor();
 
-        // TODO
+        uint32_t getOffset(const Var *var) const;
+
+        bool hasVar(const Var *var) const;
+
+        bool addVar(const Var *var);
 
     private:
 
         const Program *prog;
-        StrDict<unsigned> vars;
-        Vector<uint32_t> varOffsets;
+        uint32_t curOffset;
+        NameDict<uint32_t> vars;
 
     };
 
@@ -107,6 +123,7 @@ namespace SoftLang {
 
         VTABLE_STRUCT {
             VDECL(Expression, void, dtor);
+            VDECL(Expression, bool, compile, FILE *ofile);
         };
 
         VTABLE_FIELD
@@ -148,6 +165,8 @@ namespace SoftLang {
 
         void simplifySingleChild();
 
+        bool compile(FILE *ofile);
+
         #define DEF_TYPE(NAME) \
             bool is##NAME() const;
         #include "exprtypes.dsl.h"
@@ -185,6 +204,11 @@ namespace SoftLang {
         #include "exprtypes.dsl.h"
         #undef DEF_TYPE
 
+        #define DEF_TYPE(NAME) \
+            bool VMIN(NAME, compile)(FILE *ofile);
+        #include "exprtypes.dsl.h"
+        #undef DEF_TYPE
+
     };
 
     class Statement;
@@ -204,6 +228,8 @@ namespace SoftLang {
 
         void simplifyLastEmpty();
 
+        bool compile(FILE *ofile);
+
     private:
 
         const Program *prog;
@@ -217,6 +243,7 @@ namespace SoftLang {
 
         VTABLE_STRUCT {
             VDECL(Statement, void, dtor);
+            VDECL(Statement, bool, compile, FILE *ofile);
         };
 
         VTABLE_FIELD
@@ -255,6 +282,8 @@ namespace SoftLang {
 
         bool makeVar(Var **out_var);
 
+        bool compile(FILE *ofile);
+
         #define DEF_TYPE(NAME) \
             bool is##NAME() const;
         #include "stmttypes.dsl.h"
@@ -276,6 +305,11 @@ namespace SoftLang {
 
         #define DEF_TYPE(NAME) \
             void VMIN(NAME, dtor)();
+        #include "stmttypes.dsl.h"
+        #undef DEF_TYPE
+
+        #define DEF_TYPE(NAME) \
+            bool VMIN(NAME, compile)(FILE *ofile);
         #include "stmttypes.dsl.h"
         #undef DEF_TYPE
 

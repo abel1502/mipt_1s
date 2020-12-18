@@ -81,7 +81,9 @@ namespace SoftLang {
 
         const char *strPunctName() const;
 
-        // TODO: TOK_NAME interface
+        const char *getStr() const;
+
+        unsigned getLength() const;
 
         // TODO: Implied type for TOK_NUM
 

@@ -2,6 +2,7 @@
 #define DICT_H
 
 #include "general.h"
+#include "lexer.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -11,17 +12,17 @@
 namespace SoftLang {
 
     template <typename T>
-    class StrDict {
+    class NameDict {
     public:
 
         struct Item {
-            const char *key;
+            const Token *key;
             T value;
         };
 
         static const unsigned DEFAULT_CAPACITY = 16;
 
-        FACTORIES(StrDict);
+        FACTORIES(NameDict);
 
         bool ctor() {
             buf = (Item *)calloc(DEFAULT_CAPACITY, sizeof(Item));
@@ -42,7 +43,7 @@ namespace SoftLang {
             size = 0;
         }
 
-        bool set(const char *key, T &value) {
+        bool set(const Token *key, const T &value) {
             Item *tmp = find(key);
 
             if (tmp) {
@@ -60,12 +61,12 @@ namespace SoftLang {
         }
 
         // Returns result, not error code - error is impossible
-        bool contains(const char *key) const {
+        bool contains(const Token *key) const {
             return find(key);
         }
 
         // Same as above - error is impossible; Returns the same as `contains`
-        bool get(const char *key, T *dest) const {
+        bool get(const Token *key, T *dest) const {
             const Item *tmp = find(key);
 
             if (!tmp)
@@ -77,7 +78,7 @@ namespace SoftLang {
             return true;
         }
 
-        const T &get(const char *key, T &defaultVal={}) {
+        const T &get(const Token *key, const T &defaultVal={}) const {
             const Item *tmp = find(key);
 
             if (tmp)
@@ -86,7 +87,7 @@ namespace SoftLang {
             return defaultVal;
         }
 
-        void erase(const char *key) {
+        void erase(const Token *key) {
             Item *tmp = find(key);
 
             if (!tmp)  return;
@@ -116,9 +117,10 @@ namespace SoftLang {
             return false;
         }
 
-        Item *find(const char *key) const {
+        Item *find(const Token *key) const {
             for (unsigned i = 0; i < size; ++i)
-                if (strcmp(key, buf[i].key) == 0)
+                if (key->getLength() == buf[i].key->getLength() &&
+                    strncmp(key->getStr(), buf[i].key->getStr(), key->getLength()) == 0)
                     return &buf[i];
 
             return nullptr;

@@ -24,7 +24,7 @@
 	"stmttypes.dsl.h"
 	"stmttypes.dsl.h"
 
-1608281024 d:\workspace\.mipt\s1\softlang\\include\\ast.h
+1608285133 d:\workspace\.mipt\s1\softlang\\include\\ast.h
 	"general.h"
 	"parser.h"
 	"vector.h"
@@ -35,11 +35,13 @@
 	"exprtypes.dsl.h"
 	"exprtypes.dsl.h"
 	"exprtypes.dsl.h"
+	"exprtypes.dsl.h"
+	"stmttypes.dsl.h"
 	"stmttypes.dsl.h"
 	"stmttypes.dsl.h"
 	"stmttypes.dsl.h"
 
-1608271024 source:d:\workspace\.mipt\s1\softlang\source\lexer.cpp
+1608283652 source:d:\workspace\.mipt\s1\softlang\source\lexer.cpp
 	"lexer.h"
 	<cstdlib>
 	<cmath>
@@ -53,7 +55,7 @@
 	"tokens.dsl.h"
 	"tokens.dsl.h"
 
-1608270988 d:\workspace\.mipt\s1\softlang\\include\\lexer.h
+1608283558 d:\workspace\.mipt\s1\softlang\\include\\lexer.h
 	"general.h"
 	"filebuf.h"
 	<cstdlib>
@@ -73,13 +75,13 @@
 	"lexer.h"
 	"ast.h"
 
-1608104492 d:\workspace\.mipt\s1\softlang\\include\\filebuf.h
+1608284294 d:\workspace\.mipt\s1\softlang\\include\\filebuf.h
 	"general.h"
 	<cstdio>
 	<cstdlib>
 	<sys/stat.h>
 
-1608123517 source:d:\workspace\.mipt\s1\softlang\source\filebuf.cpp
+1608284336 source:d:\workspace\.mipt\s1\softlang\source\filebuf.cpp
 	"filebuf.h"
 	<cassert>
 	<cctype>
@@ -89,8 +91,9 @@
 1608123639 source:d:\workspace\.mipt\s1\softlang\source\dict.cpp
 	"dict.h"
 
-1608206910 d:\workspace\.mipt\s1\softlang\\include\\dict.h
+1608285457 d:\workspace\.mipt\s1\softlang\\include\\dict.h
 	"general.h"
+	"lexer.h"
 	<cstdlib>
 	<cstring>
 	<cassert>

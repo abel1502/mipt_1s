@@ -165,6 +165,18 @@ namespace SoftLang {
 
     #pragma GCC diagnostic pop
 
+    const char *Token::getStr() const {
+        assert(isName());
+
+        return start;
+    }
+
+    unsigned Token::getLength() const {
+        assert(isName());
+
+        return length;
+    }
+
     bool Token::isInteger() const {
         assert(isNum());
 

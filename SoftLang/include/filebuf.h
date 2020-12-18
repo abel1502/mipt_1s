@@ -31,6 +31,8 @@ namespace SoftLang {
 
         const char *getData() const;
 
+        void trim(size_t pos);
+
     private:
         size_t size;
         char *buf;
@@ -56,6 +58,8 @@ namespace SoftLang {
         char prev();
 
         void skipSpace();
+
+        void trim();
 
         bool isEof() const;
 
