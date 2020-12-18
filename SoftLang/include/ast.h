@@ -86,8 +86,11 @@ namespace SoftLang {
 
         bool addVar(const Var *var);
 
+        void setParent(const Scope *new_parent);
+
     private:
 
+        const Scope *parent;
         uint32_t curOffset;
         NameDict<uint32_t> vars;
 
@@ -210,8 +213,6 @@ namespace SoftLang {
     class Function;
 
     class Code {
-    friend class Function;
-
     public:
 
         FACTORIES(Code)
@@ -225,6 +226,8 @@ namespace SoftLang {
         void simplifyLastEmpty();
 
         bool compile(FILE *ofile, const Function *func, const Program *prog);
+
+        Scope *getScope();
 
     private:
 

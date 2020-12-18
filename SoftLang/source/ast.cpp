@@ -114,28 +114,34 @@ namespace SoftLang {
     bool Scope::ctor() {
         TRY_B(vars.ctor());
         curOffset = 0;
+        parent = nullptr;
 
         return false;
     }
 
     void Scope::dtor() {
         vars.dtor();
+        parent = nullptr;
+        curOffset = 0;
     }
 
     uint32_t Scope::getOffset(const Var *var) const {
-        if (!hasVar(var))
-            return -1;
+        if (vars.contains(var->getName()))
+            return vars.get(var->getName());
 
-        return vars.get(var->getName());
+        if (parent)
+            return parent->getOffset(var);
+
+        return -1;
     }
 
     bool Scope::hasVar(const Var *var) const {
-        return vars.contains(var->getName());
+        return vars.contains(var->getName()) || (parent && parent->hasVar(var));
     }
 
     bool Scope::addVar(const Var *var) {
-        if (hasVar(var)) {
-            ERR("Redeclaration of variable \"%.*s\"", var->getName()->getLength(), var->getName()->getStr());
+        if (vars.contains(var->getName())) {
+            ERR("Redeclaration of variable \"%.*s\" within the same scope", var->getName()->getLength(), var->getName()->getStr());
 
             return true;
         }
@@ -147,6 +153,10 @@ namespace SoftLang {
         TRY_B(vars.set(var->getName(), offset));
 
         return false;
+    }
+
+    void Scope::setParent(const Scope *new_parent) {
+        parent = new_parent;
     }
 
     bool Expression::ctor() {
@@ -333,12 +343,17 @@ namespace SoftLang {
         assert(stmts.getSize() > 0);
 
         if (stmts[-1].isEmpty()) {
+            stmts[-1].dtor();
             stmts.pop();
         }
     }
 
     bool Code::compile(FILE *ofile, const Function *func, const Program *prog) {
-        // TODO
+
+    }
+
+    Scope *Code::getScope() {
+        return &scope;
     }
 
 
@@ -538,7 +553,7 @@ namespace SoftLang {
 
     bool Function::registerArgs() {
         for (unsigned i = 0; i < args.getSize(); ++i) {
-            TRY_B(code.scope.addVar(&args[i]));
+            TRY_B(code.getScope()->addVar(&args[i]));
         }
 
         return false;
