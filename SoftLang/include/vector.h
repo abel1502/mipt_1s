@@ -72,7 +72,7 @@ namespace SoftLang {
             return false;
         }
 
-        T &pop() {
+        const T &pop() {
             assert(!isEmpty());
 
             assert(buf);
@@ -211,7 +211,7 @@ namespace SoftLang {
             return false;
         }
 
-        T &pop() {
+        const T &pop() {
             assert(!isEmpty());
 
             if (isCompact())
