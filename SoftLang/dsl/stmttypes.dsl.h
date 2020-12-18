@@ -1,0 +1,7 @@
+DEF_TYPE(Compound)
+DEF_TYPE(Return)
+DEF_TYPE(Loop)
+DEF_TYPE(Cond)
+DEF_TYPE(VarDecl)
+DEF_TYPE(Expr)
+DEF_TYPE(Empty)

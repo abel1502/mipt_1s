@@ -37,6 +37,8 @@
 			<Add directory="$(PROJECT_DIR)/source/" />
 			<Add directory="$(PROJECT_DIR)/dsl/" />
 		</Compiler>
+		<Unit filename="dsl/exprtypes.dsl.h" />
+		<Unit filename="dsl/stmttypes.dsl.h" />
 		<Unit filename="dsl/tokens.dsl.h" />
 		<Unit filename="include/ast.h" />
 		<Unit filename="include/dict.h" />

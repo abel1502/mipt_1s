@@ -8,6 +8,7 @@
 #include "vtable.h"
 
 #include <cstdio>
+#include <cstdint>
 
 
 namespace SoftLang {
@@ -26,13 +27,13 @@ namespace SoftLang {
 
         bool ctor();
 
-        bool ctor(Type_e type);
+        bool ctor(Type_e new_type);
 
         void dtor();
 
     private:
 
-        //
+        Type_e type;
 
     };
 
@@ -43,15 +44,19 @@ namespace SoftLang {
 
         bool ctor();
 
-        bool ctor(TypeSpec ts, const Token *name);
+        bool ctor(TypeSpec new_ts, const Token *new_name);
 
         void dtor();
 
     private:
 
-        //
+        TypeSpec ts;
+
+        const Token *name;
 
     };
+
+    class Program;
 
     class Scope {
     public:
@@ -62,9 +67,13 @@ namespace SoftLang {
 
         void dtor();
 
+        // TODO
+
     private:
 
-        //
+        StrDict<unsigned> vars;
+        Vector<uint32_t> varOffsets;
+        const Program *prog;
 
     };
 
@@ -95,6 +104,17 @@ namespace SoftLang {
             OP_MOD
         };
 
+        VTABLE_STRUCT {
+            VDECL(Expression, void, dtor);
+        };
+
+        VTABLE_FIELD
+
+        #define DEF_TYPE(NAME)  VTYPE_FIELD(NAME);
+        #include "exprtypes.dsl.h"
+        #undef DEF_TYPE
+
+
         FACTORIES(Expression)
 
         bool ctor();
@@ -109,11 +129,11 @@ namespace SoftLang {
 
         bool ctorCast(TypeSpec ts);
 
-        bool ctorNum(const Token *num);
+        bool ctorNum(const Token *new_num);
 
-        bool ctorVarRef(const Token *name);
+        bool ctorVarRef(const Token *new_name);
 
-        bool ctorFuncCall(const Token *name);
+        bool ctorFuncCall(const Token *new_name);
 
         void dtor();
 
@@ -121,7 +141,14 @@ namespace SoftLang {
 
         void setAsgnMode(AsgnMode_e mode);
 
-        void setOp(unsigned ind, Op_e op);
+        bool setOp(unsigned ind, Op_e op);
+
+        void simplifySingleChild();
+
+        #define DEF_TYPE(NAME) \
+            bool is##NAME() const;
+        #include "exprtypes.dsl.h"
+        #undef DEF_TYPE
 
     private:
 
@@ -148,12 +175,48 @@ namespace SoftLang {
 
         Vector<Expression> children;
 
+        #define DEF_TYPE(NAME) \
+            void VMIN(NAME, dtor)();
+        #include "exprtypes.dsl.h"
+        #undef DEF_TYPE
+
     };
 
-    class Code;
+    class Statement;
+
+    class Code {
+    public:
+
+        FACTORIES(Code)
+
+        bool ctor();
+
+        void dtor();
+
+        bool makeStatement(Statement **stmt);
+
+        void simplifyLastEmpty();
+
+    private:
+
+        Scope scope;
+
+        Vector<Statement> stmts;
+
+    };
 
     class Statement {  // Abstract
     public:
+
+        VTABLE_STRUCT {
+            VDECL(Statement, void, dtor);
+        };
+
+        VTABLE_FIELD
+
+        #define DEF_TYPE(NAME)  VTYPE_FIELD(NAME);
+        #include "stmttypes.dsl.h"
+        #undef DEF_TYPE
 
         FACTORIES(Statement)
 
@@ -167,7 +230,7 @@ namespace SoftLang {
 
         bool ctorCond();
 
-        bool ctorVardecl();
+        bool ctorVarDecl();
 
         bool ctorExpr();
 
@@ -175,36 +238,36 @@ namespace SoftLang {
 
         void dtor();
 
-        bool makeCode(Code **code);
+        bool makeCode(Code **out_code);
 
-        bool makeAltCode(Code **altCode);
+        bool makeAltCode(Code **out_altCode);
 
-        bool makeExpr(Expression **expr);
+        bool makeExpr(Expression **out_expr);
 
-        bool makeVar(Var **var);
+        bool makeVar(Var **out_var);
 
-    private:
-
-        //
-
-    };
-
-    class Code {
-    public:
-
-        FACTORIES(Code)
-
-        bool ctor();
-
-        void dtor();
-
-        bool makeStatement(Statement **stmt);
+        #define DEF_TYPE(NAME) \
+            bool is##NAME() const;
+        #include "stmttypes.dsl.h"
+        #undef DEF_TYPE
 
     private:
 
-        Scope scope;
+        Expression expr;
 
-        Vector<Statement> stmts;
+        union {
+            struct {
+                Code code;
+                Code altCode;
+            };
+
+            Var var;
+        };
+
+        #define DEF_TYPE(NAME) \
+            void VMIN(NAME, dtor)();
+        #include "stmttypes.dsl.h"
+        #undef DEF_TYPE
 
     };
 
@@ -215,15 +278,12 @@ namespace SoftLang {
 
         bool ctor();
 
-        bool ctor(const TypeSpec &rtype, const Token *name);
+        bool ctor(TypeSpec new_rtype, const Token *new_name);
 
         void dtor();
 
         /// Same as makeFunction
         bool makeArg(Var **arg);
-
-        /// -"-
-        bool makeStmt(Statement **stmt);
 
         /// This one will always return &code
         bool makeCode(Code **code);

@@ -237,9 +237,7 @@ namespace SoftLang {
 
             P_TRY(parse_STMT(stmt), , P_OK());
 
-            /*if (stmt->isEmpty()) {  // TODO: ?
-                code->popStatement();
-            }*/
+            code->simplifyLastEmpty();
         }
     }
 
@@ -371,7 +369,7 @@ namespace SoftLang {
         Var *var = nullptr;
         Expression *expr = nullptr;  // TODO: Make sure that fields necessary for every virtual type of Stmt don't overlap
 
-        P_TRYSYS(stmt->ctorVardecl());
+        P_TRYSYS(stmt->ctorVarDecl());
         P_TRYSYS(stmt->makeVar(&var));
         P_TRYSYS(stmt->makeExpr(&expr));
 
@@ -520,27 +518,27 @@ namespace SoftLang {
 
             switch (next()->getPunct()) {
             case Token::PUNCT_EQEQ:
-                expr->setOp(ind, Expression::OP_EQ);
+                P_TRYSYS(expr->setOp(ind, Expression::OP_EQ));
                 break;
 
             case Token::PUNCT_NEQ:
-                expr->setOp(ind, Expression::OP_NEQ);
+                P_TRYSYS(expr->setOp(ind, Expression::OP_NEQ));
                 break;
 
             case Token::PUNCT_GEQ:
-                expr->setOp(ind, Expression::OP_GEQ);
+                P_TRYSYS(expr->setOp(ind, Expression::OP_GEQ));
                 break;
 
             case Token::PUNCT_LEQ:
-                expr->setOp(ind, Expression::OP_LEQ);
+                P_TRYSYS(expr->setOp(ind, Expression::OP_LEQ));
                 break;
 
             case Token::PUNCT_GT:
-                expr->setOp(ind, Expression::OP_GT);
+                P_TRYSYS(expr->setOp(ind, Expression::OP_GT));
                 break;
 
             case Token::PUNCT_LT:
-                expr->setOp(ind, Expression::OP_LT);
+                P_TRYSYS(expr->setOp(ind, Expression::OP_LT));
                 break;
 
             default:
@@ -579,11 +577,11 @@ namespace SoftLang {
 
             switch (next()->getPunct()) {
             case Token::PUNCT_ADD:
-                expr->setOp(ind, Expression::OP_ADD);
+                P_TRYSYS(expr->setOp(ind, Expression::OP_ADD));
                 break;
 
             case Token::PUNCT_SUB:
-                expr->setOp(ind, Expression::OP_SUB);
+                P_TRYSYS(expr->setOp(ind, Expression::OP_SUB));
                 break;
 
             default:
@@ -622,15 +620,15 @@ namespace SoftLang {
 
             switch (next()->getPunct()) {
             case Token::PUNCT_MUL:
-                expr->setOp(ind, Expression::OP_MUL);
+                P_TRYSYS(expr->setOp(ind, Expression::OP_MUL));
                 break;
 
             case Token::PUNCT_DIV:
-                expr->setOp(ind, Expression::OP_DIV);
+                P_TRYSYS(expr->setOp(ind, Expression::OP_DIV));
                 break;
 
             case Token::PUNCT_MOD:
-                expr->setOp(ind, Expression::OP_MOD);
+                P_TRYSYS(expr->setOp(ind, Expression::OP_MOD));
                 break;
 
             default:

@@ -17,16 +17,27 @@
 	"parser.h"
 	"filebuf.h"
 
-1608200829 source:d:\workspace\.mipt\s1\softlang\source\ast.cpp
+1608279218 source:d:\workspace\.mipt\s1\softlang\source\ast.cpp
 	"ast.h"
+	"exprtypes.dsl.h"
+	"exprtypes.dsl.h"
+	"stmttypes.dsl.h"
+	"stmttypes.dsl.h"
 
-1608274434 d:\workspace\.mipt\s1\softlang\\include\\ast.h
+1608280258 d:\workspace\.mipt\s1\softlang\\include\\ast.h
 	"general.h"
 	"parser.h"
 	"vector.h"
 	"dict.h"
 	"vtable.h"
 	<cstdio>
+	<cstdint>
+	"exprtypes.dsl.h"
+	"exprtypes.dsl.h"
+	"exprtypes.dsl.h"
+	"stmttypes.dsl.h"
+	"stmttypes.dsl.h"
+	"stmttypes.dsl.h"
 
 1608271024 source:d:\workspace\.mipt\s1\softlang\source\lexer.cpp
 	"lexer.h"
@@ -52,7 +63,7 @@
 
 1608203580 d:\workspace\.mipt\s1\softlang\\dsl\\tokens.dsl.h
 
-1608213173 source:d:\workspace\.mipt\s1\softlang\source\parser.cpp
+1608278850 source:d:\workspace\.mipt\s1\softlang\source\parser.cpp
 	"parser.h"
 	<cassert>
 
@@ -84,9 +95,13 @@
 	<cstring>
 	<cassert>
 
-1608274429 d:\workspace\.mipt\s1\softlang\\include\\vector.h
+1608280574 d:\workspace\.mipt\s1\softlang\\include\\vector.h
 	"general.h"
 	<cstdlib>
 	<cstring>
 	<cassert>
+
+1608277353 d:\workspace\.mipt\s1\softlang\\dsl\\exprtypes.dsl.h
+
+1608279340 d:\workspace\.mipt\s1\softlang\\dsl\\stmttypes.dsl.h
 

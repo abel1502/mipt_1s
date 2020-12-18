@@ -30,7 +30,7 @@ namespace SoftLang {
         void dtor() {
             for (unsigned i = 0; i < size; ++i) {
                 buf[i].dtor();
-                buf[i] = nullptr;
+                buf[i] = {};
             }
 
             free(buf);
@@ -41,6 +41,8 @@ namespace SoftLang {
         }
 
         T &operator[](size_t ind) {
+            ind = (ind + size) % size;
+
             assert(ind < size);
 
             assert(buf);
@@ -49,6 +51,8 @@ namespace SoftLang {
         }
 
         const T &operator[](size_t ind) const {
+            ind = (ind + size) % size;  // Despite being size_t, ind would still work correctly if it's negative
+
             assert(ind < size);
 
             assert(buf);
@@ -132,14 +136,16 @@ namespace SoftLang {
 
         void dtor() {
             if (isCompact()) {
+                // Compact buf is intended for use on built-in types without dtors, I guess
+
                 for (unsigned i = 0; i < size; ++i) {
-                    compactBuf[i].dtor();
-                    compactBuf[i] = nullptr;
+                    //compactBuf[i].dtor();
+                    compactBuf[i] = {};
                 }
             } else {
                 for (unsigned i = 0; i < size; ++i) {
-                    buf[i].dtor();
-                    buf[i] = nullptr;
+                    //buf[i].dtor();
+                    buf[i] = {};
                 }
             }
 
@@ -151,6 +157,8 @@ namespace SoftLang {
         }
 
         T &operator[](size_t ind) {
+            ind = (ind + size) % size;
+
             assert(ind < size);
 
             if (isCompact()) {
@@ -163,6 +171,8 @@ namespace SoftLang {
         }
 
         const T &operator[](size_t ind) const {
+            ind = (ind + size) % size;
+
             assert(ind < size);
 
             assert(buf);
