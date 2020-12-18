@@ -269,8 +269,19 @@ namespace SoftLang {
         if (!isPolyOp() || children.getSize() != 1)
             return;
 
-        // TODO: Actually, this wouldn't destroy stuff properly
-        memcpy(this, &children[0], sizeof(Expression));
+        Expression singleChild{};
+        memcpy(singleChild, &children[0], sizeof(Expression));
+
+        children.pop();  // Destructor intentionally not called
+
+        dtor();
+
+        memcpy(this, &singleChild, sizeof(Expression));
+
+        // memset(&singleChild, 0, sizeof(Expression));  // Would have done to avoid implicit destruction, but
+                                                         // thanks the C coding style we don't have it at all
+
+        // And now the singleChild get silently removed, with no destructors called...
     }
 
     #define DEF_TYPE(NAME) \
