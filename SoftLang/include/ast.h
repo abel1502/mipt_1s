@@ -99,11 +99,54 @@ namespace SoftLang {
 
         bool ctor();
 
+        bool ctorVoid();
+
+        bool ctorAsgn();
+
+        bool ctorPolyOp();
+
+        bool ctorNeg();
+
+        bool ctorCast(TypeSpec ts);
+
+        bool ctorNum(const Token *num);
+
+        bool ctorVarRef(const Token *name);
+
+        bool ctorFuncCall(const Token *name);
+
         void dtor();
+
+        bool makeChild(Expression **child);
+
+        void setAsgnMode(AsgnMode_e mode);
+
+        void setOp(unsigned ind, Op_e op);
 
     private:
 
-        //
+        union {
+            // Void
+
+            // Asgn
+            AsgnMode_e am;
+
+            // PolyOp
+            CompactVector<Op_e> ops;
+
+            // Neg
+
+            // Cast
+            TypeSpec cast;
+
+            // Num
+            const Token *num;
+
+            // VarRef, FuncCall
+            const Token *name;
+        };
+
+        Vector<Expression> children;
 
     };
 
@@ -135,6 +178,10 @@ namespace SoftLang {
         bool makeCode(Code **code);
 
         bool makeAltCode(Code **altCode);
+
+        bool makeExpr(Expression **expr);
+
+        bool makeVar(Var **var);
 
     private:
 
