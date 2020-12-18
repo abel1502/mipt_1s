@@ -51,7 +51,6 @@ namespace SoftLang {
     private:
 
         TypeSpec ts;
-
         const Token *name;
 
     };
@@ -65,15 +64,17 @@ namespace SoftLang {
 
         bool ctor();
 
+        bool ctor(const Program *new_prog);
+
         void dtor();
 
         // TODO
 
     private:
 
+        const Program *prog;
         StrDict<unsigned> vars;
         Vector<uint32_t> varOffsets;
-        const Program *prog;
 
     };
 
@@ -119,6 +120,8 @@ namespace SoftLang {
 
         bool ctor();
 
+        bool ctor(const Program *new_prog);
+
         bool ctorVoid();
 
         bool ctorAsgn();
@@ -151,6 +154,8 @@ namespace SoftLang {
         #undef DEF_TYPE
 
     private:
+
+        const Program *prog;
 
         union {
             // Void
@@ -191,6 +196,8 @@ namespace SoftLang {
 
         bool ctor();
 
+        bool ctor(const Program *new_prog);
+
         void dtor();
 
         bool makeStatement(Statement **stmt);
@@ -199,8 +206,8 @@ namespace SoftLang {
 
     private:
 
+        const Program *prog;
         Scope scope;
-
         Vector<Statement> stmts;
 
     };
@@ -221,6 +228,8 @@ namespace SoftLang {
         FACTORIES(Statement)
 
         bool ctor();
+
+        bool ctor(const Program *new_prog);
 
         bool ctorCompound();
 
@@ -253,6 +262,7 @@ namespace SoftLang {
 
     private:
 
+        const Program *prog;
         Expression expr;
 
         union {
@@ -278,7 +288,7 @@ namespace SoftLang {
 
         bool ctor();
 
-        bool ctor(TypeSpec new_rtype, const Token *new_name);
+        bool ctor(TypeSpec new_rtype, const Token *new_name, const Program *new_prog);
 
         void dtor();
 
@@ -292,6 +302,7 @@ namespace SoftLang {
 
     private:
 
+        const Program *prog;
         Vector<Var> args;
         Code code;
         TypeSpec rtype;

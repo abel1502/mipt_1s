@@ -66,39 +66,39 @@ namespace SoftLang {
 
         Error_e parse_TYPESPEC(TypeSpec *ts);
 
-        Error_e parse_STMTS(Code *code);
+        Error_e parse_STMTS(Code *code, const Program *prog);
 
-        Error_e parse_STMT(Statement *stmt);
+        Error_e parse_STMT(Statement *stmt, const Program *prog);
 
-        Error_e parse_COMPOUND_STMT(Code *code);
+        Error_e parse_COMPOUND_STMT(Code *code, const Program *prog);
 
-        Error_e parse_COMPOUND_STMT(Statement *stmt);
+        Error_e parse_COMPOUND_STMT(Statement *stmt, const Program *prog);
 
-        Error_e parse_RETURN_STMT(Statement *stmt);
+        Error_e parse_RETURN_STMT(Statement *stmt, const Program *prog);
 
-        Error_e parse_LOOP_STMT(Statement *stmt);
+        Error_e parse_LOOP_STMT(Statement *stmt, const Program *prog);
 
-        Error_e parse_COND_STMT(Statement *stmt);
+        Error_e parse_COND_STMT(Statement *stmt, const Program *prog);
 
-        Error_e parse_VARDECL_STMT(Statement *stmt);
+        Error_e parse_VARDECL_STMT(Statement *stmt, const Program *prog);
 
-        Error_e parse_EXPR_STMT(Statement *stmt);
+        Error_e parse_EXPR_STMT(Statement *stmt, const Program *prog);
 
-        Error_e parse_EXPR(Expression *expr);
+        Error_e parse_EXPR(Expression *expr, const Program *prog);
 
-        Error_e parse_ASGN_EXPR(Expression *expr);
+        Error_e parse_ASGN_EXPR(Expression *expr, const Program *prog);
 
         /*Error_e parse_OR_EXPR(Expression *expr);
 
         Error_e parse_AND_EXPR(Expression *expr);*/
 
-        Error_e parse_CMP_EXPR(Expression *expr);
+        Error_e parse_CMP_EXPR(Expression *expr, const Program *prog);
 
-        Error_e parse_ADD_EXPR(Expression *expr);
+        Error_e parse_ADD_EXPR(Expression *expr, const Program *prog);
 
-        Error_e parse_MUL_EXPR(Expression *expr);
+        Error_e parse_MUL_EXPR(Expression *expr, const Program *prog);
 
-        Error_e parse_UNARY_EXPR(Expression *expr);
+        Error_e parse_UNARY_EXPR(Expression *expr, const Program *prog);
 
         Error_e parse_VAR_EXPR(Expression *expr);
 
@@ -108,9 +108,9 @@ namespace SoftLang {
 
         Error_e parse_FUNC(const Token **name);
 
-        Error_e parse_FUNC_CALL(Expression *expr);
+        Error_e parse_FUNC_CALL(Expression *expr, const Program *prog);
 
-        Error_e parse_FUNC_ARGS(Expression *expr);
+        Error_e parse_FUNC_ARGS(Expression *expr, const Program *prog);
 
     };
 

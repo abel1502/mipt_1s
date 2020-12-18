@@ -45,6 +45,13 @@ namespace SoftLang {
         return false;
     }
 
+    bool Scope::ctor(const Program *new_prog) {
+        TRY_B(vars.ctor());
+        prog = new_prog;
+
+        return false;
+    }
+
     void Scope::dtor() {
         vars.dtor();
         prog = nullptr;
@@ -52,7 +59,13 @@ namespace SoftLang {
 
     bool Expression::ctor() {
         // TODO: zero-fill?
-        return true;
+        return false;
+    }
+
+    bool Expression::ctor(const Program *new_prog) {
+        prog = new_prog;
+
+        return false;
     }
 
     bool Expression::ctorVoid() {
@@ -157,6 +170,10 @@ namespace SoftLang {
     }
 
     void Expression::simplifySingleChild() {
+        if (!isPolyOp() || children.getSize() != 1)
+            return;
+
+        memcpy(this, &children[0], sizeof(Expression));  // Let's do it the bold way
     }
 
     #define DEF_TYPE(NAME) \
@@ -211,6 +228,15 @@ namespace SoftLang {
         return false;
     }
 
+    bool Code::ctor(const Program *new_prog) {
+        TRY_B(stmts.ctor());
+        TRY_B(scope.ctor(new_prog));
+
+        prog = new_prog;
+
+        return false;
+    }
+
     void Code::dtor() {
         stmts.dtor();
         scope.dtor();
@@ -235,6 +261,14 @@ namespace SoftLang {
 
     bool Statement::ctor() {
         VSETTYPE(this, Empty);
+
+        return false;
+    }
+
+    bool Statement::ctor(const Program *new_prog) {
+        VSETTYPE(this, Empty);
+
+        prog = new_prog;
 
         return false;
     }
@@ -316,6 +350,8 @@ namespace SoftLang {
     #include "stmttypes.dsl.h"
     #undef DEF_TYPE
 
+    // TODO
+
     void Statement::VMIN(Compound, dtor)() {
     }
 
@@ -354,11 +390,12 @@ namespace SoftLang {
         return false;
     }
 
-    bool Function::ctor(TypeSpec new_rtype, const Token* new_name) {
+    bool Function::ctor(TypeSpec new_rtype, const Token* new_name, const Program *new_prog) {
         TRY_B(ctor());
 
         rtype = new_rtype;
         name = new_name;
+        prog = new_prog;
 
         return false;
     }

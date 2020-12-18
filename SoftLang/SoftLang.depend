@@ -17,14 +17,14 @@
 	"parser.h"
 	"filebuf.h"
 
-1608279218 source:d:\workspace\.mipt\s1\softlang\source\ast.cpp
+1608281374 source:d:\workspace\.mipt\s1\softlang\source\ast.cpp
 	"ast.h"
 	"exprtypes.dsl.h"
 	"exprtypes.dsl.h"
 	"stmttypes.dsl.h"
 	"stmttypes.dsl.h"
 
-1608280258 d:\workspace\.mipt\s1\softlang\\include\\ast.h
+1608281024 d:\workspace\.mipt\s1\softlang\\include\\ast.h
 	"general.h"
 	"parser.h"
 	"vector.h"
@@ -63,11 +63,11 @@
 
 1608203580 d:\workspace\.mipt\s1\softlang\\dsl\\tokens.dsl.h
 
-1608278850 source:d:\workspace\.mipt\s1\softlang\source\parser.cpp
+1608282562 source:d:\workspace\.mipt\s1\softlang\source\parser.cpp
 	"parser.h"
 	<cassert>
 
-1608237783 d:\workspace\.mipt\s1\softlang\\include\\parser.h
+1608282570 d:\workspace\.mipt\s1\softlang\\include\\parser.h
 	"general.h"
 	"filebuf.h"
 	"lexer.h"

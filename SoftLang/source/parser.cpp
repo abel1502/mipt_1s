@@ -145,14 +145,14 @@ namespace SoftLang {
         P_REQ_NONTERM(FUNC, &name);
         P_REQ_PUNCT(LPAR);
 
-        func->ctor(ts, name);
+        func->ctor(ts, name, prog);
 
         P_REQ_NONTERM(FUNC_ARGS_DEF, func);
         P_REQ_PUNCT(RPAR);
 
         P_TRYSYS(func->makeCode(&code));
 
-        P_REQ_NONTERM(COMPOUND_STMT, code);
+        P_REQ_NONTERM(COMPOUND_STMT, code, prog);
         P_OK();
 
     error:
@@ -228,28 +228,30 @@ namespace SoftLang {
         #pragma GCC diagnostic pop
     }
 
-    Parser::Error_e Parser::parse_STMTS(Code *code) {
-        P_TRYSYS(code->ctor());
+    Parser::Error_e Parser::parse_STMTS(Code *code, const Program *prog) {
+        P_TRYSYS(code->ctor(prog));
 
         while (true) {
             Statement *stmt = nullptr;
             P_TRYSYS(code->makeStatement(&stmt));
 
-            P_TRY(parse_STMT(stmt), , P_OK());
+            P_TRY(parse_STMT(stmt, prog), , P_OK());
 
             code->simplifyLastEmpty();
         }
     }
 
-    Parser::Error_e Parser::parse_STMT(Statement *stmt) {
+    Parser::Error_e Parser::parse_STMT(Statement *stmt, const Program *prog) {
         unsigned saved = backup();
 
-        P_TRY(parse_COMPOUND_STMT(stmt),  P_OK(), restore(saved));
-        P_TRY(parse_RETURN_STMT(stmt),    P_OK(), restore(saved));
-        P_TRY(parse_LOOP_STMT(stmt),      P_OK(), restore(saved));
-        P_TRY(parse_COND_STMT(stmt),      P_OK(), restore(saved));
-        P_TRY(parse_VARDECL_STMT(stmt),   P_OK(), restore(saved));
-        P_TRY(parse_EXPR_STMT(stmt),      P_OK(), restore(saved));
+        P_TRYSYS(stmt->ctor(prog));
+
+        P_TRY(parse_COMPOUND_STMT(stmt, prog),  P_OK(), restore(saved));
+        P_TRY(parse_RETURN_STMT(stmt, prog),    P_OK(), restore(saved));
+        P_TRY(parse_LOOP_STMT(stmt, prog),      P_OK(), restore(saved));
+        P_TRY(parse_COND_STMT(stmt, prog),      P_OK(), restore(saved));
+        P_TRY(parse_VARDECL_STMT(stmt, prog),   P_OK(), restore(saved));
+        P_TRY(parse_EXPR_STMT(stmt, prog),      P_OK(), restore(saved));
 
         P_REQ_PUNCT(SEMI);
         P_TRYSYS(stmt->ctorEmpty());
@@ -257,13 +259,15 @@ namespace SoftLang {
         P_OK();
 
     error:
+        stmt->dtor();
+
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_COMPOUND_STMT(Code *code) {
+    Parser::Error_e Parser::parse_COMPOUND_STMT(Code *code, const Program *prog) {
         P_REQ_PUNCT(LBRACE);
 
-        P_REQ_NONTERM(STMTS, code);
+        P_REQ_NONTERM(STMTS, code, prog);
 
         P_REQ_PUNCT(RBRACE);
 
@@ -273,21 +277,19 @@ namespace SoftLang {
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_COMPOUND_STMT(Statement *stmt) {
+    Parser::Error_e Parser::parse_COMPOUND_STMT(Statement *stmt, const Program *prog) {
         Code *code = nullptr;
 
         P_TRYSYS(stmt->ctorCompound());
         P_TRYSYS(stmt->makeCode(&code));
 
-        P_REQ_NONTERM(COMPOUND_STMT, code);
+        P_REQ_NONTERM(COMPOUND_STMT, code, prog);
 
     error:
-        stmt->dtor();
-
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_RETURN_STMT(Statement *stmt) {
+    Parser::Error_e Parser::parse_RETURN_STMT(Statement *stmt, const Program *prog) {
         Expression *expr = nullptr;
         unsigned saved = 0;
 
@@ -297,21 +299,19 @@ namespace SoftLang {
         P_REQ_KWD(RET);
 
         saved = backup();
-        P_TRY(parse_EXPR(expr),
+        P_TRY(parse_EXPR(expr, prog),
               ,
-              restore(saved); expr->dtor(); expr->ctorVoid());
+              restore(saved); expr->ctorVoid());
 
         P_REQ_PUNCT(SEMI);
 
         P_OK();
 
     error:
-        stmt->dtor();
-
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_LOOP_STMT(Statement *stmt) {
+    Parser::Error_e Parser::parse_LOOP_STMT(Statement *stmt, const Program *prog) {
         Expression *cond = nullptr;
         Code       *code = nullptr;
 
@@ -321,19 +321,17 @@ namespace SoftLang {
 
         P_REQ_KWD(WHILE);
 
-        P_REQ_NONTERM(EXPR, cond);
+        P_REQ_NONTERM(EXPR, cond, prog);
 
-        P_REQ_NONTERM(COMPOUND_STMT, code);
+        P_REQ_NONTERM(COMPOUND_STMT, code, prog);
 
         P_OK();
 
     error:
-        stmt->dtor();
-
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_COND_STMT(Statement *stmt) {
+    Parser::Error_e Parser::parse_COND_STMT(Statement *stmt, const Program *prog) {
         Expression *cond    = nullptr;
         Code       *code    = nullptr;
         Code       *altCode = nullptr;
@@ -345,27 +343,25 @@ namespace SoftLang {
 
         P_REQ_KWD(IF);
 
-        P_REQ_NONTERM(EXPR, cond);
+        P_REQ_NONTERM(EXPR, cond, prog);
 
-        P_REQ_NONTERM(COMPOUND_STMT, code);
+        P_REQ_NONTERM(COMPOUND_STMT, code, prog);
 
         if (cur()->getKwd() == Token::KWD_ELSE) {
             next();
 
-            P_REQ_NONTERM(COMPOUND_STMT, altCode);
+            P_REQ_NONTERM(COMPOUND_STMT, altCode, prog);
         } else {
-            altCode->ctor();
+            altCode->ctor(prog);
         }
 
         P_OK();
 
     error:
-        stmt->dtor();
-
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_VARDECL_STMT(Statement *stmt) {
+    Parser::Error_e Parser::parse_VARDECL_STMT(Statement *stmt, const Program *prog) {
         Var *var = nullptr;
         Expression *expr = nullptr;  // TODO: Make sure that fields necessary for every virtual type of Stmt don't overlap
 
@@ -378,8 +374,9 @@ namespace SoftLang {
         if (cur()->getPunct() == Token::PUNCT_EQ) {
             next();
 
-            P_REQ_NONTERM(EXPR, expr);
+            P_REQ_NONTERM(EXPR, expr, prog);
         } else {
+            expr->ctor(prog);
             expr->ctorVoid();
         }
 
@@ -393,12 +390,12 @@ namespace SoftLang {
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_EXPR_STMT(Statement *stmt) {
+    Parser::Error_e Parser::parse_EXPR_STMT(Statement *stmt, const Program *prog) {
         Expression *expr = nullptr;
         P_TRYSYS(stmt->ctorExpr());
         P_TRYSYS(stmt->makeExpr(&expr));
 
-        P_REQ_NONTERM(EXPR, expr);
+        P_REQ_NONTERM(EXPR, expr, prog);
 
         P_REQ_PUNCT(SEMI);
 
@@ -410,17 +407,21 @@ namespace SoftLang {
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_EXPR(Expression *expr) {
+    Parser::Error_e Parser::parse_EXPR(Expression *expr, const Program *prog) {
         unsigned saved = backup();
 
-        P_TRY(parse_ASGN_EXPR(expr),  P_OK(), restore(saved));
+        P_TRYSYS(expr->ctor(prog));
+
+        P_TRY(parse_ASGN_EXPR(expr, prog),  P_OK(), restore(saved));
         //P_TRY(parse_OR_EXPR(expr),    P_OK(), restore(saved));
-        P_TRY(parse_CMP_EXPR(expr),   P_OK(), restore(saved));
+        P_TRY(parse_CMP_EXPR(expr, prog),   P_OK(), restore(saved));
+
+        expr->dtor();
 
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_ASGN_EXPR(Expression *expr) {
+    Parser::Error_e Parser::parse_ASGN_EXPR(Expression *expr, const Program *prog) {
         Expression *var = nullptr;
         Expression *child = nullptr;
         P_TRYSYS(expr->ctorAsgn());
@@ -465,13 +466,11 @@ namespace SoftLang {
 
         #pragma GCC diagnostic pop
 
-        P_REQ_NONTERM(EXPR, child);
+        P_REQ_NONTERM(EXPR, child, prog);
 
         P_OK();
 
     error:
-        expr->dtor();
-
         P_BAD();
     }
 
@@ -501,7 +500,7 @@ namespace SoftLang {
         P_OK();
     }*/
 
-    Parser::Error_e Parser::parse_CMP_EXPR(Expression *expr) {
+    Parser::Error_e Parser::parse_CMP_EXPR(Expression *expr, const Program *prog) {
         Expression *child = nullptr;
 
         P_TRYSYS(expr->ctorPolyOp());
@@ -511,7 +510,7 @@ namespace SoftLang {
 
         while (repeat) {
             P_TRYSYS(expr->makeChild(&child));
-            P_REQ_NONTERM(ADD_EXPR, child);
+            P_REQ_NONTERM(ADD_EXPR, child, prog);
 
             #pragma GCC diagnostic push
             #pragma GCC diagnostic ignored "-Wswitch-enum"
@@ -555,12 +554,10 @@ namespace SoftLang {
         P_OK();
 
     error:
-        expr->dtor();
-
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_ADD_EXPR(Expression *expr) {
+    Parser::Error_e Parser::parse_ADD_EXPR(Expression *expr, const Program *prog) {
         Expression *child = nullptr;
 
         P_TRYSYS(expr->ctorPolyOp());
@@ -570,7 +567,7 @@ namespace SoftLang {
 
         while (repeat) {
             P_TRYSYS(expr->makeChild(&child));
-            P_REQ_NONTERM(MUL_EXPR, child);
+            P_REQ_NONTERM(MUL_EXPR, child, prog);
 
             #pragma GCC diagnostic push
             #pragma GCC diagnostic ignored "-Wswitch-enum"
@@ -598,12 +595,10 @@ namespace SoftLang {
         P_OK();
 
     error:
-        expr->dtor();
-
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_MUL_EXPR(Expression *expr) {
+    Parser::Error_e Parser::parse_MUL_EXPR(Expression *expr, const Program *prog) {
         Expression *child = nullptr;
 
         P_TRYSYS(expr->ctorPolyOp());
@@ -613,7 +608,7 @@ namespace SoftLang {
 
         while (repeat) {
             P_TRYSYS(expr->makeChild(&child));
-            P_REQ_NONTERM(UNARY_EXPR, child);
+            P_REQ_NONTERM(UNARY_EXPR, child, prog);
 
             #pragma GCC diagnostic push
             #pragma GCC diagnostic ignored "-Wswitch-enum"
@@ -645,12 +640,10 @@ namespace SoftLang {
         P_OK();
 
     error:
-        expr->dtor();
-
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_UNARY_EXPR(Expression *expr) {  // TODO: Finish semantics
+    Parser::Error_e Parser::parse_UNARY_EXPR(Expression *expr, const Program *prog) {  // TODO: Finish semantics
         TypeSpec ts{};
         Expression *child = nullptr;
         bool isTypeCast = false;
@@ -662,7 +655,7 @@ namespace SoftLang {
             P_TRYSYS(expr->ctorNeg());
             P_TRYSYS(expr->makeChild(&child));
 
-            P_REQ_NONTERM(UNARY_EXPR, child);
+            P_REQ_NONTERM(UNARY_EXPR, child, prog);
 
             P_OK();
         }
@@ -670,7 +663,7 @@ namespace SoftLang {
         if (cur()->getPunct() == Token::PUNCT_ADD) {
             next();
 
-            P_REQ_NONTERM(UNARY_EXPR, expr);
+            P_REQ_NONTERM(UNARY_EXPR, expr, prog);
 
             P_OK();
         }
@@ -678,7 +671,7 @@ namespace SoftLang {
         if (cur()->getPunct() == Token::PUNCT_LPAR) {
             next();
 
-            P_REQ_NONTERM(EXPR, expr);
+            P_REQ_NONTERM(EXPR, expr, prog);
 
             P_REQ_PUNCT(RPAR);
 
@@ -693,7 +686,7 @@ namespace SoftLang {
             P_TRYSYS(expr->makeChild(&child));
 
             P_REQ_PUNCT(COLON);
-            P_REQ_NONTERM(UNARY_EXPR, child);
+            P_REQ_NONTERM(UNARY_EXPR, child, prog);
 
             P_OK();
         }
@@ -704,14 +697,13 @@ namespace SoftLang {
             P_OK();
         }
 
-        P_TRY(parse_FUNC_CALL(expr), P_OK(), restore(saved));
+        P_TRY(parse_FUNC_CALL(expr, prog), P_OK(), restore(saved));
 
         P_REQ_NONTERM(VAR_EXPR, expr);
 
         P_OK();
 
     error:
-        expr->dtor();
         ts.dtor();
 
         P_BAD();
@@ -773,7 +765,7 @@ namespace SoftLang {
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_FUNC_CALL(Expression *expr) {
+    Parser::Error_e Parser::parse_FUNC_CALL(Expression *expr, const Program *prog) {
         const Token *name = nullptr;
 
         P_REQ_NONTERM(FUNC, &name);
@@ -782,7 +774,7 @@ namespace SoftLang {
 
         P_REQ_PUNCT(LPAR);
 
-        P_REQ_NONTERM(FUNC_ARGS, expr);
+        P_REQ_NONTERM(FUNC_ARGS, expr, prog);
 
         P_REQ_PUNCT(RPAR);
 
@@ -792,14 +784,14 @@ namespace SoftLang {
         P_BAD();
     }
 
-    Parser::Error_e Parser::parse_FUNC_ARGS(Expression *expr) {
+    Parser::Error_e Parser::parse_FUNC_ARGS(Expression *expr, const Program *prog) {
         Expression *child = nullptr;
 
         bool repeat = true;
 
         while (repeat) {
             P_TRYSYS(expr->makeChild(&child));
-            P_REQ_NONTERM(EXPR, child);
+            P_REQ_NONTERM(EXPR, child, prog);
 
             repeat = next()->getPunct() == Token::PUNCT_COMMA;
         }
