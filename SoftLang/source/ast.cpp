@@ -365,12 +365,14 @@ namespace SoftLang {
     }
 
     bool Statement::ctor(const Program *new_prog) {
-        VSETTYPE(this, Empty);
+        TRY_B(ctor());
 
         prog = new_prog;
 
         return false;
     }
+
+    // TODO
 
     bool Statement::ctorCompound() {
         VSETTYPE(this, Compound);
@@ -449,27 +451,62 @@ namespace SoftLang {
     #include "stmttypes.dsl.h"
     #undef DEF_TYPE
 
-    // TODO
-
     void Statement::VMIN(Compound, dtor)() {
+        code.dtor();
     }
 
     void Statement::VMIN(Return, dtor)() {
+        expr.dtor();
     }
 
     void Statement::VMIN(Loop, dtor)() {
+        expr.dtor();
+        code.dtor();
     }
 
     void Statement::VMIN(Cond, dtor)() {
+        expr.dtor();
+        code.dtor();
+        altCode.dtor();
     }
 
-    void Statement::VMIN(VarDecl, dtor)() {
+    void Statement::VMIN(VarDecl, dtor)(FILE *ofile) {
     }
 
-    void Statement::VMIN(Expr, dtor)() {
+    void Statement::VMIN(Expr, dtor)(FILE *ofile) {
     }
 
-    void Statement::VMIN(Empty, dtor)() {
+    void Statement::VMIN(Empty, dtor)(FILE *ofile) {
+    }
+
+
+    bool Statement::VMIN(Compound, compile)(FILE *ofile) {
+        TRY_B(code.compile(ofile));
+
+        return false;
+    }
+
+    bool Statement::VMIN(Return, compile)(FILE *ofile) {
+        TRY_B(expr.compile(ofile));
+
+        fprintf(ofile, "ret ");
+
+        return false;
+    }
+
+    bool Statement::VMIN(Loop, compile)(FILE *ofile) {
+    }
+
+    bool Statement::VMIN(Cond, compile)(FILE *ofile) {
+    }
+
+    bool Statement::VMIN(VarDecl, compile)(FILE *ofile) {
+    }
+
+    bool Statement::VMIN(Expr, compile)(FILE *ofile) {
+    }
+
+    bool Statement::VMIN(Empty, compile)(FILE *ofile) {
     }
 
     #define DEF_TYPE(NAME) \
