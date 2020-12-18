@@ -88,7 +88,7 @@ namespace SoftLang {
         name = {};
     }
 
-    bool Var::compile(const Scope *scope, FILE *ofile) {
+    bool Var::compile(FILE *ofile, const Scope *scope) {
         if (!scope->hasVar(this)) {
             ERR("Unknown variable \"%.*s\"", name->getLength(), name->getStr());
 
@@ -126,17 +126,20 @@ namespace SoftLang {
     }
 
     uint32_t Scope::getOffset(const Var *var) const {
-        if (vars.contains(var->getName()))
-            return vars.get(var->getName());
+        const Scope *cur = this;
 
-        if (parent)
-            return parent->getOffset(var);
+        while (cur && !cur->vars.contains(var->getName())) {
+            cur = cur->parent;
+        }
 
-        return -1;
+        if (!cur)
+            return -1;
+
+        return cur->vars.get(var->getName());
     }
 
     bool Scope::hasVar(const Var *var) const {
-        return vars.contains(var->getName()) || (parent && parent->hasVar(var));
+        uint32_t getFrameSize() const;
     }
 
     bool Scope::addVar(const Var *var) {
@@ -157,6 +160,19 @@ namespace SoftLang {
 
     void Scope::setParent(const Scope *new_parent) {
         parent = new_parent;
+    }
+
+    uint32_t Scope::getFrameSize() const {
+        uint32_t result = 0;
+        const Scope *cur = this;
+
+        while (cur) {
+            result += cur->curOffset;
+
+            cur = cur->parent;
+        }
+
+        return result;
     }
 
     bool Expression::ctor() {
@@ -270,7 +286,7 @@ namespace SoftLang {
             return;
 
         Expression singleChild{};
-        memcpy(singleChild, &children[0], sizeof(Expression));
+        memcpy(&singleChild, &children[0], sizeof(Expression));
 
         children.pop();  // Destructor intentionally not called
 
@@ -359,8 +375,12 @@ namespace SoftLang {
         }
     }
 
-    bool Code::compile(FILE *ofile, const Function *func, const Program *prog) {
+    bool Code::compile(FILE *ofile, TypeSpec rtype, const Program *prog) {
+        for (unsigned i = 0; i < stmts.getSize(); ++i) {
+            TRY_B(stmts[i].compile(ofile, scope, rtype, prog));
+        }
 
+        return false;
     }
 
     Scope *Code::getScope() {
@@ -446,6 +466,10 @@ namespace SoftLang {
         return false;
     }
 
+    bool Statement::compile(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog) {
+        return VCALL(this, compile, ofile, scope, rtype, prog);
+    }
+
     #define DEF_TYPE(NAME) \
         bool Statement::is##NAME() const { \
             return VISINST(this, NAME); \
@@ -485,33 +509,114 @@ namespace SoftLang {
     }
 
 
-    bool Statement::VMIN(Compound, compile)(FILE *ofile) {
-        TRY_B(code.compile(ofile));
+    bool Statement::VMIN(Compound, compile)(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog) {
+        TRY_B(code.compile(ofile, rtype, prog));
 
         return false;
     }
 
-    bool Statement::VMIN(Return, compile)(FILE *ofile) {
-        TRY_B(expr.compile(ofile));
+    bool Statement::VMIN(Return, compile)(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog) {
+        if (rtype.getType() == TypeSpec::T_VOID) {
+            if (!expr.isVoid()) {
+                ERR("Void functions mustn't return values");
 
-        fprintf(ofile, "ret ");
+                return true;
+            }  // TODO: Maybe also compile void expression, but make it trivial?
+        } else {
+            TRY_B(expr.compile(ofile));  // TODO: Allowed type mask and other options
+        }
+
+        fprintf(ofile, "ret\n");
 
         return false;
     }
 
-    bool Statement::VMIN(Loop, compile)(FILE *ofile) {
+    bool Statement::VMIN(Loop, compile)(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog) {
+        fprintf(ofile,
+                "; while (\n"
+                "$__loop_in_%p:\n"  // TODO: Maybe change to something more adequate
+                , this);
+
+        TRY_B(expr.compile(ofile));  // TODO: Expr stuff
+
+        fprintf(ofile,
+                "jt dwl:$__loop_out_%p\n"
+                "; ) {\n"
+                , this);
+
+        TRY_B(code.compile(ofile, rtype, prog));
+
+        fprintf(ofile,
+                "jmp dwl:$__loop_in_%p\n"
+                "$__loop_out_%p:\n"
+                "; }\n"
+                , this, this);
+
+        return false;
     }
 
-    bool Statement::VMIN(Cond, compile)(FILE *ofile) {
+    bool Statement::VMIN(Cond, compile)(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog) {
+        // TODO: Same as for the loop
+        // TODO: Maybe simplify the empty else
+
+        fprintf(ofile,
+                "; if (\n");
+
+        TRY_B(expr.compile(ofile));  // TODO: Expr stuff
+
+        fprintf(ofile,
+                "jt dwl:$__cond_t_%p\n"
+                "jmp dwl:$__cond_f_%p\n"
+                "; ) {\n"
+                , this, this);
+
+        TRY_B(code.compile(ofile, rtype, prog));
+
+        fprintf(ofile,
+                "jmp dwl:$__cond_end_%p\n"
+                "; } else {\n"
+                "$__cond_f_%p:\n"
+                , this, this);
+
+        TRY_B(altCode.compile(ofile, rtype, prog));
+
+        fprintf(ofile,
+                "$__cond_end_%p:\n"
+                "; }\n"
+                , this);
+
+        return false;
     }
 
-    bool Statement::VMIN(VarDecl, compile)(FILE *ofile) {
+    bool Statement::VMIN(VarDecl, compile)(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog) {
+        TRY_B(scope->addVar(&var));
+
+        // TODO: More precise logging (type, etc.)
+        fprintf(ofile,
+                "; var %.*s\n",
+                var.getName()->getLength(), var.getName()->getStr());
+
+        if (expr->isVoid())
+            return false;
+
+        TRY_B(expr.compile(ofile));  // TODO: Expr again
+
+        fprintf(ofile,
+                "; = \n"
+                "pop ");
+        TRY_B(var.compile(ofile, scope));
+        fprintf(ofile, "\n");
+
+        return false;
     }
 
-    bool Statement::VMIN(Expr, compile)(FILE *ofile) {
+    bool Statement::VMIN(Expr, compile)(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog) {
+        TRY_B(expr.compile(ofile));  // TODO: Expr bla-bla-bla
+
+        fprintf(ofile, "popv\n");
     }
 
-    bool Statement::VMIN(Empty, compile)(FILE *ofile) {
+    bool Statement::VMIN(Empty, compile)(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog) {
     }
 
     #define DEF_TYPE(NAME) \
@@ -571,9 +676,9 @@ namespace SoftLang {
     }
 
     bool Function::compile(FILE* ofile, const Program *prog) {
-        fprintf(ofile, "\n$%.*s:\n", name->getLength(), name->getStr());
+        fprintf(ofile, "\n$__func_%.*s:\n", name->getLength(), name->getStr());
 
-        TRY_B(code.compile(ofile, this, prog));
+        TRY_B(code.compile(ofile, rtype, prog));
 
         fprintf(ofile, "ret  ; Force end of $%.*s\n\n", name->getLength(), name->getStr());
     }

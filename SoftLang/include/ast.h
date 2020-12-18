@@ -56,7 +56,7 @@ namespace SoftLang {
 
         void dtor();
 
-        bool compile(const Scope *scope, FILE *ofile);
+        bool compile(FILE *ofile, const Scope *scope);
 
         const TypeSpec getType() const;
 
@@ -87,6 +87,8 @@ namespace SoftLang {
         bool addVar(const Var *var);
 
         void setParent(const Scope *new_parent);
+
+        uint32_t getFrameSize() const;
 
     private:
 
@@ -225,7 +227,7 @@ namespace SoftLang {
 
         void simplifyLastEmpty();
 
-        bool compile(FILE *ofile, const Function *func, const Program *prog);
+        bool compile(FILE *ofile, TypeSpec rtype, const Program *prog);
 
         Scope *getScope();
 
@@ -241,7 +243,7 @@ namespace SoftLang {
 
         VTABLE_STRUCT {
             VDECL(Statement, void, dtor);
-            VDECL(Statement, bool, compile, FILE *ofile);
+            VDECL(Statement, bool, compile, FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog);
         };
 
         VTABLE_FIELD
@@ -278,7 +280,7 @@ namespace SoftLang {
 
         bool makeVar(Var **out_var);
 
-        bool compile(FILE *ofile);
+        bool compile(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog);
 
         #define DEF_TYPE(NAME) \
             bool is##NAME() const;
@@ -304,7 +306,7 @@ namespace SoftLang {
         #undef DEF_TYPE
 
         #define DEF_TYPE(NAME) \
-            bool VMIN(NAME, compile)(FILE *ofile/*, const Program *prog*/);
+            bool VMIN(NAME, compile)(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog);
         #include "stmttypes.dsl.h"
         #undef DEF_TYPE
 

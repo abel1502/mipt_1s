@@ -68,7 +68,7 @@ namespace SoftLang {
 
         Error_e parse_STMTS(Code *code);
 
-        Error_e parse_STMT(Statement *stmt);
+        Error_e parse_STMT(Statement *stmt, const Scope *parentScope);
 
         Error_e parse_COMPOUND_STMT(Code *code, const Scope *parentScope);
 
