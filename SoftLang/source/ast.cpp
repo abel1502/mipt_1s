@@ -65,6 +65,10 @@ namespace SoftLang {
         return -1;
     }
 
+    TypeSpec::Type_e TypeSpec::getType() const {
+        return type;
+    }
+
     bool Var::ctor() {
         ts = {};
         name = nullptr;
@@ -109,23 +113,13 @@ namespace SoftLang {
 
     bool Scope::ctor() {
         TRY_B(vars.ctor());
-        prog = nullptr;
         curOffset = 0;
-
-        return false;
-    }
-
-    bool Scope::ctor(const Program *new_prog) {
-        TRY_B(ctor());
-
-        prog = new_prog;
 
         return false;
     }
 
     void Scope::dtor() {
         vars.dtor();
-        prog = nullptr;
     }
 
     uint32_t Scope::getOffset(const Var *var) const {
@@ -157,12 +151,6 @@ namespace SoftLang {
 
     bool Expression::ctor() {
         // TODO: zero-fill?
-        return false;
-    }
-
-    bool Expression::ctor(const Program *new_prog) {
-        prog = new_prog;
-
         return false;
     }
 
@@ -271,7 +259,8 @@ namespace SoftLang {
         if (!isPolyOp() || children.getSize() != 1)
             return;
 
-        memcpy(this, &children[0], sizeof(Expression));  // Let's do it the bold way
+        // TODO: Actually, this wouldn't destroy stuff properly
+        memcpy(this, &children[0], sizeof(Expression));
     }
 
     #define DEF_TYPE(NAME) \
@@ -327,15 +316,6 @@ namespace SoftLang {
         return false;
     }
 
-    bool Code::ctor(const Program *new_prog) {
-        TRY_B(stmts.ctor());
-        TRY_B(scope.ctor(new_prog));
-
-        prog = new_prog;
-
-        return false;
-    }
-
     void Code::dtor() {
         stmts.dtor();
         scope.dtor();
@@ -357,17 +337,13 @@ namespace SoftLang {
         }
     }
 
+    bool Code::compile(FILE *ofile, const Function *func, const Program *prog) {
+        // TODO
+    }
+
 
     bool Statement::ctor() {
         VSETTYPE(this, Empty);
-
-        return false;
-    }
-
-    bool Statement::ctor(const Program *new_prog) {
-        TRY_B(ctor());
-
-        prog = new_prog;
 
         return false;
     }
@@ -470,13 +446,16 @@ namespace SoftLang {
         altCode.dtor();
     }
 
-    void Statement::VMIN(VarDecl, dtor)(FILE *ofile) {
+    void Statement::VMIN(VarDecl, dtor)() {
+        var.dtor();
+        expr.dtor();
     }
 
-    void Statement::VMIN(Expr, dtor)(FILE *ofile) {
+    void Statement::VMIN(Expr, dtor)() {
+        expr.dtor();
     }
 
-    void Statement::VMIN(Empty, dtor)(FILE *ofile) {
+    void Statement::VMIN(Empty, dtor)() {
     }
 
 
@@ -527,12 +506,11 @@ namespace SoftLang {
         return false;
     }
 
-    bool Function::ctor(TypeSpec new_rtype, const Token* new_name, const Program *new_prog) {
+    bool Function::ctor(TypeSpec new_rtype, const Token* new_name) {
         TRY_B(ctor());
 
         rtype = new_rtype;
         name = new_name;
-        prog = new_prog;
 
         return false;
     }
@@ -558,8 +536,28 @@ namespace SoftLang {
         return false;
     }
 
-    bool Function::compile(FILE* ofile) {
-        //
+    bool Function::registerArgs() {
+        for (unsigned i = 0; i < args.getSize(); ++i) {
+            TRY_B(code.scope.addVar(&args[i]));
+        }
+
+        return false;
+    }
+
+    bool Function::compile(FILE* ofile, const Program *prog) {
+        fprintf(ofile, "\n$%.*s:\n", name->getLength(), name->getStr());
+
+        TRY_B(code.compile(ofile, this, prog));
+
+        fprintf(ofile, "ret  ; Force end of $%.*s\n\n", name->getLength(), name->getStr());
+    }
+
+    bool Function::isMain() const {
+        const char MAIN_NAME[] = "main";
+
+        return name->getLength() == sizeof(MAIN_NAME) &&
+               rtype.getType() == TypeSpec::T_VOID &&
+               strncmp(name->getStr(), MAIN_NAME, sizeof(MAIN_NAME)) == 0;
     }
 
     bool Program::ctor() {
@@ -581,7 +579,19 @@ namespace SoftLang {
     }
 
     bool Program::compile(FILE* ofile) {
-        //
+        bool seenMain = false;
+
+        for (unsigned i = 0; i < functions.getSize(); ++i) {
+            TRY_B(functions[i].compile(ofile, this));
+
+            seenMain |= functions[i].isMain();
+        }
+
+        if (seenMain) {
+            ERR("No main function present. (If it exists, make sure it doesn't return anything)");
+        }
+
+        return false;
     }
 
 }

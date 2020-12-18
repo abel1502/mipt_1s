@@ -35,6 +35,8 @@ namespace SoftLang {
 
         uint32_t getSize() const;
 
+        Type_e getType() const;
+
     private:
 
         Type_e type;
@@ -76,8 +78,6 @@ namespace SoftLang {
 
         bool ctor();
 
-        bool ctor(const Program *new_prog);
-
         void dtor();
 
         uint32_t getOffset(const Var *var) const;
@@ -88,7 +88,6 @@ namespace SoftLang {
 
     private:
 
-        const Program *prog;
         uint32_t curOffset;
         NameDict<uint32_t> vars;
 
@@ -137,8 +136,6 @@ namespace SoftLang {
 
         bool ctor();
 
-        bool ctor(const Program *new_prog);
-
         bool ctorVoid();
 
         bool ctorAsgn();
@@ -173,8 +170,6 @@ namespace SoftLang {
         #undef DEF_TYPE
 
     private:
-
-        const Program *prog;
 
         union {
             // Void
@@ -212,15 +207,16 @@ namespace SoftLang {
     };
 
     class Statement;
+    class Function;
 
     class Code {
+    friend class Function;
+
     public:
 
         FACTORIES(Code)
 
         bool ctor();
-
-        bool ctor(const Program *new_prog);
 
         void dtor();
 
@@ -228,11 +224,10 @@ namespace SoftLang {
 
         void simplifyLastEmpty();
 
-        bool compile(FILE *ofile);
+        bool compile(FILE *ofile, const Function *func, const Program *prog);
 
     private:
 
-        const Program *prog;
         Scope scope;
         Vector<Statement> stmts;
 
@@ -255,8 +250,6 @@ namespace SoftLang {
         FACTORIES(Statement)
 
         bool ctor();
-
-        bool ctor(const Program *new_prog);
 
         bool ctorCompound();
 
@@ -291,7 +284,6 @@ namespace SoftLang {
 
     private:
 
-        const Program *prog;
         Expression expr;
 
         union {
@@ -309,7 +301,7 @@ namespace SoftLang {
         #undef DEF_TYPE
 
         #define DEF_TYPE(NAME) \
-            bool VMIN(NAME, compile)(FILE *ofile);
+            bool VMIN(NAME, compile)(FILE *ofile/*, const Program *prog*/);
         #include "stmttypes.dsl.h"
         #undef DEF_TYPE
 
@@ -322,7 +314,7 @@ namespace SoftLang {
 
         bool ctor();
 
-        bool ctor(TypeSpec new_rtype, const Token *new_name, const Program *new_prog);
+        bool ctor(TypeSpec new_rtype, const Token *new_name);
 
         void dtor();
 
@@ -332,11 +324,15 @@ namespace SoftLang {
         /// This one will always return &code
         bool makeCode(Code **code);
 
-        bool compile(FILE *ofile);
+        /// Register all args into the current scope
+        bool registerArgs();
+
+        bool compile(FILE *ofile, const Program *prog);
+
+        bool isMain() const;
 
     private:
 
-        const Program *prog;
         Vector<Var> args;
         Code code;
         TypeSpec rtype;

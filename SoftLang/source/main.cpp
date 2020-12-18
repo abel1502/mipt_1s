@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
     test.dtor();*/
 
     const char testCode[] =
-        "def int4:main() {\n"
+        "def main() {\n"
         "    var int4:a;\n"
         "    var int4:b = 5;\n"
         "    b *= 17;\n"
@@ -60,7 +60,9 @@ int main(int argc, char **argv) {
         "        print_dbl(dbl:a + 0xff.ff);\n"
         "    }\n"
         "    \n"
-        "    ret a + b;"
+        "    print_dbl(a + b);\n"
+        "    \n"
+        "    ret;"
         "}\n";
 
     FileBuf buf{};
