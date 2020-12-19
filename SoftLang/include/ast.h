@@ -47,7 +47,7 @@ namespace SoftLang {
 
         void dtor();
 
-        bool compile(FILE *ofile);
+        bool compile(FILE *ofile) const;
 
         uint32_t getSize() const;
 
@@ -57,6 +57,15 @@ namespace SoftLang {
 
         static constexpr bool isMaskUnambiguous(Mask mask);
 
+    };
+
+    //================================================================================
+
+    class Var;
+
+    struct VarInfo {
+        uint32_t offset;
+        const Var *var;
     };
 
     //================================================================================
@@ -74,7 +83,9 @@ namespace SoftLang {
 
         void dtor();
 
-        bool compile(FILE *ofile, const Scope *scope);
+        bool compile(FILE *ofile, const Scope *scope) const;
+
+        static bool compile(FILE *ofile, VarInfo vi);
 
         const TypeSpec getType() const;
 
@@ -93,12 +104,6 @@ namespace SoftLang {
 
     class Scope {
     public:
-
-        struct VarInfo {
-            uint32_t offset;
-            const Var *var;
-        };
-
 
         FACTORIES(Scope)
 
@@ -235,6 +240,9 @@ namespace SoftLang {
         TypeSpec::Mask typeMask;
 
         Vector<Expression> children;
+
+
+        bool compileVarRecepient(FILE *ofile, Scope *scope, const Program *prog);
 
         #define DEF_TYPE(NAME) \
             void VMIN(NAME, dtor)();

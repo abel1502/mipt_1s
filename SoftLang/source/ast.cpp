@@ -16,7 +16,7 @@ namespace SoftLang {
     }
 
     bool TypeSpec::ctor(Mask mask) {
-        if (!isMaskUnambiguous(mask))
+        if (!mask || !isMaskUnambiguous(mask))
             return true;
 
         type = (Type_e)__builtin_ctz(mask);  // Almost txlib level magic)
@@ -30,7 +30,7 @@ namespace SoftLang {
         type = TypeSpec::T_VOID;
     }
 
-    bool TypeSpec::compile(FILE *ofile) {
+    bool TypeSpec::compile(FILE *ofile) const {
         switch (type) {
         case TypeSpec::T_DBL:
             fprintf(ofile, "df:");
@@ -90,6 +90,10 @@ namespace SoftLang {
 
     //================================================================================
 
+    // Reserved for VarInfo
+
+    //================================================================================
+
     bool Var::ctor() {
         ts = {};
         name = nullptr;
@@ -109,9 +113,11 @@ namespace SoftLang {
         name = {};
     }
 
-    bool Var::compile(FILE *ofile, const Scope *scope) {
-        Scope::VarInfo vi = scope->getInfo(name);
+    bool Var::compile(FILE *ofile, const Scope *scope) const {
+        return compile(ofile, scope->getInfo(name));
+    }
 
+    bool Var::compile(FILE *ofile, VarInfo vi) {
         if (!vi.var) {
             //ERR("Unknown variable \"%.*s\"", name->getLength(), name->getStr());
             assert(false);
@@ -119,8 +125,8 @@ namespace SoftLang {
             return true;
         }
 
-        TRY_B(ts.compile(ofile));
-        fprintf(ofile, "[rzx+%u]", vi.offset);
+        TRY_B(vi.var->ts.compile(ofile));
+        fprintf(ofile, "[rz+%u]", vi.offset);
 
         return false;
     }
@@ -149,11 +155,11 @@ namespace SoftLang {
         curOffset = 0;
     }
 
-    Scope::VarInfo Scope::getInfo(const Var *var) const {
+    VarInfo Scope::getInfo(const Var *var) const {
         return getInfo(var->getName());
     }
 
-    Scope::VarInfo Scope::getInfo(const Token *name) const {
+    VarInfo Scope::getInfo(const Token *name) const {
         const Scope *cur = this;
 
         while (cur && !cur->vars.contains(name)) {
@@ -382,6 +388,21 @@ namespace SoftLang {
         return VCALL(this, compile, ofile, scope, prog);
     }
 
+    bool Expression::compileVarRecepient(FILE *ofile, Scope *scope, const Program *) {
+        assert(isVarRef());
+
+        fprintf(ofile,
+                "dup\n"  // TODO: Maybe not dup here
+                "pop ");
+
+        VarInfo vi = scope->getInfo(name);
+        TRY_B(Var::compile(ofile, vi));
+
+        fprintf(ofile, "\n");
+
+        return false;
+    }
+
     #define DEF_TYPE(NAME) \
         bool Expression::is##NAME() const { \
             return VISINST(this, NAME); \
@@ -473,7 +494,7 @@ namespace SoftLang {
     TypeSpec::Mask Expression::VMIN(VarRef, deduceType)(Scope *scope, const Program *) {
         assert(name->isName());
 
-        Scope::VarInfo vi = scope->getInfo(name);
+        VarInfo vi = scope->getInfo(name);
 
         if (!vi.var) {
             //ERR("Unknown variable, type indeterminable: \"%.*s\"", name->getLength(), name->getStr());
@@ -502,9 +523,68 @@ namespace SoftLang {
 
 
     bool Expression::VMIN(Void, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+        // Let's leave it trivial for now, I guess
+        TypeSpec exprType{};
+        TRY_BC(exprType.ctor(typeMask), ERR("Ambiguous type"));
+        TRY_B(exprType.type != TypeSpec::T_VOID);
+        exprType.dtor();
+
+        return false;
     }
 
     bool Expression::VMIN(Asgn, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+        assert(children.getSize() == 2);
+
+        TypeSpec exprType{};
+        TRY_BC(exprType.ctor(typeMask), ERR("Ambiguous type"));
+        TRY_B(exprType.type == TypeSpec::T_VOID);
+
+        if (am != Expression::AM_EQ) {
+            TRY_B(children[0].compile(ofile, scope, prog));
+        }
+
+        TRY_B(children[1].compile(ofile, scope, prog));
+
+        if (am != Expression::AM_EQ) {
+            switch (am) {
+            case AM_ADDEQ:
+                fprintf(ofile, "add ");
+                break;
+
+            case AM_SUBEQ:
+                fprintf(ofile, "sub ");
+                break;
+
+            case AM_MULEQ:
+                fprintf(ofile, "mul ");
+                break;
+
+            case AM_DIVEQ:
+                fprintf(ofile, "div ");
+                break;
+
+            case AM_MODEQ:
+                fprintf(ofile, "mod ");
+
+                TRY_BC(exprType.type == TypeSpec::T_DBL, ERR("Remainder can't be computed for non-integral types"));
+                break;
+
+            default:
+                assert(false);
+                return true;
+            }
+
+            TRY_B(exprType.compile(ofile));
+
+            fprintf(ofile, "\n");
+        }
+
+
+        TRY_B(children[0].compileVarRecepient(ofile, scope, prog));
+
+        exprType.dtor();
+
+        return false;
     }
 
     bool Expression::VMIN(PolyOp, compile)(FILE *ofile, Scope *scope, const Program *prog) {
@@ -911,6 +991,16 @@ namespace SoftLang {
     }
 
     bool Program::compile(FILE* ofile) {
+        fprintf(ofile,
+                "; === [ ALFC ver. NULL ] ===\n\n"
+                "; Entrypoint + loader:\n"
+                "$main:\n"
+                "    push dwl:4096\n"
+                "    pop dwl:rz  ; Function frame counter\n"
+                "    call dwl:$__func_main\n"  // TODO: If we decide to actually have void as zero, popv needs to be placed here
+                "    hlt\n"
+                "\n");
+
         bool seenMain = false;
 
         for (unsigned i = 0; i < functions.getSize(); ++i) {
