@@ -15,6 +15,17 @@ namespace SoftLang {
         return false;
     }
 
+    bool TypeSpec::ctor(Mask mask) {
+        if (!isMaskUnambiguous(mask))
+            return true;
+
+        type = (Type_e)__builtin_ctz(mask);  // Almost txlib level magic)
+
+        assert(type < TYPES_COUNT);
+
+        return true;
+    }
+
     void TypeSpec::dtor() {
         type = TypeSpec::T_VOID;
     }
@@ -65,6 +76,8 @@ namespace SoftLang {
         return -1;
     }
 
+    //================================================================================
+
     bool Var::ctor() {
         ts = {};
         name = nullptr;
@@ -85,16 +98,17 @@ namespace SoftLang {
     }
 
     bool Var::compile(FILE *ofile, const Scope *scope) {
-        if (!scope->hasVar(this)) {
-            ERR("Unknown variable \"%.*s\"", name->getLength(), name->getStr());
+        Scope::VarInfo vi = scope->getInfo(name);
+
+        if (!vi.var) {
+            //ERR("Unknown variable \"%.*s\"", name->getLength(), name->getStr());
+            assert(false);
 
             return true;
         }
 
-        uint32_t offset = scope->getOffset(this);
-
         TRY_B(ts.compile(ofile));
-        fprintf(ofile, "[rzx+%u]", offset);
+        fprintf(ofile, "[rzx+%u]", vi.offset);
 
         return false;
     }
@@ -106,6 +120,8 @@ namespace SoftLang {
     const Token *Var::getName() const {
         return name;
     }
+
+    //================================================================================
 
     bool Scope::ctor() {
         TRY_B(vars.ctor());
@@ -121,23 +137,31 @@ namespace SoftLang {
         curOffset = 0;
     }
 
-    uint32_t Scope::getOffset(const Var *var) const {
+    Scope::VarInfo Scope::getInfo(const Var *var) const {
+        return getInfo(var->getName());
+    }
+
+    Scope::VarInfo Scope::getInfo(const Token *name) const {
         const Scope *cur = this;
 
-        while (cur && !cur->vars.contains(var->getName())) {
+        while (cur && !cur->vars.contains(name)) {
             cur = cur->parent;
         }
 
         if (!cur)
-            return -1;
+            return {(uint32_t)-1, nullptr};
 
-        return cur->vars.get(var->getName());
+        return cur->vars.get(name);
     }
 
     bool Scope::hasVar(const Var *var) const {
+        return hasVar(var->getName());
+    }
+
+    bool Scope::hasVar(const Token *name) const {
         const Scope *cur = this;
 
-        while (cur && !cur->vars.contains(var->getName())) {
+        while (cur && !cur->vars.contains(name)) {
             cur = cur->parent;
         }
 
@@ -155,7 +179,7 @@ namespace SoftLang {
 
         curOffset += var->getType().getSize();
 
-        TRY_B(vars.set(var->getName(), offset));
+        TRY_B(vars.set(var->getName(), {offset, var}));
 
         return false;
     }
@@ -177,18 +201,28 @@ namespace SoftLang {
         return result;
     }
 
+    //================================================================================
+
     bool Expression::ctor() {
+        children.ctor();
+        typeMask = TypeSpec::AllMask;
         // TODO: zero-fill?
         return false;
     }
 
     bool Expression::ctorVoid() {
+        TRY_B(ctor());
+
         VSETTYPE(this, Void);
+
+        typeMask = TypeSpec::VoidMask;
 
         return false;
     }
 
     bool Expression::ctorAsgn() {
+        TRY_B(ctor());
+
         VSETTYPE(this, Asgn);
 
         am = Expression::AM_EQ;
@@ -198,6 +232,8 @@ namespace SoftLang {
     }
 
     bool Expression::ctorPolyOp() {
+        TRY_B(ctor());
+
         VSETTYPE(this, PolyOp);
 
         TRY_B(ops.ctor());
@@ -207,6 +243,8 @@ namespace SoftLang {
     }
 
     bool Expression::ctorNeg() {
+        TRY_B(ctor());
+
         VSETTYPE(this, Neg);
 
         TRY_B(children.ctor());
@@ -215,8 +253,11 @@ namespace SoftLang {
     }
 
     bool Expression::ctorCast(TypeSpec ts) {
+        TRY_B(ctor());
+
         VSETTYPE(this, Cast);
 
+        typeMask = ts.getMask();
         cast = ts;
         TRY_B(children.ctor());
 
@@ -224,15 +265,25 @@ namespace SoftLang {
     }
 
     bool Expression::ctorNum(const Token *new_num) {
+        TRY_B(ctor());
+
         VSETTYPE(this, Num);
 
         assert(new_num->isNum());
         num = new_num;
 
+        if (num->isInteger()) {
+            typeMask = TypeSpec::Int4Mask | TypeSpec::Int8Mask;
+        } else {
+            typeMask = TypeSpec::DblMask;
+        }
+
         return false;
     }
 
     bool Expression::ctorVarRef(const Token *new_name) {
+        TRY_B(ctor());
+
         VSETTYPE(this, VarRef);
 
         assert(new_name->isName());
@@ -242,6 +293,8 @@ namespace SoftLang {
     }
 
     bool Expression::ctorFuncCall(const Token* new_name) {
+        TRY_B(ctor());
+
         VSETTYPE(this, FuncCall);
 
         assert(new_name->isName());
@@ -253,6 +306,7 @@ namespace SoftLang {
 
     void Expression::dtor() {
         children.dtor();
+        typeMask = TypeSpec::NoneMask;
         VCALL(this, dtor);
     }
 
@@ -302,6 +356,20 @@ namespace SoftLang {
         // And now the singleChild get silently removed, with no destructors called...
     }
 
+    TypeSpec::Mask Expression::deduceType(TypeSpec::Mask mask, Scope *scope, const Program *prog) {
+        if (!typeMask || TypeSpec::isMaskUnambiguous(typeMask)) {  // TODO: Maybe a different condition
+            return typeMask;
+        }
+
+        typeMask &= mask;
+
+        return typeMask &= VCALL(this, deduceType, scope, prog);
+    }
+
+    bool Expression::compile(FILE *ofile, Scope *scope, const Program *prog) {
+        return VCALL(this, compile, ofile, scope, prog);
+    }
+
     #define DEF_TYPE(NAME) \
         bool Expression::is##NAME() const { \
             return VISINST(this, NAME); \
@@ -339,14 +407,123 @@ namespace SoftLang {
         name = nullptr;
     }
 
+
+    TypeSpec::Mask Expression::VMIN(Void, deduceType)(Scope *scope, const Program *prog) {
+        return TypeSpec::VoidMask;
+    }
+
+    TypeSpec::Mask Expression::VMIN(Asgn, deduceType)(Scope *scope, const Program *prog) {
+        assert(children.getSize() == 2);
+
+        typeMask &= children[0].deduceType(typeMask, scope, prog);
+        typeMask &= children[1].deduceType(typeMask, scope, prog);
+
+        return typeMask;
+    }
+
+    TypeSpec::Mask Expression::VMIN(PolyOp, deduceType)(Scope *scope, const Program *prog) {
+        for (unsigned i = 0; typeMask && i < children.getSize(); ++i) {
+            typeMask &= children[i].deduceType(typeMask, scope, prog);
+        }
+
+        return typeMask;
+    }
+
+    TypeSpec::Mask Expression::VMIN(Neg, deduceType)(Scope *scope, const Program *prog) {
+        assert(children.getSize() == 1);
+
+        return children[0].deduceType(typeMask, scope, prog);
+    }
+
+    TypeSpec::Mask Expression::VMIN(Cast, deduceType)(Scope *scope, const Program *prog) {
+        assert(children.getSize() == 1);
+
+        /*
+        // Actually, this should probably be done during compilation, not type deduction
+        if (!children[0].deduceType(TypeSpec::AllMask & ~TypeSpec::VoidMask, scope, prog)) {
+            return TypeSpec::NoneMask;
+        }
+        */
+
+        return cast.getMask();
+    }
+
+    TypeSpec::Mask Expression::VMIN(Num, deduceType)(Scope *scope, const Program *prog) {
+        assert(num->isNum());
+
+        if (num->isInteger()) {
+            return TypeSpec::Int4Mask | TypeSpec::Int8Mask;
+        } else {
+            return TypeSpec::DblMask;
+        }
+    }
+
+    TypeSpec::Mask Expression::VMIN(VarRef, deduceType)(Scope *scope, const Program *prog) {
+        assert(name->isName());
+
+        Scope::VarInfo vi = scope->getInfo(name);
+
+        if (!vi.var) {
+            //ERR("Unknown variable, type indeterminable: \"%.*s\"", name->getLength(), name->getStr());
+
+            return TypeSpec::NoneMask;
+        }
+
+        return vi.var->getType().getMask();
+    }
+
+    TypeSpec::Mask Expression::VMIN(FuncCall, deduceType)(Scope *scope, const Program *prog) {
+        assert(name->isName());
+
+        // TODO: Pseudofuncs!!!!
+
+        const Function *func = prog->getFunction(name);
+
+        if (!func) {
+            //ERR("Unknown function, return type indeterminable: \"%.*s\"", name->getLength(), name->getStr());
+
+            return TypeSpec::NoneMask;
+        }
+
+        return func->getRtype().getMask();  // TODO: ?
+    }
+
+
+    bool Expression::VMIN(Void, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+    }
+
+    bool Expression::VMIN(Asgn, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+    }
+
+    bool Expression::VMIN(PolyOp, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+    }
+
+    bool Expression::VMIN(Neg, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+    }
+
+    bool Expression::VMIN(Cast, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+    }
+
+    bool Expression::VMIN(Num, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+    }
+
+    bool Expression::VMIN(VarRef, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+    }
+
+    bool Expression::VMIN(FuncCall, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+    }
+
+
     #define DEF_TYPE(NAME) \
         VTYPE_DEF(NAME, Expression) = { \
             Expression::VMIN(NAME, dtor), \
+            Expression::VMIN(NAME, deduceType), \
             Expression::VMIN(NAME, compile), \
         }
     #include "exprtypes.dsl.h"
     #undef DEF_TYPE
 
+    //================================================================================
 
     bool Code::ctor() {
         TRY_B(stmts.ctor());
@@ -389,6 +566,7 @@ namespace SoftLang {
         return &scope;
     }
 
+    //================================================================================
 
     bool Statement::ctor() {
         VSETTYPE(this, Empty);
@@ -523,7 +701,7 @@ namespace SoftLang {
                 return true;
             }  // TODO: Maybe also compile void expression, but make it trivial?
         } else {
-            TRY_B(expr.compile(ofile));  // TODO: Allowed type mask and other options
+            TRY_B(expr.compile(ofile, scope, prog));  // TODO: Allowed type mask and other options
         }
 
         fprintf(ofile, "ret\n");
@@ -537,7 +715,7 @@ namespace SoftLang {
                 "$__loop_in_%p:\n"  // TODO: Maybe change to something more adequate
                 , this);
 
-        TRY_B(expr.compile(ofile));  // TODO: Expr stuff
+        TRY_B(expr.compile(ofile, scope, prog));  // TODO: Expr stuff
 
         fprintf(ofile,
                 "jt dwl:$__loop_out_%p\n"
@@ -562,7 +740,7 @@ namespace SoftLang {
         fprintf(ofile,
                 "; if (\n");
 
-        TRY_B(expr.compile(ofile));  // TODO: Expr stuff
+        TRY_B(expr.compile(ofile, scope, prog));  // TODO: Expr stuff
 
         fprintf(ofile,
                 "jt dwl:$__cond_t_%p\n"
@@ -599,7 +777,7 @@ namespace SoftLang {
         if (expr.isVoid())
             return false;
 
-        TRY_B(expr.compile(ofile));  // TODO: Expr again
+        TRY_B(expr.compile(ofile, scope, prog));  // TODO: Expr again
 
         fprintf(ofile,
                 "; = \n"
@@ -611,7 +789,7 @@ namespace SoftLang {
     }
 
     bool Statement::VMIN(Expr, compile)(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog) {
-        TRY_B(expr.compile(ofile));  // TODO: Expr bla-bla-bla
+        TRY_B(expr.compile(ofile, scope, prog));  // TODO: Expr bla-bla-bla
 
         fprintf(ofile, "popv\n");
     }
@@ -627,6 +805,7 @@ namespace SoftLang {
     #include "stmttypes.dsl.h"
     #undef DEF_TYPE
 
+    //================================================================================
 
     bool Function::ctor() {
         TRY_B(args.ctor());
@@ -691,6 +870,16 @@ namespace SoftLang {
                strncmp(name->getStr(), MAIN_NAME, sizeof(MAIN_NAME)) == 0;
     }
 
+    TypeSpec Function::getRtype() const {
+        return rtype;
+    }
+
+    const Token *Function::getName() const {
+        return name;
+    }
+
+    //================================================================================
+
     bool Program::ctor() {
         TRY_B(functions.ctor());
 
@@ -723,6 +912,21 @@ namespace SoftLang {
         }
 
         return false;
+    }
+
+    const Function *Program::getFunction(const Token *name) const {
+        for (unsigned i = 0; i < functions.getSize(); ++i) {
+            const Token *curName = functions[i].getName();
+
+            // TODO: Encapsulate name token comparison into the token itself
+            if (name->getLength() == curName->getLength() &&
+                strncmp(name->getStr(), curName->getStr(), name->getLength()) == 0) {
+
+                return &functions[i];
+            }
+        }
+
+        return nullptr;
     }
 
 }

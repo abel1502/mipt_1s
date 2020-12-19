@@ -22,7 +22,20 @@ namespace SoftLang {
             T_INT8,
         };
 
+        static const unsigned TYPES_COUNT = 4;  // TODO: Needs manual adjustments
+
+        typedef unsigned Mask;
+
+        static constexpr Mask NoneMask = 0;
+        static constexpr Mask AllMask  = (1 << TYPES_COUNT) - 1;
+        static constexpr Mask VoidMask = 1 << T_VOID;
+        static constexpr Mask DblMask  = 1 << T_DBL;
+        static constexpr Mask Int4Mask = 1 << T_INT4;
+        static constexpr Mask Int8Mask = 1 << T_INT8;
+
+
         Type_e type;
+
 
         FACTORIES(TypeSpec)
 
@@ -30,16 +43,23 @@ namespace SoftLang {
 
         bool ctor(Type_e new_type);
 
+        bool ctor(Mask mask);
+
         void dtor();
 
         bool compile(FILE *ofile);
 
         uint32_t getSize() const;
 
+        Mask getMask() const;
 
+        bool fitsMask(Mask mask);
 
+        static constexpr bool isMaskUnambiguous(Mask mask);
 
     };
+
+    //================================================================================
 
     class Scope;
 
@@ -67,10 +87,18 @@ namespace SoftLang {
 
     };
 
+    //================================================================================
+
     class Program;
 
     class Scope {
     public:
+
+        struct VarInfo {
+            uint32_t offset;
+            const Var *var;
+        };
+
 
         FACTORIES(Scope)
 
@@ -78,9 +106,13 @@ namespace SoftLang {
 
         void dtor();
 
-        uint32_t getOffset(const Var *var) const;
+        VarInfo getInfo(const Var *var) const;
+
+        VarInfo getInfo(const Token *name) const;
 
         bool hasVar(const Var *var) const;
+
+        bool hasVar(const Token *name) const;
 
         bool addVar(const Var *var);
 
@@ -92,9 +124,11 @@ namespace SoftLang {
 
         const Scope *parent;
         uint32_t curOffset;
-        NameDict<uint32_t> vars;
+        NameDict<VarInfo> vars;
 
     };
+
+    //================================================================================
 
     class Expression {  // Abstract
     public:
@@ -125,7 +159,8 @@ namespace SoftLang {
 
         VTABLE_STRUCT {
             VDECL(Expression, void, dtor);
-            VDECL(Expression, bool, compile, FILE *ofile);
+            VDECL(Expression, TypeSpec::Mask, deduceType, Scope *scope, const Program *prog);
+            VDECL(Expression, bool, compile, FILE *ofile, Scope *scope, const Program *prog);
         };
 
         VTABLE_FIELD
@@ -165,7 +200,9 @@ namespace SoftLang {
 
         void simplifySingleChild();
 
-        bool compile(FILE *ofile);
+        TypeSpec::Mask deduceType(TypeSpec::Mask mask, Scope *scope, const Program *prog);
+
+        bool compile(FILE *ofile, Scope *scope, const Program *prog);
 
         #define DEF_TYPE(NAME) \
             bool is##NAME() const;
@@ -195,6 +232,8 @@ namespace SoftLang {
             const Token *name;
         };
 
+        TypeSpec::Mask typeMask;
+
         Vector<Expression> children;
 
         #define DEF_TYPE(NAME) \
@@ -203,11 +242,18 @@ namespace SoftLang {
         #undef DEF_TYPE
 
         #define DEF_TYPE(NAME) \
-            bool VMIN(NAME, compile)(FILE *ofile);
+            TypeSpec::Mask VMIN(NAME, deduceType)(Scope *scope, const Program *prog);
+        #include "exprtypes.dsl.h"
+        #undef DEF_TYPE
+
+        #define DEF_TYPE(NAME) \
+            bool VMIN(NAME, compile)(FILE *ofile, Scope *scope, const Program *prog);
         #include "exprtypes.dsl.h"
         #undef DEF_TYPE
 
     };
+
+    //================================================================================
 
     class Statement;
     class Function;
@@ -235,6 +281,8 @@ namespace SoftLang {
         Vector<Statement> stmts;
 
     };
+
+    //================================================================================
 
     class Statement {  // Abstract
     public:
@@ -310,6 +358,8 @@ namespace SoftLang {
 
     };
 
+    //================================================================================
+
     class Function {
     public:
 
@@ -334,6 +384,10 @@ namespace SoftLang {
 
         bool isMain() const;
 
+        TypeSpec getRtype() const;
+
+        const Token *getName() const;
+
     private:
 
         Vector<Var> args;
@@ -342,6 +396,8 @@ namespace SoftLang {
         const Token *name;
 
     };
+
+    //================================================================================
 
     class Program {
     public:
@@ -358,6 +414,8 @@ namespace SoftLang {
         bool makeFunction(Function **dest);
 
         bool compile(FILE *ofile);
+
+        const Function *getFunction(const Token *name) const;
 
     private:
 
