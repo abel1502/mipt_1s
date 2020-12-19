@@ -40,7 +40,7 @@ namespace SoftLang {
             capacity = 0;
         }
 
-        T &operator[](size_t ind) {
+        T &operator[](unsigned ind) {
             ind = (ind + size) % size;
 
             assert(ind < size);
@@ -50,8 +50,8 @@ namespace SoftLang {
             return buf[ind];
         }
 
-        const T &operator[](size_t ind) const {
-            ind = (ind + size) % size;  // Despite being size_t, ind would still work correctly if it's negative
+        const T &operator[](unsigned ind) const {
+            ind = (ind + size) % size;  // Despite being unsigned, ind would still work correctly if it's negative
 
             assert(ind < size);
 
@@ -84,11 +84,11 @@ namespace SoftLang {
             return size == 0;
         }
 
-        size_t getSize() const {
+        unsigned getSize() const {
             return size;
         }
 
-        size_t getCapacity() const {
+        unsigned getCapacity() const {
             return capacity;
         }
 
@@ -96,8 +96,8 @@ namespace SoftLang {
 
         T *buf;
 
-        size_t size;
-        size_t capacity;
+        unsigned size;
+        unsigned capacity;
 
         bool resize(unsigned new_capacity) {
             assert(new_capacity >= capacity);
@@ -156,7 +156,7 @@ namespace SoftLang {
             capacity = 0;
         }
 
-        T &operator[](size_t ind) {
+        T &operator[](unsigned ind) {
             ind = (ind + size) % size;
 
             assert(ind < size);
@@ -170,7 +170,7 @@ namespace SoftLang {
             return buf[ind];
         }
 
-        const T &operator[](size_t ind) const {
+        const T &operator[](unsigned ind) const {
             ind = (ind + size) % size;
 
             assert(ind < size);
@@ -226,11 +226,11 @@ namespace SoftLang {
             return size == 0;
         }
 
-        size_t getSize() const {
+        unsigned getSize() const {
             return size;
         }
 
-        size_t getCapacity() const {
+        unsigned getCapacity() const {
             return isCompact() ? COMPACT : capacity;
         }
 
@@ -246,8 +246,8 @@ namespace SoftLang {
             T compactBuf[COMPACT];
         };
 
-        size_t size;
-        size_t capacity;
+        unsigned size;
+        unsigned capacity;
 
         bool resize(unsigned new_capacity) {
             assert(capacity != 0);
