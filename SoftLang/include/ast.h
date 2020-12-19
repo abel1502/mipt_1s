@@ -13,15 +13,16 @@
 
 namespace SoftLang {
 
-    class TypeSpec {
-    public:
+    struct TypeSpec {
 
         enum Type_e {
             T_VOID,
             T_DBL,
             T_INT4,
-            T_INT8
+            T_INT8,
         };
+
+        Type_e type;
 
         FACTORIES(TypeSpec)
 
@@ -35,11 +36,8 @@ namespace SoftLang {
 
         uint32_t getSize() const;
 
-        Type_e getType() const;
 
-    private:
 
-        Type_e type;
 
     };
 

@@ -65,10 +65,6 @@ namespace SoftLang {
         return -1;
     }
 
-    TypeSpec::Type_e TypeSpec::getType() const {
-        return type;
-    }
-
     bool Var::ctor() {
         ts = {};
         name = nullptr;
@@ -139,7 +135,13 @@ namespace SoftLang {
     }
 
     bool Scope::hasVar(const Var *var) const {
-        uint32_t getFrameSize() const;
+        const Scope *cur = this;
+
+        while (cur && !cur->vars.contains(var->getName())) {
+            cur = cur->parent;
+        }
+
+        return cur;
     }
 
     bool Scope::addVar(const Var *var) {
@@ -377,7 +379,7 @@ namespace SoftLang {
 
     bool Code::compile(FILE *ofile, TypeSpec rtype, const Program *prog) {
         for (unsigned i = 0; i < stmts.getSize(); ++i) {
-            TRY_B(stmts[i].compile(ofile, scope, rtype, prog));
+            TRY_B(stmts[i].compile(ofile, &scope, rtype, prog));
         }
 
         return false;
@@ -393,8 +395,6 @@ namespace SoftLang {
 
         return false;
     }
-
-    // TODO
 
     bool Statement::ctorCompound() {
         VSETTYPE(this, Compound);
@@ -516,7 +516,7 @@ namespace SoftLang {
     }
 
     bool Statement::VMIN(Return, compile)(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog) {
-        if (rtype.getType() == TypeSpec::T_VOID) {
+        if (rtype.type == TypeSpec::T_VOID) {
             if (!expr.isVoid()) {
                 ERR("Void functions mustn't return values");
 
@@ -596,7 +596,7 @@ namespace SoftLang {
                 "; var %.*s\n",
                 var.getName()->getLength(), var.getName()->getStr());
 
-        if (expr->isVoid())
+        if (expr.isVoid())
             return false;
 
         TRY_B(expr.compile(ofile));  // TODO: Expr again
@@ -687,7 +687,7 @@ namespace SoftLang {
         const char MAIN_NAME[] = "main";
 
         return name->getLength() == sizeof(MAIN_NAME) &&
-               rtype.getType() == TypeSpec::T_VOID &&
+               rtype.type == TypeSpec::T_VOID &&
                strncmp(name->getStr(), MAIN_NAME, sizeof(MAIN_NAME)) == 0;
     }
 
