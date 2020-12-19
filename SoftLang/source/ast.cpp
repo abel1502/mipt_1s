@@ -76,6 +76,18 @@ namespace SoftLang {
         return -1;
     }
 
+    TypeSpec::Mask TypeSpec::getMask() const {
+        return 1 << type;
+    }
+
+    bool TypeSpec::fitsMask(TypeSpec::Mask mask) const {
+        return getMask() & mask;
+    }
+
+    constexpr bool TypeSpec::isMaskUnambiguous(TypeSpec::Mask mask) {
+        return mask & (mask - 1);
+    }
+
     //================================================================================
 
     bool Var::ctor() {

@@ -53,7 +53,7 @@ namespace SoftLang {
 
         Mask getMask() const;
 
-        bool fitsMask(Mask mask);
+        bool fitsMask(Mask mask) const;
 
         static constexpr bool isMaskUnambiguous(Mask mask);
 
