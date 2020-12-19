@@ -420,7 +420,7 @@ namespace SoftLang {
     }
 
 
-    TypeSpec::Mask Expression::VMIN(Void, deduceType)(Scope *scope, const Program *prog) {
+    TypeSpec::Mask Expression::VMIN(Void, deduceType)(Scope *, const Program *) {
         return TypeSpec::VoidMask;
     }
 
@@ -447,7 +447,7 @@ namespace SoftLang {
         return children[0].deduceType(typeMask, scope, prog);
     }
 
-    TypeSpec::Mask Expression::VMIN(Cast, deduceType)(Scope *scope, const Program *prog) {
+    TypeSpec::Mask Expression::VMIN(Cast, deduceType)(Scope *, const Program *) {
         assert(children.getSize() == 1);
 
         /*
@@ -460,7 +460,7 @@ namespace SoftLang {
         return cast.getMask();
     }
 
-    TypeSpec::Mask Expression::VMIN(Num, deduceType)(Scope *scope, const Program *prog) {
+    TypeSpec::Mask Expression::VMIN(Num, deduceType)(Scope *, const Program *) {
         assert(num->isNum());
 
         if (num->isInteger()) {
@@ -470,7 +470,7 @@ namespace SoftLang {
         }
     }
 
-    TypeSpec::Mask Expression::VMIN(VarRef, deduceType)(Scope *scope, const Program *prog) {
+    TypeSpec::Mask Expression::VMIN(VarRef, deduceType)(Scope *scope, const Program *) {
         assert(name->isName());
 
         Scope::VarInfo vi = scope->getInfo(name);
@@ -484,7 +484,7 @@ namespace SoftLang {
         return vi.var->getType().getMask();
     }
 
-    TypeSpec::Mask Expression::VMIN(FuncCall, deduceType)(Scope *scope, const Program *prog) {
+    TypeSpec::Mask Expression::VMIN(FuncCall, deduceType)(Scope *, const Program *prog) {
         assert(name->isName());
 
         // TODO: Pseudofuncs!!!!
