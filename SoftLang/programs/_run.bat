@@ -7,9 +7,9 @@ set OFILE=%~n1%.aef
 ..\bin\Release\SoftLang.exe -vvv -i %IFILE% -o %MFILE%
 IF %ERRORLEVEL% NEQ 0 ( pause & exit /B )
 
-..\..\SoftProc\bin\Release\assembler.exe -vvv -i %MFILE% -o %OFILE%
+..\..\SoftProc\bin\Release\assembler.exe -vv -i %MFILE% -o %OFILE%
 IF %ERRORLEVEL% NEQ 0 ( pause & exit /B )
 
-..\..\SoftProc\bin\Release\processor.exe -vvv %OFILE%
+..\..\SoftProc\bin\Release\processor.exe -vv %OFILE%
 
 pause

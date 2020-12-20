@@ -21,11 +21,11 @@ dup
 pop dwl:[rz+4]
 popv
 ; while (
-$__loop_in_0000000000729b08:
+$__loop_in_0000000000029ab8:
 push dwl:[rz+4]
 push dwl:55
 cg dwl:
-jt dwl:$__loop_out_0000000000729b08
+jt dwl:$__loop_out_0000000000029ab8
 ; ) {
 push dwl:[rz+4]
 push dwl:2
@@ -33,8 +33,8 @@ sub dwl:
 dup
 pop dwl:[rz+4]
 popv
-jmp dwl:$__loop_in_0000000000729b08
-$__loop_out_0000000000729b08:
+jmp dwl:$__loop_in_0000000000029ab8
+$__loop_out_0000000000029ab8:
 ; }
 push dwl:[rz+4]
 push dwl:7
@@ -50,21 +50,21 @@ popv
 push dwl:[rz+0]
 push dwl:10
 cg dwl:
-jt dwl:$__cond_t_0000000000729c38
-jmp dwl:$__cond_f_0000000000729c38
+jt dwl:$__cond_t_0000000000029be8
+jmp dwl:$__cond_f_0000000000029be8
 ; ) {
-$__cond_t_0000000000729c38:
+$__cond_t_0000000000029be8:
 push dwl:[rz+0]
 out qw:
-jmp dwl:$__cond_end_0000000000729c38
+jmp dwl:$__cond_end_0000000000029be8
 ; } else {
-$__cond_f_0000000000729c38:
+$__cond_f_0000000000029be8:
 push dwl:[rz+0]
 d2i
 push df:255.996
 add df:
 out df:
-$__cond_end_0000000000729c38:
+$__cond_end_0000000000029be8:
 ; }
 push dwl:[rz+0]
 push dwl:[rz+4]
