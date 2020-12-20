@@ -489,7 +489,7 @@ namespace SoftLang {
         double fraction = 0;
         int exp = 0;
 
-        if (iter->cur() == '.' && (integerLen > 0 || recognizeDigit(iter->peek(1)))) {
+        if (iter->cur() == '.' && (integerLen > 0 || recognizeDigit(iter->peek(1)) >= 0)) {
             iter->next();
 
             isInteger = false;

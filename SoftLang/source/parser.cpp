@@ -304,9 +304,7 @@ namespace SoftLang {
         saved = backup();
         P_TRY(parse_EXPR(expr),
               ,
-              restore(saved); expr->dtor());
-
-        expr->ctorVoid();
+              restore(saved); expr->dtor(); expr->ctorVoid(););
 
         P_REQ_PUNCT(SEMI);
 
