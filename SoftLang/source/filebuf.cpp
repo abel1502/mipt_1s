@@ -22,6 +22,8 @@ namespace SoftLang {
         FILE *file = fopen(name, mode);
 
         struct stat fbuf = {};
+        size_t bytesRead = 0;
+        size_t lineCnt = 0;
 
         if (!file)
             goto error;
@@ -36,8 +38,17 @@ namespace SoftLang {
         if (!buf)
             goto error;
 
-        if (fread(buf, 1, size - 1, file))
+        bytesRead = fread(buf, 1, size - 1, file);
+
+        for (char *cur = buf; *cur; ++cur) {
+            if (*cur == '\n') {
+                lineCnt++;
+            }
+        }
+
+        if (bytesRead != size - 1 && bytesRead + lineCnt != size - 1)
             goto error;
+
 
         return false;
 
@@ -50,7 +61,7 @@ namespace SoftLang {
             file = nullptr;
         }
 
-        return false;
+        return true;
     }
 
     bool FileBuf::ctor(const char *src, size_t amount) {
@@ -92,6 +103,12 @@ namespace SoftLang {
     const char *FileBuf::getData() const {
         return buf;
     }
+
+    bool FileBuf::isInited() const {
+        return buf != nullptr;
+    }
+
+    //================================================================================
 
     bool FileBufIterator::ctor() {
         buf = nullptr;

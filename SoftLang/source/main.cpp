@@ -33,96 +33,15 @@ static void showHelp(const char *binName) {
 
 
 int main(int argc, char **argv) {
-
-    verbosity = 3;
-
-    /*StrDict<int> test{};
-    REQUIRE(!test.ctor());
-
-    REQUIRE(!test.set("Tests", 17));
-    printf("%d\n", test.get("Tests"));
-
-    test.dtor();*/
-
-    const char testCode[] =
-        "def main() {\n"
-        "    var int4:a;\n"
-        "    var int4:b = 5;\n"
-        "    b *= 17;\n"
-        "    while b > 55 {  // Test comment\n"
-        "        b -= 2;\n"
-        "    }\n"
-        "    a = (b + 7 - 1) / 2;\n"
-        "    /* Test block comment \n"
-        "    */if a > 10 {\n"
-        "        //_print_int8(int8:a);\n"
-        "    } else {\n"
-        "        //_print_dbl(dbl:a + 0xff.ff);\n"
-        "    }\n"
-        "    \n"
-        "    //_print_dbl(a + b);\n"
-        "    \n"
-        "    ret;"
-        "}\n";
-
-    FileBuf buf{};
-    REQUIRE(!buf.ctor(testCode));
-
-    /*
-    Lexer lexer{};
-    REQUIRE(!lexer.ctor(&buf));
-    REQUIRE(!lexer.parse());
-
-    lexer.dump();
-    lexer.dtor();
-    */
-
-    Parser parser{};
-    REQUIRE(!parser.ctor(&buf));
-
-    Program prog;
-
-    switch (parser.parse(&prog)) {
-    case Parser::ERR_PARSER_OK:
-        printf("Correct\n");
-
-        REQUIRE(!prog.compile(stdout));
-
-        break;
-
-    case Parser::ERR_PARSER_LEX:
-        printf("Syntax error (lexical)\n");
-        break;
-
-    case Parser::ERR_PARSER_SYNTAX:
-        printf("Syntax error (grammatical)\n");
-        break;
-
-    case Parser::ERR_PARSER_SYS:
-        printf("System error\n");
-        break;
-
-    default:
-        assert(false);
-        break;
-    }
-
-    printf("Done.\n");
-
-    parser.dtor();
-
-    buf.dtor();
-
-    return 0;
-
-    FILE *ifile = nullptr;
+    FileBuf ibuf{};
     FILE *ofile = nullptr;
+    Parser parser{};
+    Program prog{};
 
     #define CLEANUP_            \
-        if (ifile) {            \
-            fclose(ifile);      \
-            ifile = nullptr;    \
-        }                       \
+        ibuf.dtor();            \
+        parser.dtor();          \
+        prog.dtor();            \
         if (ofile) {            \
             fclose(ofile);      \
             ofile = nullptr;    \
@@ -140,9 +59,7 @@ int main(int argc, char **argv) {
             showHelp(argv[0]);
             return 0;
         case 'i':
-            ifile = fopen(optarg, "r");
-
-            if (!ifile) {
+            if (ibuf.ctor(optarg, "r")) {
                 CLEANUP_
 
                 ERR("Couldn't open %s to read", optarg);
@@ -178,7 +95,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (!ifile || !ofile) {
+    if (!ibuf.isInited() || !ofile) {
         CLEANUP_
 
         ERR("Both ifile and ofile are required");
@@ -193,7 +110,42 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // TODO
+    REQUIRE(!parser.ctor(&ibuf));
+
+    switch (parser.parse(&prog)) {
+    case Parser::ERR_PARSER_OK:
+        printf("Program parsed successfully\n");
+        break;
+
+    case Parser::ERR_PARSER_LEX:
+        ERR("Syntax error (lexical)\n");
+        return 3;
+
+    case Parser::ERR_PARSER_SYNTAX:
+        ERR("Syntax error\n");
+        return 3;
+
+    case Parser::ERR_PARSER_SYS:
+        ERR("System error\n");
+        return 2;
+
+    default:
+        assert(false);
+        return 2;
+    }
+
+    if (prog.compile(ofile)) {
+        ERR("Failed to compile the program.\n"
+            "(If there aren't any more precise error messages above,\n"
+            " this might be due to a system error. In that case you\n"
+            " should try to rerun the program, check that the output\n"
+            "file is writable and if that doesn't help, report the\n"
+            "problem at github.com/abel1502/mipt_1s .");
+
+        return 3;
+    }
+
+    printf("Done.\n");
 
     CLEANUP_
 

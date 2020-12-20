@@ -31,7 +31,7 @@ namespace SoftLang {
 
         const char *getData() const;
 
-        void trim(size_t pos);
+        bool isInited() const;
 
     private:
         size_t size;

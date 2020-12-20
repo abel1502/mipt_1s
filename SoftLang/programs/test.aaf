@@ -1,0 +1,63 @@
+; === [ ALFC ver. NULL ] ===
+
+; Entrypoint + loader:
+$main:
+    push dwl:4096
+    pop dwl:rz  ; Function frame counter
+    call dwl:$__func_main
+    hlt
+
+
+$__func_main:
+; var a
+; var b
+push dwl:5
+; = 
+pop dwl:[rz+4]
+push dwl:[rz+4]
+push dwl:17
+mul dwl:
+dup
+pop dwl:[rz+4]
+popv
+; while (
+$__loop_in_0000000000a77a68:
+push dwl:[rz+4]
+push dwl:55
+cg dwl:
+jt dwl:$__loop_out_0000000000a77a68
+; ) {
+push dwl:[rz+4]
+push dwl:2
+sub dwl:
+dup
+pop dwl:[rz+4]
+popv
+jmp dwl:$__loop_in_0000000000a77a68
+$__loop_out_0000000000a77a68:
+; }
+push dwl:[rz+4]
+push dwl:7
+add dwl:
+push dwl:1
+sub dwl:
+push dwl:2
+div dwl:
+dup
+pop dwl:[rz+0]
+popv
+; if (
+push dwl:[rz+0]
+push dwl:10
+cg dwl:
+jt dwl:$__cond_t_0000000000a77b98
+jmp dwl:$__cond_f_0000000000a77b98
+; ) {
+jmp dwl:$__cond_end_0000000000a77b98
+; } else {
+$__cond_f_0000000000a77b98:
+$__cond_end_0000000000a77b98:
+; }
+ret
+ret  ; Force end of $main
+
