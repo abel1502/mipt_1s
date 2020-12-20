@@ -317,7 +317,7 @@ DEF_OP(0x28, CG  , cg  , 1, 0b0100000000010000, 0b00000001, {
         res.dwl = tos1.df > tos0.df + EPSILON_;
         break;
     case ARGTYPE_DWL:
-        res.dwl = tos1.dwl > tos0.dwl;
+        res.dwl = (int32_t)tos1.dwl > (int32_t)tos0.dwl;
         break;
     default:
         NOTIMPL_;
@@ -333,7 +333,7 @@ DEF_OP(0x29, CGE , cge , 1, 0b0100000000010000, 0b00000001, {
         res.dwl = tos1.df >= tos0.df - EPSILON_;
         break;
     case ARGTYPE_DWL:
-        res.dwl = tos1.dwl >= tos0.dwl;
+        res.dwl = (int32_t)tos1.dwl >= (int32_t)tos0.dwl;
         break;
     default:
         NOTIMPL_;
@@ -349,7 +349,7 @@ DEF_OP(0x2a, CL  , cl  , 1, 0b0100000000010000, 0b00000001, {
         res.dwl = tos1.df < tos0.df - EPSILON_;
         break;
     case ARGTYPE_DWL:
-        res.dwl = tos1.dwl < tos0.dwl;
+        res.dwl = (int32_t)tos1.dwl < (int32_t)tos0.dwl;
         break;
     default:
         NOTIMPL_;
@@ -365,7 +365,7 @@ DEF_OP(0x2b, CLE , cle , 1, 0b0100000000010000, 0b00000001, {
         res.dwl = tos1.df <= tos0.df + EPSILON_;
         break;
     case ARGTYPE_DWL:
-        res.dwl = tos1.dwl <= tos0.dwl;
+        res.dwl = (int32_t)tos1.dwl <= (int32_t)tos0.dwl;
         break;
     default:
         NOTIMPL_;
