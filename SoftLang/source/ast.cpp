@@ -43,7 +43,7 @@ namespace SoftLang {
             break;
 
         case TypeSpec::T_INT8:
-            fprintf(ofile, "qwl:");
+            fprintf(ofile, "qw:");
             break;
 
         case TypeSpec::T_VOID:
@@ -423,6 +423,69 @@ namespace SoftLang {
         return false;
     }
 
+    TypeSpec::Mask Expression::getPseudofuncRtypeMask() const {
+        // NAME doesn't include the leading '_', which causes slight changes in string-name comparison;
+        #define DEF_PFUNC(RTYPECAP, RTYPEWORD, NAME, COMPILECODE)               \
+            if (sizeof(#NAME) == name->getLength() &&                           \
+                strncmp(name->getStr() + 1, #NAME, sizeof(#NAME) - 1) == 0) {   \
+                                                                                \
+                return TypeSpec::RTYPEWORD##Mask;                               \
+            }
+        #include "pseudofuncs.dsl.h"
+        #undef DEF_PFUNC
+
+        ERR("Unknown pseudo-function, return type indeterminable: \"%.*s\"", name->getLength(), name->getStr());
+
+        return TypeSpec::NoneMask;
+    }
+
+    bool Expression::compilePseudofunc(FILE *ofile, Scope *scope, const Program *prog) {
+        #define PF_DEDUCE_CHILD_TYPE(IND, MASK) \
+            children[IND].deduceType(MASK, scope, prog)
+
+        #define PF_REQUIRE_CHILD_TYPE(IND, TYPEWORD)                    \
+            if (!PF_DEDUCE_CHILD_TYPE(IND, TypeSpec::TYPEWORD##Mask)) { \
+                ERR("Argument #%u for %.*s must be %s", IND,            \
+                    name->getLength(), name->getStr(), #TYPEWORD);      \
+                                                                        \
+                return true;                                            \
+            }
+
+        #define PF_VERIFY_ARGCNT(CNT)                                   \
+            if (children.getSize() != CNT) {                            \
+                ERR("Pseudofunction %.*s takes exactly %u arguments",   \
+                    name->getLength(), name->getStr(), CNT);            \
+                                                                        \
+                return true;                                            \
+            }
+
+        #define PF_COMPILE_CHILD(IND) \
+            TRY_B(children[IND].compile(ofile, scope, prog));
+
+        #define PF_O(CODE, ...) \
+            fprintf(ofile, CODE, ##__VA_ARGS__);
+
+        #define DEF_PFUNC(RTYPECAP, RTYPEWORD, NAME, COMPILECODE)               \
+            if (sizeof(#NAME) == name->getLength() &&                           \
+                strncmp(name->getStr() + 1, #NAME, sizeof(#NAME) - 1) == 0) {   \
+                                                                                \
+                COMPILECODE;                                                    \
+                return false;                                                   \
+            }
+        #include "pseudofuncs.dsl.h"
+        #undef DEF_PFUNC
+
+        ERR("Unknown pseudo-function: \"%.*s\"", name->getLength(), name->getStr());
+
+        return true;
+
+        #undef PF_DEDUCE_CHILD_TYPE
+        #undef PF_VERIFY_ARGCNT
+        #undef PF_REQUIRE_CHILD_TYPE
+        #undef PF_COMPILE_CHILD
+        #undef PF_O
+    }
+
     #define DEF_TYPE(NAME) \
         bool Expression::is##NAME() const { \
             return VISINST(this, NAME); \
@@ -537,7 +600,9 @@ namespace SoftLang {
     TypeSpec::Mask Expression::VMIN(FuncCall, deduceType)(Scope *, const Program *prog) {
         assert(name->isName());
 
-        // TODO: Pseudofuncs!!!!
+        if (name->getLength() >= 1 && name->getStr()[0] == '_') {
+            return getPseudofuncRtypeMask();
+        }
 
         const Function *func = prog->getFunction(name);
 
@@ -910,7 +975,9 @@ namespace SoftLang {
 
         const Function *func = prog->getFunction(name);
 
-        // TODO: Pseudofuncs (again)!!!!
+        if (name->getLength() >= 1 && name->getStr()[0] == '_') {
+            return compilePseudofunc(ofile, scope, prog);
+        }
 
         TRY_BC(!func, ERR("Unknown function: \"%.*s\"", name->getLength(), name->getStr()));
 

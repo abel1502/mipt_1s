@@ -243,8 +243,11 @@ namespace SoftLang {
 
         Vector<Expression> children;
 
-
         bool compileVarRecepient(FILE *ofile, Scope *scope, const Program *prog);
+
+        TypeSpec::Mask getPseudofuncRtypeMask() const;
+
+        bool compilePseudofunc(FILE *ofile, Scope *scope, const Program *prog);
 
         #define DEF_TYPE(NAME) \
             void VMIN(NAME, dtor)();
