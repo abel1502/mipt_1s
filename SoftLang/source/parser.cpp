@@ -125,6 +125,8 @@ namespace SoftLang {
             P_TRY(parse_FUNC_DEF(prog), , repeat = false);
         }
 
+        prog->popFunction();
+
         P_OK();
     }
 
@@ -168,7 +170,7 @@ namespace SoftLang {
         Var *arg = nullptr;
 
         P_TRYSYS(func->makeArg(&arg));
-        P_TRY(parse_FUNC_ARG_DEF(arg), , P_OK());
+        P_TRY(parse_FUNC_ARG_DEF(arg), , func->popArg(); P_OK());
 
         while (cur()->getPunct() == Token::PUNCT_COMMA) {
             next();
@@ -236,7 +238,7 @@ namespace SoftLang {
             Statement *stmt = nullptr;
             P_TRYSYS(code->makeStatement(&stmt));
 
-            P_TRY(parse_STMT(stmt, code->getScope()), , P_OK());
+            P_TRY(parse_STMT(stmt, code->getScope()), , code->popStatement(); P_OK());
 
             code->simplifyLastEmpty();
         }
@@ -246,7 +248,7 @@ namespace SoftLang {
         unsigned saved = backup();
 
         P_TRY(parse_COMPOUND_STMT(stmt, parentScope),  P_OK(), restore(saved); stmt->dtor());
-        P_TRY(parse_RETURN_STMT  (stmt),               P_OK(), restore(saved); stmt->dtor());
+        P_TRY(parse_RETURN_STMT  (stmt),               P_OK(), restore(saved); stmt->dtor(););
         P_TRY(parse_LOOP_STMT    (stmt, parentScope),  P_OK(), restore(saved); stmt->dtor());
         P_TRY(parse_COND_STMT    (stmt, parentScope),  P_OK(), restore(saved); stmt->dtor());
         P_TRY(parse_VARDECL_STMT (stmt),               P_OK(), restore(saved); stmt->dtor());
@@ -545,6 +547,8 @@ namespace SoftLang {
             #pragma GCC diagnostic pop
         }
 
+        expr->simplifySingleChild();
+
         P_OK();
 
     error:
@@ -585,6 +589,8 @@ namespace SoftLang {
 
             #pragma GCC diagnostic pop
         }
+
+        expr->simplifySingleChild();
 
         P_OK();
 
@@ -630,6 +636,8 @@ namespace SoftLang {
 
             #pragma GCC diagnostic pop
         }
+
+        expr->simplifySingleChild();
 
         P_OK();
 
@@ -781,15 +789,16 @@ namespace SoftLang {
     Parser::Error_e Parser::parse_FUNC_ARGS(Expression *expr) {
         Expression *child = nullptr;
 
-        bool repeat = true;
+        P_TRYSYS(expr->makeChild(&child));
+        P_TRY(parse_EXPR(child), , expr->popChild(); P_OK());
 
-        while (repeat) {
+
+        while (cur()->getPunct() == Token::PUNCT_COMMA) {
+            next();
+
             P_TRYSYS(expr->makeChild(&child));
             P_REQ_NONTERM(EXPR, child);
-
-            repeat = next()->getPunct() == Token::PUNCT_COMMA;
         }
-        prev();
 
         P_OK();
 
