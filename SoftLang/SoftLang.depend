@@ -17,7 +17,7 @@
 	"parser.h"
 	"filebuf.h"
 
-1608473270 source:d:\workspace\.mipt\s1\softlang\source\ast.cpp
+1608483771 source:d:\workspace\.mipt\s1\softlang\source\ast.cpp
 	"ast.h"
 	"exprtypes.dsl.h"
 	"pseudofuncs.dsl.h"
@@ -45,7 +45,7 @@
 	"stmttypes.dsl.h"
 	"stmttypes.dsl.h"
 
-1608456440 source:d:\workspace\.mipt\s1\softlang\source\lexer.cpp
+1608479778 source:d:\workspace\.mipt\s1\softlang\source\lexer.cpp
 	"lexer.h"
 	<cstdlib>
 	<cmath>
@@ -69,7 +69,7 @@
 
 1608203580 d:\workspace\.mipt\s1\softlang\\dsl\\tokens.dsl.h
 
-1608464341 source:d:\workspace\.mipt\s1\softlang\source\parser.cpp
+1608475887 source:d:\workspace\.mipt\s1\softlang\source\parser.cpp
 	"parser.h"
 	<cassert>
 
@@ -112,5 +112,5 @@
 
 1608279340 d:\workspace\.mipt\s1\softlang\\dsl\\stmttypes.dsl.h
 
-1608473241 d:\workspace\.mipt\s1\softlang\\dsl\\pseudofuncs.dsl.h
+1608477839 d:\workspace\.mipt\s1\softlang\\dsl\\pseudofuncs.dsl.h
 
