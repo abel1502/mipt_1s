@@ -118,10 +118,13 @@ namespace SoftLang {
         }
 
         Item *find(const Token *key) const {
-            for (unsigned i = 0; i < size; ++i)
+            for (unsigned i = 0; i < size; ++i) {
                 if (key->getLength() == buf[i].key->getLength() &&
-                    strncmp(key->getStr(), buf[i].key->getStr(), key->getLength()) == 0)
+                    strncmp(key->getStr(), buf[i].key->getStr(), key->getLength()) == 0) {
+
                     return &buf[i];
+                }
+            }
 
             return nullptr;
         }
