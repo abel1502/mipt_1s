@@ -41,6 +41,7 @@ namespace SoftLang {
         }
 
         T &operator[](unsigned ind) {
+            assert(size);
             ind = (ind + size) % size;
 
             assert(ind < size);
@@ -51,6 +52,7 @@ namespace SoftLang {
         }
 
         const T &operator[](unsigned ind) const {
+            assert(size);
             ind = (ind + size) % size;  // Despite being unsigned, ind would still work correctly if it's negative
 
             assert(ind < size);
@@ -157,6 +159,7 @@ namespace SoftLang {
         }
 
         T &operator[](unsigned ind) {
+            assert(size);
             ind = (ind + size) % size;
 
             assert(ind < size);
@@ -171,6 +174,7 @@ namespace SoftLang {
         }
 
         const T &operator[](unsigned ind) const {
+            assert(size);
             ind = (ind + size) % size;
 
             assert(ind < size);
@@ -190,7 +194,7 @@ namespace SoftLang {
 
                 capacity = COMPACT + 1;
                 T *tmpBuf = (T *)calloc(capacity, sizeof(T));
-                TRY_B(tmpBuf);
+                TRY_B(!tmpBuf);
 
                 for (unsigned i = 0; i < COMPACT; ++i) {
                     tmpBuf[i] = compactBuf[i];
