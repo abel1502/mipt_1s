@@ -251,7 +251,7 @@ DEF_OP(0x13, DIVS, divs, 1, 0b0000000000010000, 0b00000001, {
             PUSH_(res); \
         } \
         break;
-DEF_OP(0x18, IN  , in  , 1, 0b0100000000010000, 0b11100101, {
+DEF_OP(0x18, IN  , in  , 1, 0b0100000001010000, 0b11100101, {
     ARGTYPE_SWITCH_(AM_.type,
         ERR("Inexistent argType: 0x%01x", AM_.type);
         return true;
@@ -270,7 +270,7 @@ DEF_OP(0x18, IN  , in  , 1, 0b0100000000010000, 0b11100101, {
         } \
         printf("\n"); \
         break;
-DEF_OP(0x19, OUT , out , 1, 0b0100000000010000, 0b11101111, {
+DEF_OP(0x19, OUT , out , 1, 0b0100000001010000, 0b11101111, {
     ARGTYPE_SWITCH_(AM_.type,
         ERR("Inexistent argType: 0x%01x", AM_.type);
         return true;

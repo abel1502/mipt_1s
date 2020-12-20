@@ -24,8 +24,8 @@
 # and that would mean "read a double and put it on the stack"
 # 0x18 : in   (df:stack)
 # 0x19 : out  (df:stack)
-0x18 : in   (df,dwl:stack,write)
-0x19 : out  (df,dwl:stack,read)
+0x18 : in   (df,qw,dwl:stack,write)
+0x19 : out  (df,qw,dwl:stack,read)
 
 0x20 : jmp  (dwl:stack,read)
 0x21 : jf   (dwl:stack,read)
