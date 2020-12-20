@@ -56,6 +56,29 @@ namespace SoftLang {
         return false;
     }
 
+    void TypeSpec::reconstruct(FILE *ofile) const {
+        switch (type) {
+        case TypeSpec::T_DBL:
+            fprintf(ofile, "dbl:");
+            break;
+
+        case TypeSpec::T_INT4:
+            fprintf(ofile, "int4:");
+            break;
+
+        case TypeSpec::T_INT8:
+            fprintf(ofile, "int8:");
+            break;
+
+        case TypeSpec::T_VOID:
+            fprintf(ofile, "???:");
+            ERR("Void is not a valid type");
+            // FALLTHROUGH
+        default:
+            assert(false);
+        }
+    }
+
     uint32_t TypeSpec::getSize() const {
         switch (type) {
         case TypeSpec::T_DBL:
@@ -423,6 +446,12 @@ namespace SoftLang {
         fprintf(ofile, "\n");
 
         return false;
+    }
+
+    void Expression::reconstruct(FILE *ofile) const {
+        fprintf(ofile, "(");
+        VCALL(this, reconstruct, ofile);
+        fprintf(ofile, ")");
     }
 
     TypeSpec::Mask Expression::getPseudofuncRtypeMask() const {
@@ -1051,11 +1080,155 @@ namespace SoftLang {
     }
 
 
+    void Expression::VMIN(Void, reconstruct)(FILE *ofile) const {
+        fprintf(ofile, "???");
+        ERR("Void expressions don't exist");
+        assert(false);
+    }
+
+    void Expression::VMIN(Asgn, reconstruct)(FILE *ofile) const {
+        children[0].reconstruct(ofile);
+
+        switch (am) {
+        case Expression::AM_EQ:
+            fprintf(ofile, " = ");
+            break;
+
+        case Expression::AM_ADDEQ:
+            fprintf(ofile, " += ");
+            break;
+
+        case Expression::AM_SUBEQ:
+            fprintf(ofile, " -= ");
+            break;
+
+        case Expression::AM_MULEQ:
+            fprintf(ofile, " -= ");
+            break;
+
+        case Expression::AM_DIVEQ:
+            fprintf(ofile, " /= ");
+            break;
+
+        case Expression::AM_MODEQ:
+            fprintf(ofile, " %%= ");
+            break;
+
+        default:
+            assert(false);
+            break;
+        }
+
+        children[1].reconstruct(ofile);
+    }
+
+    void Expression::VMIN(PolyOp, reconstruct)(FILE *ofile) const {
+        assert(children.getSize() > 0);
+
+        children[0].reconstruct(ofile);
+
+        for (unsigned i = 1; i < children.getSize(); ++i) {
+            switch (ops[i - 1]) {
+            case OP_EQ:
+                fprintf(ofile, " == ");
+                break;
+
+            case OP_NEQ:
+                fprintf(ofile, " != ");
+                break;
+
+            case OP_GEQ:
+                fprintf(ofile, " >= ");
+                break;
+
+            case OP_LEQ:
+                fprintf(ofile, " <= ");
+                break;
+
+            case OP_LT:
+                fprintf(ofile, " < ");
+                break;
+
+            case OP_GT:
+                fprintf(ofile, " > ");
+                break;
+
+            case OP_ADD:
+                fprintf(ofile, " + ");
+                break;
+
+            case OP_SUB:
+                fprintf(ofile, " - ");
+                break;
+
+            case OP_MUL:
+                fprintf(ofile, " * ");
+                break;
+
+            case OP_DIV:
+                fprintf(ofile, "/ ");
+                break;
+
+            case OP_MOD:
+                fprintf(ofile, " %% ");
+                break;
+
+            default:
+                assert(false);
+                return;
+            }
+
+            children[i].reconstruct(ofile);
+        }
+    }
+
+    void Expression::VMIN(Neg, reconstruct)(FILE *ofile) const {
+        fprintf(ofile, "-");
+
+        children[0].reconstruct(ofile);
+    }
+
+    void Expression::VMIN(Cast, reconstruct)(FILE *ofile) const {
+        cast.reconstruct(ofile);
+
+        children[0].reconstruct(ofile);
+    }
+
+    void Expression::VMIN(Num, reconstruct)(FILE *ofile) const {
+        if (num->isInteger()) {
+            fprintf(ofile, "%llu", num->asInt());
+        } else {
+            double tmp = num->asDbl();
+
+            fprintf(ofile, "%lg", tmp);
+
+            if (tmp == (double)(unsigned long long)tmp) {
+                fprintf(ofile, ".");
+            }
+        }
+    }
+
+    void Expression::VMIN(VarRef, reconstruct)(FILE *ofile) const {
+        fprintf(ofile, "%.*s", name->getLength(), name->getStr());
+    }
+
+    void Expression::VMIN(FuncCall, reconstruct)(FILE *ofile) const {
+        fprintf(ofile, "%.*s(", name->getLength(), name->getStr());
+
+        for (unsigned i = 0; i < children.getSize(); ++i) {
+            children[i].reconstruct(ofile);
+        }
+
+        fprintf(ofile, ")");
+    }
+
+
     #define DEF_TYPE(NAME) \
         VTYPE_DEF(NAME, Expression) = { \
             Expression::VMIN(NAME, dtor), \
             Expression::VMIN(NAME, deduceType), \
             Expression::VMIN(NAME, compile), \
+            Expression::VMIN(NAME, reconstruct), \
         };
     #include "exprtypes.dsl.h"
     #undef DEF_TYPE
@@ -1105,6 +1278,12 @@ namespace SoftLang {
 
     Scope *Code::getScope() {
         return &scope;
+    }
+
+    void Code::reconstruct(FILE *ofile, unsigned indent) const {
+        for (unsigned i = 0; i < stmts.getSize(); ++i) {
+            stmts[i].reconstruct(ofile, indent);
+        }
     }
 
     //================================================================================
@@ -1188,6 +1367,15 @@ namespace SoftLang {
 
     bool Statement::compile(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog) {
         return VCALL(this, compile, ofile, scope, rtype, prog);
+    }
+
+    void Statement::reconstruct(FILE *ofile, unsigned indent) const {
+        for (unsigned i = 0; i < indent; ++i)
+            fprintf(ofile, "    ");
+
+        VCALL(this, reconstruct, ofile, indent);
+
+        fprintf(ofile, "\n");
     }
 
     #define DEF_TYPE(NAME) \
@@ -1341,8 +1529,6 @@ namespace SoftLang {
             fprintf(ofile, "\n");
         }
 
-
-
         return false;
     }
 
@@ -1362,10 +1548,93 @@ namespace SoftLang {
         return false;
     }
 
+
+    void Statement::VMIN(Compound, reconstruct)(FILE *ofile, unsigned indent) const {
+        fprintf(ofile, "{\n");
+        code.reconstruct(ofile, indent + 1);
+
+        for (unsigned i = 0; i < indent; ++i)
+            fprintf(ofile, "    ");
+
+        fprintf(ofile, "}");
+    }
+
+    void Statement::VMIN(Return, reconstruct)(FILE *ofile, unsigned) const {
+        fprintf(ofile, "ret");
+
+        if (!expr.isVoid()) {
+            fprintf(ofile, " ");
+            expr.reconstruct(ofile);
+        }
+
+        fprintf(ofile, ";");
+    }
+
+    void Statement::VMIN(Loop, reconstruct)(FILE *ofile, unsigned indent) const {
+        fprintf(ofile, "while ");
+
+        expr.reconstruct(ofile);
+
+        fprintf(ofile, " {\n");
+
+        code.reconstruct(ofile, indent + 1);
+
+        for (unsigned i = 0; i < indent; ++i)
+            fprintf(ofile, "    ");
+
+        fprintf(ofile, "}");
+    }
+
+    void Statement::VMIN(Cond, reconstruct)(FILE *ofile, unsigned indent) const {
+        fprintf(ofile, "if ");
+
+        expr.reconstruct(ofile);
+
+        fprintf(ofile, " {\n");
+
+        code.reconstruct(ofile, indent + 1);
+
+        for (unsigned i = 0; i < indent; ++i)
+            fprintf(ofile, "    ");
+
+        fprintf(ofile, "} else {\n");
+
+        altCode.reconstruct(ofile, indent + 1);
+
+        for (unsigned i = 0; i < indent; ++i)
+            fprintf(ofile, "    ");
+
+        fprintf(ofile, "}");
+    }
+
+    void Statement::VMIN(VarDecl, reconstruct)(FILE *ofile, unsigned) const {
+        fprintf(ofile, "var ");
+        var.getType().reconstruct(ofile);
+        fprintf(ofile, "%.*s", var.getName()->getLength(), var.getName()->getStr());
+
+        if (!expr.isVoid()) {
+            fprintf(ofile, " = ");
+
+            expr.reconstruct(ofile);
+        }
+
+        fprintf(ofile, ";");
+    }
+
+    void Statement::VMIN(Expr, reconstruct)(FILE *ofile, unsigned) const {
+        expr.reconstruct(ofile);
+        fprintf(ofile, ";");
+    }
+
+    void Statement::VMIN(Empty, reconstruct)(FILE *ofile, unsigned) const {
+        fprintf(ofile, ";");
+    }
+
     #define DEF_TYPE(NAME) \
         VTYPE_DEF(NAME, Statement) = { \
             Statement::VMIN(NAME, dtor), \
             Statement::VMIN(NAME, compile), \
+            Statement::VMIN(NAME, reconstruct), \
         };
     #include "stmttypes.dsl.h"
     #undef DEF_TYPE
@@ -1468,6 +1737,30 @@ namespace SoftLang {
         return &args;
     }
 
+    void Function::reconstruct(FILE *ofile) const {
+        fprintf(ofile, "def %.*s(", name->getLength(), name->getStr());
+
+        const Token *curName = nullptr;
+
+        if (args.getSize() >= 1) {
+            curName = args[0].getName();
+
+            fprintf(ofile, "%.*s", curName->getLength(), curName->getStr());
+        }
+
+        for (unsigned i = 1; i < args.getSize(); ++i) {
+            curName = args[i].getName();
+
+            fprintf(ofile, ", %.*s", curName->getLength(), curName->getStr());
+        }
+
+        fprintf(ofile, ") {\n");
+
+        code.reconstruct(ofile, 1);
+
+        fprintf(ofile, "}\n\n");
+    }
+
     //================================================================================
 
     bool Program::ctor() {
@@ -1506,10 +1799,10 @@ namespace SoftLang {
         bool seenMain = false;
 
         for (unsigned i = 0; i < functions.getSize(); ++i) {
-            TRY_B(functions[i].compile(ofile, this));
+             TRY_B(functions[i].compile(ofile, this));
 
-            seenMain |= functions[i].isMain();
-        }
+             seenMain |= functions[i].isMain();
+         }
 
         if (seenMain) {
             ERR("No main function present. (If it exists, make sure it doesn't return anything)");
@@ -1531,6 +1824,12 @@ namespace SoftLang {
         }
 
         return nullptr;
+    }
+
+    void Program::reconstruct(FILE *ofile) const {
+        for (unsigned i = 0; i < functions.getSize(); ++i) {
+            functions[i].reconstruct(ofile);
+        }
     }
 
 }

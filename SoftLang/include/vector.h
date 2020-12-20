@@ -179,6 +179,10 @@ namespace SoftLang {
 
             assert(ind < size);
 
+            if (isCompact()) {
+                return compactBuf[ind];
+            }
+
             assert(buf);
 
             return buf[ind];

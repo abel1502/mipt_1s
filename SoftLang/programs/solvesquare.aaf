@@ -16,10 +16,10 @@ pop df:[rz+0]
 push df:[rz+0]
 push df:0
 ce df:
-jt dwl:$__cond_t_00000000006bb720
-jmp dwl:$__cond_f_00000000006bb720
+jt dwl:$__cond_t_00000000001dc770
+jmp dwl:$__cond_f_00000000001dc770
 ; ) {
-$__cond_t_00000000006bb720:
+$__cond_t_00000000001dc770:
 push df:[rz+8]
 push df:[rz+16]
 push dwl:rz
@@ -32,10 +32,10 @@ push dwl:24
 sub dwl:
 pop dwl:rz
 ret
-jmp dwl:$__cond_end_00000000006bb720
+jmp dwl:$__cond_end_00000000001dc770
 ; } else {
-$__cond_f_00000000006bb720:
-$__cond_end_00000000006bb720:
+$__cond_f_00000000001dc770:
+$__cond_end_00000000001dc770:
 ; }
 ; var det
 push df:[rz+8]
@@ -57,10 +57,10 @@ meow dwl:
 push df:[rz+24]
 push df:0
 cl df:
-jt dwl:$__cond_t_00000000006bb8e8
-jmp dwl:$__cond_f_00000000006bb8e8
+jt dwl:$__cond_t_00000000001dc938
+jmp dwl:$__cond_f_00000000001dc938
 ; ) {
-$__cond_t_00000000006bb8e8:
+$__cond_t_00000000001dc938:
 push dwl:0
 out dwl:
 push dwl:0
@@ -68,10 +68,10 @@ push dwl:1
 add dwl:
 popv
 ret
-jmp dwl:$__cond_end_00000000006bb8e8
+jmp dwl:$__cond_end_00000000001dc938
 ; } else {
-$__cond_f_00000000006bb8e8:
-$__cond_end_00000000006bb8e8:
+$__cond_f_00000000001dc938:
+$__cond_end_00000000001dc938:
 ; }
 ; var sqrt_det
 push df:[rz+24]
@@ -96,24 +96,24 @@ pop df:[rz+48]
 push df:[rz+24]
 push df:0
 ce df:
-jt dwl:$__cond_t_00000000006bbb48
-jmp dwl:$__cond_f_00000000006bbb48
+jt dwl:$__cond_t_00000000001dcb98
+jmp dwl:$__cond_f_00000000001dcb98
 ; ) {
-$__cond_t_00000000006bbb48:
+$__cond_t_00000000001dcb98:
 push dwl:1
 out dwl:
 push df:[rz+40]
 out df:
-jmp dwl:$__cond_end_00000000006bbb48
+jmp dwl:$__cond_end_00000000001dcb98
 ; } else {
-$__cond_f_00000000006bbb48:
+$__cond_f_00000000001dcb98:
 push dwl:2
 out dwl:
 push df:[rz+40]
 out df:
 push df:[rz+48]
 out df:
-$__cond_end_00000000006bbb48:
+$__cond_end_00000000001dcb98:
 ; }
 ret  ; Force end of $solveSquare
 
@@ -126,32 +126,32 @@ push df:[rz+0]
 push dwl:0
 d2i
 ce df:
-jt dwl:$__cond_t_00000000006ba560
-jmp dwl:$__cond_f_00000000006ba560
+jt dwl:$__cond_t_00000000001dba50
+jmp dwl:$__cond_f_00000000001dba50
 ; ) {
-$__cond_t_00000000006ba560:
+$__cond_t_00000000001dba50:
 ; if (
 push df:[rz+8]
 push df:0
 ce df:
-jt dwl:$__cond_t_00000000006ba6a0
-jmp dwl:$__cond_f_00000000006ba6a0
+jt dwl:$__cond_t_00000000001db7d0
+jmp dwl:$__cond_f_00000000001db7d0
 ; ) {
-$__cond_t_00000000006ba6a0:
+$__cond_t_00000000001db7d0:
 push df:1
 push df:0
 div df:
 out df:
-jmp dwl:$__cond_end_00000000006ba6a0
+jmp dwl:$__cond_end_00000000001db7d0
 ; } else {
-$__cond_f_00000000006ba6a0:
+$__cond_f_00000000001db7d0:
 push dwl:0
 out dwl:
-$__cond_end_00000000006ba6a0:
+$__cond_end_00000000001db7d0:
 ; }
-jmp dwl:$__cond_end_00000000006ba560
+jmp dwl:$__cond_end_00000000001dba50
 ; } else {
-$__cond_f_00000000006ba560:
+$__cond_f_00000000001dba50:
 push dwl:1
 out dwl:
 push df:[rz+8]
@@ -159,7 +159,7 @@ neg df:
 push df:[rz+0]
 div df:
 out df:
-$__cond_end_00000000006ba560:
+$__cond_end_00000000001dba50:
 ; }
 ret  ; Force end of $solveLinear
 

@@ -51,6 +51,8 @@ namespace SoftLang {
 
         uint32_t getSize() const;
 
+        void reconstruct(FILE *ofile) const;
+
         Mask getMask() const;
 
         bool fitsMask(Mask mask) const;
@@ -166,6 +168,7 @@ namespace SoftLang {
             VDECL(Expression, void, dtor);
             VDECL(Expression, TypeSpec::Mask, deduceType, Scope *scope, const Program *prog);
             VDECL(Expression, bool, compile, FILE *ofile, Scope *scope, const Program *prog);
+            VDECL(Expression, void, reconstruct, FILE *ofile) const;
         };
 
         VTABLE_FIELD
@@ -210,6 +213,8 @@ namespace SoftLang {
         TypeSpec::Mask deduceType(TypeSpec::Mask mask, Scope *scope, const Program *prog);
 
         bool compile(FILE *ofile, Scope *scope, const Program *prog);
+
+        void reconstruct(FILE *ofile) const;
 
         #define DEF_TYPE(NAME) \
             bool is##NAME() const;
@@ -264,6 +269,11 @@ namespace SoftLang {
         #include "exprtypes.dsl.h"
         #undef DEF_TYPE
 
+        #define DEF_TYPE(NAME) \
+            void VMIN(NAME, reconstruct)(FILE *ofile) const;
+        #include "exprtypes.dsl.h"
+        #undef DEF_TYPE
+
     };
 
     //================================================================================
@@ -288,6 +298,8 @@ namespace SoftLang {
 
         bool compile(FILE *ofile, TypeSpec rtype, const Program *prog);
 
+        void reconstruct(FILE *ofile, unsigned indent) const;
+
         Scope *getScope();
 
     private:
@@ -305,6 +317,7 @@ namespace SoftLang {
         VTABLE_STRUCT {
             VDECL(Statement, void, dtor);
             VDECL(Statement, bool, compile, FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog);
+            VDECL(Statement, void, reconstruct, FILE *ofile, unsigned indent) const;
         };
 
         VTABLE_FIELD
@@ -343,6 +356,8 @@ namespace SoftLang {
 
         bool compile(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog);
 
+        void reconstruct(FILE *ofile, unsigned indent) const;
+
         #define DEF_TYPE(NAME) \
             bool is##NAME() const;
         #include "stmttypes.dsl.h"
@@ -368,6 +383,11 @@ namespace SoftLang {
 
         #define DEF_TYPE(NAME) \
             bool VMIN(NAME, compile)(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog);
+        #include "stmttypes.dsl.h"
+        #undef DEF_TYPE
+
+        #define DEF_TYPE(NAME) \
+            void VMIN(NAME, reconstruct)(FILE *ofile, unsigned indent) const;
         #include "stmttypes.dsl.h"
         #undef DEF_TYPE
 
@@ -407,6 +427,8 @@ namespace SoftLang {
 
         const Vector<Var> *getArgs() const;
 
+        void reconstruct(FILE *ofile) const;
+
     private:
 
         Vector<Var> args;
@@ -437,6 +459,8 @@ namespace SoftLang {
         bool compile(FILE *ofile);
 
         const Function *getFunction(const Token *name) const;
+
+        void reconstruct(FILE *ofile) const;
 
     private:
 
