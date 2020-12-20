@@ -205,6 +205,8 @@ namespace SoftLang {
     }
 
     void Scope::setParent(const Scope *new_parent) {
+        //printf("New parent: %p -> %p\n", parent, new_parent);
+
         parent = new_parent;
     }
 
@@ -540,6 +542,37 @@ namespace SoftLang {
     }
 
     TypeSpec::Mask Expression::VMIN(PolyOp, deduceType)(Scope *scope, const Program *prog) {
+        bool isCmp = false;
+
+        if (ops.getSize() > 0) {
+            #pragma GCC diagnostic push
+            #pragma GCC diagnostic ignored "-Wswitch-enum"
+
+            switch (ops[0]) {
+            case Expression::OP_EQ:
+            case Expression::OP_NEQ:
+            case Expression::OP_GEQ:
+            case Expression::OP_LEQ:
+            case Expression::OP_GT:
+            case Expression::OP_LT:
+                isCmp = true;  // A comparison always return Int4, no matter what is consists of, but its children should still be of a single and determinable type
+                typeMask = TypeSpec::AllMask & ~TypeSpec::VoidMask;
+
+                if (children.getSize() > 2) {
+                    ERR("Comparisons of more than two values aren't yet implemented, sorry");
+
+                    return TypeSpec::NoneMask;
+                }
+
+                break;
+
+            default:
+                break;
+            }
+
+            #pragma GCC diagnostic pop
+        }
+
         for (unsigned i = 0; typeMask && i < children.getSize(); ++i) {
             typeMask &= children[i].deduceType(typeMask, scope, prog);
         }
@@ -547,6 +580,14 @@ namespace SoftLang {
         if (TypeSpec::isMaskUnambiguous(typeMask)) {
             for (unsigned i = 0; i < children.getSize(); ++i) {
                 children[i].deduceType(typeMask, scope, prog);  // Pushing through for them to know who to compile as
+            }
+        }
+
+        if (isCmp) {
+            if (TypeSpec::isMaskUnambiguous(typeMask)) {
+                typeMask = TypeSpec::Int4Mask;
+            } else {
+                typeMask = TypeSpec::NoneMask;
             }
         }
 
@@ -744,9 +785,6 @@ namespace SoftLang {
 
             case OP_MOD:
                 fprintf(ofile, "mod ");
-
-                TRY_BC(exprType.type == TypeSpec::T_DBL || num->asInt() == 0,
-                       ERR("Integer zero division attempted"));
                 break;
 
             default:
@@ -754,28 +792,16 @@ namespace SoftLang {
                 return true;
             }
 
+            // For cmp's exprType is Int4, so we need the child's one
+            if (typeMask != children[i].typeMask) {
+                TRY_B(exprType.ctor(children[i].typeMask));
+            }
+
             exprType.compile(ofile);
             fprintf(ofile, "\n");
 
-            #pragma GCC diagnostic push
-            #pragma GCC diagnostic ignored "-Wswitch-enum"
-
-            switch (ops[i]) {
-            case OP_EQ:
-            case OP_NEQ:
-            case OP_GEQ:
-            case OP_LEQ:
-            case OP_LT:
-            case OP_GT:
-                // TODO: Eventually should change poly-comparison handling to the pythonic way
-                exprType.ctor(TypeSpec::T_INT4);  // TODO: Check, but seems correct
-                break;
-
-            default:
-                break;
-            }
-
-            #pragma GCC diagnostic pop
+            // TODO: Eventually should change poly-comparison handling to the pythonic way.
+            // TODO: For now, in fact, I should probably forbid a == b == c stuff at all
         }
 
         exprType.dtor();
@@ -807,13 +833,17 @@ namespace SoftLang {
         TRY_BC(exprType.ctor(typeMask), ERR("Ambiguous type"));
 
         TypeSpec childType{};
-        TRY_BC(childType.ctor(
-                children[0].deduceType(
-                    TypeSpec::AllMask /*& ~TypeSpec::VoidMask*/, scope, prog
-                )
-            ),
-            ERR("Ambiguous type")
-        );
+        TypeSpec::Mask tmpMask = children[0].deduceType(TypeSpec::AllMask, scope, prog);
+
+        if (tmpMask == (TypeSpec::Int4Mask | TypeSpec::Int8Mask)) {
+            // A workaround for dbl:123 and such
+            tmpMask = children[0].deduceType(TypeSpec::Int4Mask, scope, prog);
+        }
+
+        if (childType.ctor(tmpMask)){
+
+            ERR("Ambiguous type");
+        }
 
         TRY_B(children[0].compile(ofile, scope, prog));
 
@@ -973,11 +1003,11 @@ namespace SoftLang {
         TypeSpec exprType{};
         TRY_BC(exprType.ctor(typeMask), ERR("Ambiguous type"));
 
-        const Function *func = prog->getFunction(name);
-
         if (name->getLength() >= 1 && name->getStr()[0] == '_') {
             return compilePseudofunc(ofile, scope, prog);
         }
+
+        const Function *func = prog->getFunction(name);
 
         TRY_BC(!func, ERR("Unknown function: \"%.*s\"", name->getLength(), name->getStr()));
 
@@ -1003,7 +1033,17 @@ namespace SoftLang {
             children[i].compile(ofile, scope, prog);
         }
 
-        fprintf(ofile, "call dwl:$__func_%.*s\n", name->getLength(), name->getStr());  // TODO: Encapsulate function names & etc. into macros
+        fprintf(ofile,
+                "push dwl:rz\n"
+                "push dwl:%u\n"
+                "add dwl:\n"
+                "pop dwl:rz\n"
+                "call dwl:$__func_%.*s\n"
+                "push dwl:rz\n"
+                "push dwl:%u\n"
+                "sub dwl:\n"
+                "pop dwl:rz\n"
+                , scope->getFrameSize(), name->getLength(), name->getStr(), scope->getFrameSize());
 
         exprType.dtor();
 
@@ -1189,7 +1229,8 @@ namespace SoftLang {
     }
 
 
-    bool Statement::VMIN(Compound, compile)(FILE *ofile, Scope *, TypeSpec rtype, const Program *prog) {
+    bool Statement::VMIN(Compound, compile)(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog) {
+        code.getScope()->setParent(scope);
         TRY_B(code.compile(ofile, rtype, prog));
 
         return false;
@@ -1219,15 +1260,17 @@ namespace SoftLang {
                 "$__loop_in_%p:\n"  // TODO: Maybe change to something more adequate
                 , this);
 
-        expr.deduceType(TypeSpec::Int4Mask, scope, prog);  // Same as with cond
+        TRY_BC(expr.deduceType(TypeSpec::AllMask & ~TypeSpec::VoidMask, scope, prog) != TypeSpec::Int4Mask,
+               ERR("Ambiguous type"));
 
         TRY_B(expr.compile(ofile, scope, prog));
 
         fprintf(ofile,
-                "jt dwl:$__loop_out_%p\n"
+                "jf dwl:$__loop_out_%p\n"
                 "; ) {\n"
                 , this);
 
+        code.getScope()->setParent(scope);
         TRY_B(code.compile(ofile, rtype, prog));
 
         fprintf(ofile,
@@ -1246,7 +1289,8 @@ namespace SoftLang {
         fprintf(ofile,
                 "; if (\n");
 
-        expr.deduceType(TypeSpec::Int4Mask, scope, prog);  // TODO: Maybe allow something else, but whatever
+        TRY_BC(expr.deduceType(TypeSpec::AllMask & ~TypeSpec::VoidMask, scope, prog) != TypeSpec::Int4Mask,
+               ERR("Ambiguous type"));
 
         TRY_B(expr.compile(ofile, scope, prog));
 
@@ -1257,6 +1301,7 @@ namespace SoftLang {
                 "$__cond_t_%p:\n"
                 , this, this, this);
 
+        code.getScope()->setParent(scope);
         TRY_B(code.compile(ofile, rtype, prog));
 
         fprintf(ofile,
@@ -1265,6 +1310,7 @@ namespace SoftLang {
                 "$__cond_f_%p:\n"
                 , this, this);
 
+        altCode.getScope()->setParent(scope);
         TRY_B(altCode.compile(ofile, rtype, prog));
 
         fprintf(ofile,
@@ -1380,6 +1426,21 @@ namespace SoftLang {
     bool Function::compile(FILE* ofile, const Program *prog) {
         fprintf(ofile, "\n$__func_%.*s:\n", name->getLength(), name->getStr());
 
+        // TODO: Maybe do it a bit less manually, at the cost of speed
+
+        uint32_t offset = code.getScope()->getFrameSize();
+
+        for (unsigned i = args.getSize() - 1; i != (unsigned)-1; --i) {
+            offset -= args[i].getType().getSize();
+
+            assert(offset < (uint32_t)-1000);  // Checks that it isn't negative
+
+            fprintf(ofile, "pop ");
+            TRY_B(args[i].getType().compile(ofile));
+            fprintf(ofile, "[rz+%u]\n", offset);
+        }
+
+        code.getScope()->setParent(nullptr);
         TRY_B(code.compile(ofile, rtype, prog));
 
         fprintf(ofile, "ret  ; Force end of $%.*s\n\n", name->getLength(), name->getStr());
