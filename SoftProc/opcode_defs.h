@@ -484,7 +484,14 @@ DEF_OP(0xf7, RAR , rar , 0, 0b0000000000000000, 0b00000000, {
 })
 
 DEF_OP(0xff, MEOW, meow, 1, 0b0000000000010000, 0b11101111, {
-    for (unsigned ind = 0; ind < ARG_.dwl; ++ind) {
+    unsigned count = ARG_.dwl;
+
+    if (!AM_.loc) {
+        POP_(&tos0);
+        count = tos0.dwl;
+    }
+
+    for (unsigned ind = 0; ind < count; ++ind) {
         //txSpeak("ìÿó");
         printf("meow\n");
     }
