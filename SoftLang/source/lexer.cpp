@@ -416,6 +416,7 @@ namespace SoftLang {
 
         if (tmp == '\0') {
             TRY_B(dest->ctorEnd());
+
             return false;
         }
 
@@ -423,7 +424,7 @@ namespace SoftLang {
             return parseNumber(dest, iter);
         }
 
-        if (isalpha(tmp)) {
+        if (isIdChar(tmp)) {
             return parseIdentifier(dest, iter);
         }
 
@@ -620,8 +621,8 @@ namespace SoftLang {
                 repeat = true;
             }
 
-            if (strncmp(iter->getPtr(), LINE_COMMENT_START, sizeof(LINE_COMMENT_START)) == 0) {
-                for (unsigned i = 0; i < sizeof(LINE_COMMENT_START); ++i)
+            if (strncmp(iter->getPtr(), LINE_COMMENT_START, sizeof(LINE_COMMENT_START) - 1) == 0) {
+                for (unsigned i = 0; i < sizeof(LINE_COMMENT_START) - 1; ++i)
                     iter->next();
 
                 char tmp = iter->next();
@@ -632,14 +633,14 @@ namespace SoftLang {
                 repeat = true;
             }
 
-            if (strncmp(iter->getPtr(), BLOCK_COMMENT_START, sizeof(BLOCK_COMMENT_START)) == 0) {
-                for (unsigned i = 0; i < sizeof(BLOCK_COMMENT_START); ++i)
+            if (strncmp(iter->getPtr(), BLOCK_COMMENT_START, sizeof(BLOCK_COMMENT_START) - 1) == 0) {
+                for (unsigned i = 0; i < sizeof(BLOCK_COMMENT_START) - 1; ++i)
                     iter->next();
 
-                while (iter->cur() != 0 && strncmp(iter->getPtr(), BLOCK_COMMENT_END, sizeof(BLOCK_COMMENT_END)) != 0)
+                while (iter->cur() != 0 && strncmp(iter->getPtr(), BLOCK_COMMENT_END, sizeof(BLOCK_COMMENT_END) - 1) != 0)
                     iter->next();
 
-                for (unsigned i = 0; i < sizeof(BLOCK_COMMENT_END); ++i)
+                for (unsigned i = 0; i < sizeof(BLOCK_COMMENT_END) - 1; ++i)
                     iter->next();
 
                 repeat = true;
