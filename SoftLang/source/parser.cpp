@@ -248,7 +248,7 @@ namespace SoftLang {
         unsigned saved = backup();
 
         P_TRY(parse_COMPOUND_STMT(stmt, parentScope),  P_OK(), restore(saved); stmt->dtor());
-        P_TRY(parse_RETURN_STMT  (stmt),               P_OK(), restore(saved); stmt->dtor(););
+        P_TRY(parse_RETURN_STMT  (stmt),               P_OK(), restore(saved); stmt->dtor());
         P_TRY(parse_LOOP_STMT    (stmt, parentScope),  P_OK(), restore(saved); stmt->dtor());
         P_TRY(parse_COND_STMT    (stmt, parentScope),  P_OK(), restore(saved); stmt->dtor());
         P_TRY(parse_VARDECL_STMT (stmt),               P_OK(), restore(saved); stmt->dtor());

@@ -27,7 +27,7 @@ FUNC_ARGS_DEF	::= LIST<FUNC_ARG_DEF, ','>?
 
 FUNC_ARG_DEF	::= TYPESPEC ':' NAME
 
-// TODO: replace low-level types with high-level, as well as add signedness markers
+// TODO: add signedness markers
 TYPESPEC		::= ['dbl' 'int4' 'int8']
 
 STMTS			::= STMT*

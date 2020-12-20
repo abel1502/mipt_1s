@@ -1,0 +1,43 @@
+def solveSquare(a, b, c) {
+    if ((a) == (0.)) {
+        (solveLinear((b)(c)));
+        ret;
+    } else {
+    }
+    var dbl:det;
+    (_meow((int4:((det) = (((b) * (b)) - ((4.) * (a) * (c)) + (0.))))));
+    if ((det) < (0.)) {
+        ((int4:(_print_int4((0)))) + (1));
+        ret;
+    } else {
+    }
+    var dbl:sqrt_det = (_sqrt((det)));
+    var dbl:root1;
+    var dbl:root2 = (((root1) = (((-(b)) - (sqrt_det))/ (2.))) + (sqrt_det));
+    if ((det) == (0.)) {
+        (_print_int4((1)));
+        (_print_dbl((root1)));
+    } else {
+        (_print_int4((2)));
+        (_print_dbl((root1)));
+        (_print_dbl((root2)));
+    }
+}
+
+def solveLinear(b, c) {
+    if ((b) == (dbl:(0))) {
+        if ((c) == (0.)) {
+            (_print_dbl(((1.)/ (0.))));
+        } else {
+            (_print_int4((0)));
+        }
+    } else {
+        (_print_int4((1)));
+        (_print_dbl(((-(c))/ (b))));
+    }
+}
+
+def main() {
+    (solveSquare((_read_dbl())(_read_dbl())(_read_dbl())));
+}
+

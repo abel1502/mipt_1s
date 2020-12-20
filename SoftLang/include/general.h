@@ -62,7 +62,7 @@
 }
 
 // Try not with cleanup
-#define TRY_NC(STMT, CLEANUP)  {                         \
+#define TRY_NC(STMT, CLEANUP)  {                        \
     auto TMPVARNAME = (STMT);                           \
     if (!TMPVARNAME) {                                  \
         if (verbosity >= 3) {                           \
