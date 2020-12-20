@@ -199,6 +199,8 @@ namespace SoftLang {
 
         bool makeChild(Expression **child);
 
+        void popChild();
+
         void setAsgnMode(AsgnMode_e mode);
 
         bool setOp(unsigned ind, Op_e op);
@@ -276,6 +278,8 @@ namespace SoftLang {
         void dtor();
 
         bool makeStatement(Statement **stmt);
+
+        void popStatement();
 
         void simplifyLastEmpty();
 
@@ -382,6 +386,8 @@ namespace SoftLang {
         /// Same as makeFunction
         bool makeArg(Var **arg);
 
+        void popArg();
+
         /// This one will always return &code
         bool makeCode(Code **code);
 
@@ -395,6 +401,8 @@ namespace SoftLang {
         TypeSpec getRtype() const;
 
         const Token *getName() const;
+
+        const Vector<Var> *getArgs() const;
 
     private:
 
@@ -420,6 +428,8 @@ namespace SoftLang {
         /// (Space is allocated in a Vector, which prevents memory fragmentation, but
         ///  requires that the resulting pointer isn't stored, since it may break upon reallocation)
         bool makeFunction(Function **dest);
+
+        void popFunction();
 
         bool compile(FILE *ofile);
 

@@ -16,14 +16,16 @@ namespace SoftLang {
     }
 
     bool TypeSpec::ctor(Mask mask) {
-        if (!mask || !isMaskUnambiguous(mask))
+        //printf("DEBUG: 0x%x, %s unambiguous\n", mask, isMaskUnambiguous(mask) ? "is" : "isn't");
+
+        if (!isMaskUnambiguous(mask))
             return true;
 
         type = (Type_e)__builtin_ctz(mask);  // Almost txlib level magic)
 
         assert(type < TYPES_COUNT);
 
-        return true;
+        return false;
     }
 
     void TypeSpec::dtor() {
@@ -85,7 +87,7 @@ namespace SoftLang {
     }
 
     constexpr bool TypeSpec::isMaskUnambiguous(TypeSpec::Mask mask) {
-        return mask & (mask - 1);
+        return !(mask & (mask - 1)) && mask;
     }
 
     //================================================================================
@@ -110,7 +112,7 @@ namespace SoftLang {
 
     void Var::dtor() {
         ts = {};
-        name = {};
+        name = nullptr;
     }
 
     bool Var::compile(FILE *ofile, const Scope *scope) const {
@@ -325,7 +327,9 @@ namespace SoftLang {
     void Expression::dtor() {
         children.dtor();
         typeMask = TypeSpec::NoneMask;
-        VCALL(this, dtor);
+
+        if (vtable_)
+            VCALL(this, dtor);
     }
 
     bool Expression::makeChild(Expression** child) {
@@ -334,6 +338,10 @@ namespace SoftLang {
         *child = &children[-1];
 
         return false;
+    }
+
+    void Expression::popChild() {
+        children.pop();
     }
 
     void Expression::setAsgnMode(AsgnMode_e mode) {
@@ -380,11 +388,23 @@ namespace SoftLang {
         }
 
         typeMask &= mask;
+        typeMask &= VCALL(this, deduceType, scope, prog);
 
-        return typeMask &= VCALL(this, deduceType, scope, prog);
+        return typeMask;
     }
 
     bool Expression::compile(FILE *ofile, Scope *scope, const Program *prog) {
+        /*printf("; EXPR COMPILE\n");
+        #define DEF_TYPE(NAME)                          \
+            if (vtable_ == &Expression::VTYPE(NAME)) {  \
+                printf("; ->" #NAME "\n");                          \
+            } else
+        #include "exprtypes.dsl.h"
+        #undef DEF_TYPE
+        {
+            ERR("; ->UNKNOWN TYPE\n");
+            assert(false);
+        }*/
         return VCALL(this, compile, ofile, scope, prog);
     }
 
@@ -448,8 +468,10 @@ namespace SoftLang {
     TypeSpec::Mask Expression::VMIN(Asgn, deduceType)(Scope *scope, const Program *prog) {
         assert(children.getSize() == 2);
 
-        typeMask &= children[0].deduceType(typeMask, scope, prog);
+        typeMask &= children[0].deduceType(typeMask, scope, prog);  // Result is always either unambiguous or none
         typeMask &= children[1].deduceType(typeMask, scope, prog);
+
+        // So, whenever typeMask ends up unambiguous, the children already know about it
 
         return typeMask;
     }
@@ -459,16 +481,22 @@ namespace SoftLang {
             typeMask &= children[i].deduceType(typeMask, scope, prog);
         }
 
+        if (TypeSpec::isMaskUnambiguous(typeMask)) {
+            for (unsigned i = 0; i < children.getSize(); ++i) {
+                children[i].deduceType(typeMask, scope, prog);  // Pushing through for them to know who to compile as
+            }
+        }
+
         return typeMask;
     }
 
     TypeSpec::Mask Expression::VMIN(Neg, deduceType)(Scope *scope, const Program *prog) {
         assert(children.getSize() == 1);
 
-        return children[0].deduceType(typeMask, scope, prog);
+        return children[0].deduceType(typeMask, scope, prog);  // Again, no manual pushing required
     }
 
-    TypeSpec::Mask Expression::VMIN(Cast, deduceType)(Scope *, const Program *) {
+    TypeSpec::Mask Expression::VMIN(Cast, deduceType)(Scope *scope, const Program *prog) {
         assert(children.getSize() == 1);
 
         /*
@@ -478,14 +506,15 @@ namespace SoftLang {
         }
         */
 
-        return cast.getMask();
+        // The only requirement posed on the cast subject is to be non-void (at least at this point)
+        return cast.getMask() & children[0].deduceType(TypeSpec::AllMask & ~TypeSpec::VoidMask, scope, prog);
     }
 
     TypeSpec::Mask Expression::VMIN(Num, deduceType)(Scope *, const Program *) {
         assert(num->isNum());
 
         if (num->isInteger()) {
-            return TypeSpec::Int4Mask | TypeSpec::Int8Mask;
+            return TypeSpec::Int4Mask | TypeSpec::Int8Mask /*| TypeSpec::DblMask*/;  // TODO: Not sure if we should consider double possible here
         } else {
             return TypeSpec::DblMask;
         }
@@ -497,7 +526,7 @@ namespace SoftLang {
         VarInfo vi = scope->getInfo(name);
 
         if (!vi.var) {
-            //ERR("Unknown variable, type indeterminable: \"%.*s\"", name->getLength(), name->getStr());
+            ERR("Unknown variable, type indeterminable: \"%.*s\"", name->getLength(), name->getStr());
 
             return TypeSpec::NoneMask;
         }
@@ -513,16 +542,20 @@ namespace SoftLang {
         const Function *func = prog->getFunction(name);
 
         if (!func) {
-            //ERR("Unknown function, return type indeterminable: \"%.*s\"", name->getLength(), name->getStr());
+            ERR("Unknown function, return type indeterminable: \"%.*s\"", name->getLength(), name->getStr());
 
             return TypeSpec::NoneMask;
         }
+
+        // Argument masks and count checks should be applied later
 
         return func->getRtype().getMask();  // TODO: ?
     }
 
 
-    bool Expression::VMIN(Void, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+    bool Expression::VMIN(Void, compile)(FILE *, Scope *, const Program *) {
+        assert(children.getSize() == 0);
+
         // Let's leave it trivial for now, I guess
         TypeSpec exprType{};
         TRY_BC(exprType.ctor(typeMask), ERR("Ambiguous type"));
@@ -569,16 +602,15 @@ namespace SoftLang {
                 TRY_BC(exprType.type == TypeSpec::T_DBL, ERR("Remainder can't be computed for non-integral types"));
                 break;
 
+            case OP_EQ:
             default:
                 assert(false);
                 return true;
             }
 
             TRY_B(exprType.compile(ofile));
-
             fprintf(ofile, "\n");
         }
-
 
         TRY_B(children[0].compileVarRecepient(ofile, scope, prog));
 
@@ -588,21 +620,327 @@ namespace SoftLang {
     }
 
     bool Expression::VMIN(PolyOp, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+        assert(children.getSize() > 0);
+        //assert(children.getSize() > 1);
+
+        TypeSpec exprType{};
+        TRY_BC(exprType.ctor(typeMask), ERR("Ambiguous type"));
+        TRY_B(exprType.type == TypeSpec::T_VOID);
+
+        TRY_B(children[0].compile(ofile, scope, prog));
+
+        for (unsigned i = 0; i + 1 < children.getSize(); i++) {
+            // We do rely onall the operators being left-to-right evaluated, so
+            // take caution when adding new ones that don't follow this rule
+            // (such as **, for example)
+
+            TRY_B(children[i + 1].compile(ofile, scope, prog));
+
+            switch (ops[i]) {
+            case OP_EQ:
+                fprintf(ofile, "ce ");
+                break;
+
+            case OP_NEQ:
+                fprintf(ofile, "cne ");
+                break;
+
+            case OP_GEQ:
+                fprintf(ofile, "cge ");
+                break;
+
+            case OP_LEQ:
+                fprintf(ofile, "cle ");
+                break;
+
+            case OP_LT:
+                fprintf(ofile, "cl ");
+                break;
+
+            case OP_GT:
+                fprintf(ofile, "cg ");
+                break;
+
+            case OP_ADD:
+                fprintf(ofile, "add ");
+                break;
+
+            case OP_SUB:
+                fprintf(ofile, "sub ");
+                break;
+
+            case OP_MUL:
+                fprintf(ofile, "mul ");
+                break;
+
+            case OP_DIV:
+                fprintf(ofile, "div ");
+                break;
+
+            case OP_MOD:
+                fprintf(ofile, "mod ");
+
+                TRY_BC(exprType.type == TypeSpec::T_DBL || num->asInt() == 0,
+                       ERR("Integer zero division attempted"));
+                break;
+
+            default:
+                assert(false);
+                return true;
+            }
+
+            exprType.compile(ofile);
+            fprintf(ofile, "\n");
+
+            #pragma GCC diagnostic push
+            #pragma GCC diagnostic ignored "-Wswitch-enum"
+
+            switch (ops[i]) {
+            case OP_EQ:
+            case OP_NEQ:
+            case OP_GEQ:
+            case OP_LEQ:
+            case OP_LT:
+            case OP_GT:
+                // TODO: Eventually should change poly-comparison handling to the pythonic way
+                exprType.ctor(TypeSpec::T_INT4);  // TODO: Check, but seems correct
+                break;
+
+            default:
+                break;
+            }
+
+            #pragma GCC diagnostic pop
+        }
+
+        exprType.dtor();
+
+        return false;
     }
 
     bool Expression::VMIN(Neg, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+        assert(children.getSize() == 1);
+
+        TypeSpec exprType{};
+        TRY_BC(exprType.ctor(typeMask), ERR("Ambiguous type"));
+        TRY_B(exprType.type == TypeSpec::T_VOID);
+
+        TRY_B(children[0].compile(ofile, scope, prog));
+        fprintf(ofile, "neg ");
+        TRY_B(exprType.compile(ofile));
+        fprintf(ofile, "\n");
+
+        exprType.dtor();
+
+        return false;
     }
 
     bool Expression::VMIN(Cast, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+        assert(children.getSize() == 1);
+
+        TypeSpec exprType{};
+        TRY_BC(exprType.ctor(typeMask), ERR("Ambiguous type"));
+
+        TypeSpec childType{};
+        TRY_BC(childType.ctor(
+                children[0].deduceType(
+                    TypeSpec::AllMask /*& ~TypeSpec::VoidMask*/, scope, prog
+                )
+            ),
+            ERR("Ambiguous type")
+        );
+
+        TRY_B(children[0].compile(ofile, scope, prog));
+
+        switch (exprType.type) {
+        case TypeSpec::T_VOID:
+            ERR("Can't cast to void");
+            return true;
+
+        case TypeSpec::T_DBL:
+            switch (childType.type) {
+            case TypeSpec::T_VOID:
+                fprintf(ofile, "push ");
+                TRY_B(exprType.compile(ofile));
+                fprintf(ofile, "0\n");
+                break;
+
+            case TypeSpec::T_DBL:
+                break;
+
+            case TypeSpec::T_INT4:
+                fprintf(ofile, "d2i\n");
+                break;
+
+            case TypeSpec::T_INT8:
+                fprintf(ofile, "d2l\n");  // TODO: Implement
+                break;
+
+            default:
+                assert(false);
+                return true;
+            }
+            break;
+
+        case TypeSpec::T_INT8:
+            switch (childType.type) {
+            case TypeSpec::T_VOID:
+                fprintf(ofile, "push ");
+                TRY_B(exprType.compile(ofile));
+                fprintf(ofile, "0\n");
+                break;
+
+            case TypeSpec::T_DBL:
+                fprintf(ofile, "l2d\n");  // TODO: Implement
+                break;
+
+            case TypeSpec::T_INT4:
+                break;
+
+            case TypeSpec::T_INT8:
+                // Kind of works automatically
+                break;
+
+            default:
+                assert(false);
+                return true;
+            }
+            break;
+
+        case TypeSpec::T_INT4:
+            switch (childType.type) {
+            case TypeSpec::T_VOID:
+                fprintf(ofile, "push ");
+                TRY_B(exprType.compile(ofile));
+                fprintf(ofile, "0\n");
+                break;
+
+            case TypeSpec::T_DBL:
+                fprintf(ofile, "i2d\n");
+                break;
+
+            case TypeSpec::T_INT4:
+                // Kind of works automatically, although a bit trickier
+                break;
+
+            case TypeSpec::T_INT8:
+                break;
+
+            default:
+                assert(false);
+                return true;
+            }
+            break;
+
+        default:
+            assert(false);
+            return true;
+        }
+
+        childType.dtor();
+        exprType.dtor();
+
+        return false;
     }
 
-    bool Expression::VMIN(Num, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+    bool Expression::VMIN(Num, compile)(FILE *ofile, Scope *, const Program *) {
+        assert(children.getSize() == 0);
+
+        TypeSpec exprType{};
+        TRY_BC(exprType.ctor(typeMask), ERR("Ambiguous type"));
+        //TRY_B(exprType.type == TypeSpec::T_VOID);
+
+        switch (exprType.type) {
+        case TypeSpec::T_VOID:
+            ERR("Void isn't a number");
+            return true;
+
+        case TypeSpec::T_INT4:
+        case TypeSpec::T_INT8:
+            fprintf(ofile, "push ");
+            exprType.compile(ofile);
+            fprintf(ofile, "%llu\n", num->asInt());
+
+            break;
+
+        case TypeSpec::T_DBL:
+            fprintf(ofile, "push ");
+            exprType.compile(ofile);
+            fprintf(ofile, "%lg\n", num->asDbl());
+
+            break;
+
+        default:
+            assert(false);
+            return true;
+        }
+
+        exprType.dtor();
+
+        return false;
     }
 
-    bool Expression::VMIN(VarRef, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+    bool Expression::VMIN(VarRef, compile)(FILE *ofile, Scope *scope, const Program *) {
+        assert(children.getSize() == 0);
+
+        TypeSpec exprType{};
+        TRY_BC(exprType.ctor(typeMask), ERR("Ambiguous type"));
+        TRY_B(exprType.type == TypeSpec::T_VOID);
+
+        VarInfo vi = scope->getInfo(name);
+
+        assert(vi.var);  // If it didn't exist, type deduction would have already failed
+        /*if (!vi.var) {
+            ERR("Unknown variable: \"%.*s\"", name->getLength(), name->getStr());
+            return true;
+        }*/
+
+        fprintf(ofile, "push ");
+        TRY_B(Var::compile(ofile, vi));
+        fprintf(ofile, "\n");
+
+        exprType.dtor();
+
+        return false;
     }
 
     bool Expression::VMIN(FuncCall, compile)(FILE *ofile, Scope *scope, const Program *prog) {
+        TypeSpec exprType{};
+        TRY_BC(exprType.ctor(typeMask), ERR("Ambiguous type"));
+
+        const Function *func = prog->getFunction(name);
+
+        // TODO: Pseudofuncs (again)!!!!
+
+        TRY_BC(!func, ERR("Unknown function: \"%.*s\"", name->getLength(), name->getStr()));
+
+        assert(func->getRtype().type == exprType.type);  // Should have been guaranteed by the deduceType
+
+        const Vector<Var> *args = func->getArgs();
+
+        for (unsigned i = 0; i < args->getSize(); ++i) {
+            TypeSpec::Mask childMask = children[i].deduceType((*args)[i].getType().getMask(), scope, prog);
+
+            if (!childMask) {
+                ERR("Bad argument type");
+                return true;
+            }
+
+            if (!TypeSpec::isMaskUnambiguous(childMask)) {  // TODO: Review usages of this function and maybe remove unnecessary zero checks
+                ERR("Ambiguous argument type");
+                return true;
+            }
+
+            assert(childMask != TypeSpec::VoidMask);
+
+            children[i].compile(ofile, scope, prog);
+        }
+
+        fprintf(ofile, "call dwl:$__func_%.*s\n", name->getLength(), name->getStr());  // TODO: Encapsulate function names & etc. into macros
+
+        exprType.dtor();
+
+        return false;
     }
 
 
@@ -611,7 +949,7 @@ namespace SoftLang {
             Expression::VMIN(NAME, dtor), \
             Expression::VMIN(NAME, deduceType), \
             Expression::VMIN(NAME, compile), \
-        }
+        };
     #include "exprtypes.dsl.h"
     #undef DEF_TYPE
 
@@ -635,6 +973,10 @@ namespace SoftLang {
         *stmt = &stmts[-1];
 
         return false;
+    }
+
+    void Code::popStatement() {
+        stmts.pop();
     }
 
     void Code::simplifyLastEmpty() {
@@ -709,7 +1051,8 @@ namespace SoftLang {
     }
 
     void Statement::dtor() {
-        VCALL(this, dtor);
+        if (vtable_)
+            VCALL(this, dtor);
     }
 
     bool Statement::makeCode(Code** out_code) {
@@ -779,7 +1122,7 @@ namespace SoftLang {
     }
 
 
-    bool Statement::VMIN(Compound, compile)(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog) {
+    bool Statement::VMIN(Compound, compile)(FILE *ofile, Scope *, TypeSpec rtype, const Program *prog) {
         TRY_B(code.compile(ofile, rtype, prog));
 
         return false;
@@ -793,7 +1136,9 @@ namespace SoftLang {
                 return true;
             }  // TODO: Maybe also compile void expression, but make it trivial?
         } else {
-            TRY_B(expr.compile(ofile, scope, prog));  // TODO: Allowed type mask and other options
+            expr.deduceType(rtype.getMask(), scope, prog);
+
+            TRY_B(expr.compile(ofile, scope, prog));
         }
 
         fprintf(ofile, "ret\n");
@@ -807,7 +1152,9 @@ namespace SoftLang {
                 "$__loop_in_%p:\n"  // TODO: Maybe change to something more adequate
                 , this);
 
-        TRY_B(expr.compile(ofile, scope, prog));  // TODO: Expr stuff
+        expr.deduceType(TypeSpec::Int4Mask, scope, prog);  // Same as with cond
+
+        TRY_B(expr.compile(ofile, scope, prog));
 
         fprintf(ofile,
                 "jt dwl:$__loop_out_%p\n"
@@ -832,7 +1179,9 @@ namespace SoftLang {
         fprintf(ofile,
                 "; if (\n");
 
-        TRY_B(expr.compile(ofile, scope, prog));  // TODO: Expr stuff
+        expr.deduceType(TypeSpec::Int4Mask, scope, prog);  // TODO: Maybe allow something else, but whatever
+
+        TRY_B(expr.compile(ofile, scope, prog));
 
         fprintf(ofile,
                 "jt dwl:$__cond_t_%p\n"
@@ -858,7 +1207,7 @@ namespace SoftLang {
         return false;
     }
 
-    bool Statement::VMIN(VarDecl, compile)(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog) {
+    bool Statement::VMIN(VarDecl, compile)(FILE *ofile, Scope *scope, TypeSpec, const Program *prog) {
         TRY_B(scope->addVar(&var));
 
         // TODO: More precise logging (type, etc.)
@@ -866,27 +1215,37 @@ namespace SoftLang {
                 "; var %.*s\n",
                 var.getName()->getLength(), var.getName()->getStr());
 
-        if (expr.isVoid())
-            return false;
+        TypeSpec::Mask mask = expr.deduceType(TypeSpec::VoidMask | var.getType().getMask(), scope, prog);
 
         TRY_B(expr.compile(ofile, scope, prog));  // TODO: Expr again
 
-        fprintf(ofile,
-                "; = \n"
-                "pop ");
-        TRY_B(var.compile(ofile, scope));
-        fprintf(ofile, "\n");
+        if (mask != TypeSpec::VoidMask) {
+            fprintf(ofile,
+                    "; = \n"
+                    "pop ");
+            TRY_B(var.compile(ofile, scope));
+            fprintf(ofile, "\n");
+        }
+
+
 
         return false;
     }
 
-    bool Statement::VMIN(Expr, compile)(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog) {
-        TRY_B(expr.compile(ofile, scope, prog));  // TODO: Expr bla-bla-bla
+    bool Statement::VMIN(Expr, compile)(FILE *ofile, Scope *scope, TypeSpec, const Program *prog) {
+        TypeSpec::Mask mask = expr.deduceType(TypeSpec::AllMask, scope, prog);
 
-        fprintf(ofile, "popv\n");
+        TRY_B(expr.compile(ofile, scope, prog));  // Ambiguousness of the mask is checked inside
+
+        if (mask != TypeSpec::VoidMask) {
+            fprintf(ofile, "popv\n");
+        }
+
+        return false;
     }
 
-    bool Statement::VMIN(Empty, compile)(FILE *ofile, Scope *scope, TypeSpec rtype, const Program *prog) {
+    bool Statement::VMIN(Empty, compile)(FILE *, Scope *, TypeSpec, const Program *) {
+        return false;
     }
 
     #define DEF_TYPE(NAME) \
@@ -932,6 +1291,10 @@ namespace SoftLang {
         return false;
     }
 
+    void Function::popArg() {
+        args.pop();
+    }
+
     bool Function::makeCode(Code** out_code) {
         *out_code = &code;
 
@@ -952,6 +1315,8 @@ namespace SoftLang {
         TRY_B(code.compile(ofile, rtype, prog));
 
         fprintf(ofile, "ret  ; Force end of $%.*s\n\n", name->getLength(), name->getStr());
+
+        return false;
     }
 
     bool Function::isMain() const {
@@ -968,6 +1333,10 @@ namespace SoftLang {
 
     const Token *Function::getName() const {
         return name;
+    }
+
+    const Vector<Var> *Function::getArgs() const {
+        return &args;
     }
 
     //================================================================================
@@ -988,6 +1357,10 @@ namespace SoftLang {
         *dest = &functions[-1];
 
         return false;
+    }
+
+    void Program::popFunction() {
+        functions.pop();
     }
 
     bool Program::compile(FILE* ofile) {
