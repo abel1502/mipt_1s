@@ -1187,7 +1187,8 @@ namespace SoftLang {
                 "jt dwl:$__cond_t_%p\n"
                 "jmp dwl:$__cond_f_%p\n"
                 "; ) {\n"
-                , this, this);
+                "$__cond_t_%p:\n"
+                , this, this, this);
 
         TRY_B(code.compile(ofile, rtype, prog));
 
@@ -1371,7 +1372,7 @@ namespace SoftLang {
                 "    push dwl:4096\n"
                 "    pop dwl:rz  ; Function frame counter\n"
                 "    call dwl:$__func_main\n"  // TODO: If we decide to actually have void as zero, popv needs to be placed here
-                "    hlt\n"
+                "    end\n"
                 "\n");
 
         bool seenMain = false;

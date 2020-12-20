@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
         return 3;
     }
 
-    printf("Done.\n");
+    printf("Done.\n\n");
 
     CLEANUP_
 

@@ -8,7 +8,7 @@
 1608457954 d:\workspace\.mipt\s1\softlang\\include\\general.h
 	<new>
 
-1608467210 source:d:\workspace\.mipt\s1\softlang\source\main.cpp
+1608468039 source:d:\workspace\.mipt\s1\softlang\source\main.cpp
 	<cstdio>
 	<cstdlib>
 	<cassert>
@@ -17,7 +17,7 @@
 	"parser.h"
 	"filebuf.h"
 
-1608465027 source:d:\workspace\.mipt\s1\softlang\source\ast.cpp
+1608468007 source:d:\workspace\.mipt\s1\softlang\source\ast.cpp
 	"ast.h"
 	"exprtypes.dsl.h"
 	"exprtypes.dsl.h"
@@ -83,7 +83,7 @@
 	<cstdlib>
 	<sys/stat.h>
 
-1608467398 source:d:\workspace\.mipt\s1\softlang\source\filebuf.cpp
+1608467698 source:d:\workspace\.mipt\s1\softlang\source\filebuf.cpp
 	"filebuf.h"
 	<cassert>
 	<cctype>

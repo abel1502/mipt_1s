@@ -5,7 +5,7 @@ $main:
     push dwl:4096
     pop dwl:rz  ; Function frame counter
     call dwl:$__func_main
-    hlt
+    end
 
 
 $__func_main:
@@ -21,11 +21,11 @@ dup
 pop dwl:[rz+4]
 popv
 ; while (
-$__loop_in_0000000000a77a68:
+$__loop_in_00000000001d7ad8:
 push dwl:[rz+4]
 push dwl:55
 cg dwl:
-jt dwl:$__loop_out_0000000000a77a68
+jt dwl:$__loop_out_00000000001d7ad8
 ; ) {
 push dwl:[rz+4]
 push dwl:2
@@ -33,8 +33,8 @@ sub dwl:
 dup
 pop dwl:[rz+4]
 popv
-jmp dwl:$__loop_in_0000000000a77a68
-$__loop_out_0000000000a77a68:
+jmp dwl:$__loop_in_00000000001d7ad8
+$__loop_out_00000000001d7ad8:
 ; }
 push dwl:[rz+4]
 push dwl:7
@@ -50,13 +50,14 @@ popv
 push dwl:[rz+0]
 push dwl:10
 cg dwl:
-jt dwl:$__cond_t_0000000000a77b98
-jmp dwl:$__cond_f_0000000000a77b98
+jt dwl:$__cond_t_00000000001d7c08
+jmp dwl:$__cond_f_00000000001d7c08
 ; ) {
-jmp dwl:$__cond_end_0000000000a77b98
+$__cond_t_00000000001d7c08:
+jmp dwl:$__cond_end_00000000001d7c08
 ; } else {
-$__cond_f_0000000000a77b98:
-$__cond_end_0000000000a77b98:
+$__cond_f_00000000001d7c08:
+$__cond_end_00000000001d7c08:
 ; }
 ret
 ret  ; Force end of $main
