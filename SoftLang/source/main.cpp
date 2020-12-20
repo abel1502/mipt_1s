@@ -55,12 +55,12 @@ int main(int argc, char **argv) {
         "    a = (b + 7 - 1) / 2;\n"
         "    /* Test block comment \n"
         "    */if a > 10 {\n"
-        "        _print_int8(int8:a);\n"
+        "        //_print_int8(int8:a);\n"
         "    } else {\n"
-        "        _print_dbl(dbl:a + 0xff.ff);\n"
+        "        //_print_dbl(dbl:a + 0xff.ff);\n"
         "    }\n"
         "    \n"
-        "    _print_dbl(a + b);\n"
+        "    //_print_dbl(a + b);\n"
         "    \n"
         "    ret;"
         "}\n";
@@ -82,7 +82,32 @@ int main(int argc, char **argv) {
 
     Program prog;
 
-    printf("%s\n", parser.parse(&prog) ? "Wrong syntax" : "Correct syntax");
+    switch (parser.parse(&prog)) {
+    case Parser::ERR_PARSER_OK:
+        printf("Correct\n");
+
+        REQUIRE(!prog.compile(stdout));
+
+        break;
+
+    case Parser::ERR_PARSER_LEX:
+        printf("Syntax error (lexical)\n");
+        break;
+
+    case Parser::ERR_PARSER_SYNTAX:
+        printf("Syntax error (grammatical)\n");
+        break;
+
+    case Parser::ERR_PARSER_SYS:
+        printf("System error\n");
+        break;
+
+    default:
+        assert(false);
+        break;
+    }
+
+    printf("Done.\n");
 
     parser.dtor();
 
