@@ -1,0 +1,181 @@
+; === [ ALFC ver. NULL ] ===
+
+; Entrypoint + loader:
+$main:
+    push dwl:4096
+    pop dwl:rz  ; Function frame counter
+    call dwl:$__func_main
+    end
+
+
+$__func_solveSquare:
+pop df:[rz+16]
+pop df:[rz+8]
+pop df:[rz+0]
+; if (
+push df:[rz+0]
+push df:0
+ce df:
+jt dwl:$__cond_t_00000000006bb720
+jmp dwl:$__cond_f_00000000006bb720
+; ) {
+$__cond_t_00000000006bb720:
+push df:[rz+8]
+push df:[rz+16]
+push dwl:rz
+push dwl:24
+add dwl:
+pop dwl:rz
+call dwl:$__func_solveLinear
+push dwl:rz
+push dwl:24
+sub dwl:
+pop dwl:rz
+ret
+jmp dwl:$__cond_end_00000000006bb720
+; } else {
+$__cond_f_00000000006bb720:
+$__cond_end_00000000006bb720:
+; }
+; var det
+push df:[rz+8]
+push df:[rz+8]
+mul df:
+push df:4
+push df:[rz+0]
+mul df:
+push df:[rz+16]
+mul df:
+sub df:
+push df:0
+add df:
+dup
+pop df:[rz+24]
+i2d
+meow dwl:
+; if (
+push df:[rz+24]
+push df:0
+cl df:
+jt dwl:$__cond_t_00000000006bb8e8
+jmp dwl:$__cond_f_00000000006bb8e8
+; ) {
+$__cond_t_00000000006bb8e8:
+push dwl:0
+out dwl:
+push dwl:0
+push dwl:1
+add dwl:
+popv
+ret
+jmp dwl:$__cond_end_00000000006bb8e8
+; } else {
+$__cond_f_00000000006bb8e8:
+$__cond_end_00000000006bb8e8:
+; }
+; var sqrt_det
+push df:[rz+24]
+sqrt df:
+; = 
+pop df:[rz+32]
+; var root1
+; var root2
+push df:[rz+8]
+neg df:
+push df:[rz+32]
+sub df:
+push df:2
+div df:
+dup
+pop df:[rz+40]
+push df:[rz+32]
+add df:
+; = 
+pop df:[rz+48]
+; if (
+push df:[rz+24]
+push df:0
+ce df:
+jt dwl:$__cond_t_00000000006bbb48
+jmp dwl:$__cond_f_00000000006bbb48
+; ) {
+$__cond_t_00000000006bbb48:
+push dwl:1
+out dwl:
+push df:[rz+40]
+out df:
+jmp dwl:$__cond_end_00000000006bbb48
+; } else {
+$__cond_f_00000000006bbb48:
+push dwl:2
+out dwl:
+push df:[rz+40]
+out df:
+push df:[rz+48]
+out df:
+$__cond_end_00000000006bbb48:
+; }
+ret  ; Force end of $solveSquare
+
+
+$__func_solveLinear:
+pop df:[rz+8]
+pop df:[rz+0]
+; if (
+push df:[rz+0]
+push dwl:0
+d2i
+ce df:
+jt dwl:$__cond_t_00000000006ba560
+jmp dwl:$__cond_f_00000000006ba560
+; ) {
+$__cond_t_00000000006ba560:
+; if (
+push df:[rz+8]
+push df:0
+ce df:
+jt dwl:$__cond_t_00000000006ba6a0
+jmp dwl:$__cond_f_00000000006ba6a0
+; ) {
+$__cond_t_00000000006ba6a0:
+push df:1
+push df:0
+div df:
+out df:
+jmp dwl:$__cond_end_00000000006ba6a0
+; } else {
+$__cond_f_00000000006ba6a0:
+push dwl:0
+out dwl:
+$__cond_end_00000000006ba6a0:
+; }
+jmp dwl:$__cond_end_00000000006ba560
+; } else {
+$__cond_f_00000000006ba560:
+push dwl:1
+out dwl:
+push df:[rz+8]
+neg df:
+push df:[rz+0]
+div df:
+out df:
+$__cond_end_00000000006ba560:
+; }
+ret  ; Force end of $solveLinear
+
+
+$__func_main:
+in df:
+in df:
+in df:
+push dwl:rz
+push dwl:0
+add dwl:
+pop dwl:rz
+call dwl:$__func_solveSquare
+push dwl:rz
+push dwl:0
+sub dwl:
+pop dwl:rz
+ret  ; Force end of $main
+
