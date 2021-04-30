@@ -8,7 +8,7 @@ Format, .aaf). When paired with the corresponding assembler and soft processor
 ## Key features
  - Multi-type support (double as dbl, int as int4, long long as int8)
  - Arithmetic operations
- - Local variables
+ - Local variables with scopes
  - Functions with recursion
  - Loops and conditionals
  - Comparisons
