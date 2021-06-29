@@ -14,31 +14,31 @@ pop dwl:[rz+0]
 push dwl:[rz+0]
 push dwl:0
 cle dwl:
-jt dwl:$__cond_t_0000000000788a40
-jmp dwl:$__cond_f_0000000000788a40
+jt dwl:$__cond_t_00000000001e8a60
+jmp dwl:$__cond_f_00000000001e8a60
 ; ) {
-$__cond_t_0000000000788a40:
+$__cond_t_00000000001e8a60:
 push dwl:0
 ret
-jmp dwl:$__cond_end_0000000000788a40
+jmp dwl:$__cond_end_00000000001e8a60
 ; } else {
-$__cond_f_0000000000788a40:
+$__cond_f_00000000001e8a60:
 ; if (
 push dwl:[rz+0]
 push dwl:1
 ce dwl:
-jt dwl:$__cond_t_0000000000781c30
-jmp dwl:$__cond_f_0000000000781c30
+jt dwl:$__cond_t_00000000001e1c20
+jmp dwl:$__cond_f_00000000001e1c20
 ; ) {
-$__cond_t_0000000000781c30:
+$__cond_t_00000000001e1c20:
 push dwl:1
 ret
-jmp dwl:$__cond_end_0000000000781c30
+jmp dwl:$__cond_end_00000000001e1c20
 ; } else {
-$__cond_f_0000000000781c30:
-$__cond_end_0000000000781c30:
+$__cond_f_00000000001e1c20:
+$__cond_end_00000000001e1c20:
 ; }
-$__cond_end_0000000000788a40:
+$__cond_end_00000000001e8a60:
 ; }
 push dwl:[rz+0]
 push dwl:1
@@ -71,7 +71,7 @@ ret  ; Force end of $fib
 
 $__func_main:
 ; var max
-in dwl:
+push dwl:30
 ; = 
 pop dwl:[rz+0]
 ; var i
@@ -79,11 +79,11 @@ push dwl:0
 ; = 
 pop dwl:[rz+4]
 ; while (
-$__loop_in_000000000078a1e0:
+$__loop_in_00000000001e93c0:
 push dwl:[rz+4]
 push dwl:[rz+0]
 cle dwl:
-jf dwl:$__loop_out_000000000078a1e0
+jf dwl:$__loop_out_00000000001e93c0
 ; ) {
 push dwl:[rz+4]
 push dwl:rz
@@ -95,17 +95,15 @@ push dwl:rz
 push dwl:8
 sub dwl:
 pop dwl:rz
-out dwl:
-push dwl:[rz+4]
-meow dwl:
+popv
 push dwl:[rz+4]
 push dwl:1
 add dwl:
 dup
 pop dwl:[rz+4]
 popv
-jmp dwl:$__loop_in_000000000078a1e0
-$__loop_out_000000000078a1e0:
+jmp dwl:$__loop_in_00000000001e93c0
+$__loop_out_00000000001e93c0:
 ; }
 ret
 ret  ; Force end of $main

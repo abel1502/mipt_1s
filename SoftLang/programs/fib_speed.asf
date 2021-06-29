@@ -1,0 +1,31 @@
+/* 
+	Calculates Fibonacci numbers
+	8512,1436 miliseconds
+*/
+
+
+def int4:fib(int4:n) {
+	if n <= 0 {
+		ret 0;
+	} else { 
+		if n == 1 {
+			ret 1;
+		}
+	}
+	
+	ret fib(n - 1) + fib(n - 2);
+}
+
+
+def main() {
+	var int4:max = 30;//_read_int4();
+	var int4:i = 0;
+	
+	while i <= max {
+		fib(i);
+		
+		i += 1;
+	}
+	
+	ret;
+}
